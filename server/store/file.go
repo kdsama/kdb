@@ -3,8 +3,15 @@ package store
 import (
 	"bufio"
 	"io/ioutil"
+	"log"
 	"os"
 	"path/filepath"
+	"sync"
+)
+
+var (
+	wg   = sync.WaitGroup{}
+	lock = sync.Mutex{}
 )
 
 func WriteFileWithDirectories(fp string, data []byte) error {
@@ -104,4 +111,23 @@ func GetLastLineDataOfFile(filepath string) ([]byte, error) {
 	}
 
 	return lastLineData, nil
+}
+
+func GetAllFilesInDirectory(root string, string_arr []string) {
+
+	files, err := ioutil.ReadDir(root)
+	if err != nil {
+		log.Fatal(1)
+	}
+	for _, file := range files {
+		if file.IsDir() {
+			wg.Add(1)
+			go GetAllFilesInDirectory(filepath.Join(root, file.Name()), string_arr)
+		} else {
+			lock.Lock()
+			string_arr = append(string_arr, filepath.Join(root, file.Name()))
+			lock.Unlock()
+		}
+	}
+	wg.Done()
 }
