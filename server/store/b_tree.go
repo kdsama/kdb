@@ -9,13 +9,7 @@ import (
 type Key string
 
 func (kv Key) Less(than btree.Item) bool {
-	if kv < than.(Key) {
-		return true
-	} else if kv < than.(Key) {
-		return false
-	}
-	return false
-
+	return kv < than.(Key)
 }
 
 type BTree interface {
@@ -40,11 +34,19 @@ func (bt *GoogleBTree) addKeyString(key string) bool {
 func (bt *GoogleBTree) getKeysFromPrefix(prefix string) []string {
 	matching_keys := []string{}
 	bt.tree.AscendGreaterOrEqual(Key(prefix), func(item btree.Item) bool {
-		if strings.Contains(string(item.(Key)), prefix) {
+		if strings.HasPrefix(string(item.(Key)), prefix) {
 			matching_keys = append(matching_keys, string(item.(Key)))
 			return true
 		}
 		return false
 	})
 	return matching_keys
+}
+
+func (bt *GoogleBTree) getKeyString(key string) (string, bool) {
+	val := bt.tree.Get(Key(key))
+	if val != nil {
+		return string(val.(Key)), true
+	}
+	return "", false
 }
