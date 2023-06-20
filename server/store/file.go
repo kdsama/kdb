@@ -2,6 +2,7 @@ package store
 
 import (
 	"bufio"
+	"io/fs"
 	"io/ioutil"
 	"log"
 	"os"
@@ -14,7 +15,14 @@ var (
 	lock = sync.Mutex{}
 )
 
-func WriteFileWithDirectories(fp string, data []byte) error {
+type fileService struct {
+}
+
+func NewFileService() *fileService {
+	return &fileService{}
+}
+
+func (fsv *fileService) WriteFileWithDirectories(fp string, data []byte) error {
 	dir := filepath.Dir(fp)
 
 	// Create directories recursively if they don't exist
@@ -32,7 +40,7 @@ func WriteFileWithDirectories(fp string, data []byte) error {
 	return nil
 }
 
-func ReadLatestFromFile(filepath string) (string, error) {
+func (fsv *fileService) ReadLatestFromFile(filepath string) (string, error) {
 	file, err := os.Open(filepath)
 	if err != nil {
 		return "", err
@@ -53,7 +61,7 @@ func ReadLatestFromFile(filepath string) (string, error) {
 	return lastEntry, nil
 }
 
-func TruncateFile(filepath string, linesToRemove int) error {
+func (fsv *fileService) TruncateFile(filepath string, linesToRemove int) error {
 	file, err := os.OpenFile(filepath, os.O_RDWR, 0644)
 	if err != nil {
 		return err
@@ -92,7 +100,7 @@ func TruncateFile(filepath string, linesToRemove int) error {
 	return nil
 }
 
-func GetLastLineDataOfFile(filepath string) ([]byte, error) {
+func (fsv *fileService) ReadLatestFromFileInBytes(filepath string) ([]byte, error) {
 	file, err := os.Open(filepath)
 	if err != nil {
 		return nil, err
@@ -113,21 +121,30 @@ func GetLastLineDataOfFile(filepath string) ([]byte, error) {
 	return lastLineData, nil
 }
 
-func GetAllFilesInDirectory(root string, string_arr []string) {
-
+func (fsv *fileService) GetAllFilesInDirectory(root string, string_arr *[]string) {
+	wg := sync.WaitGroup{}
 	files, err := ioutil.ReadDir(root)
 	if err != nil {
 		log.Fatal(1)
 	}
 	for _, file := range files {
+
 		if file.IsDir() {
 			wg.Add(1)
-			go GetAllFilesInDirectory(filepath.Join(root, file.Name()), string_arr)
+
+			go func(file fs.FileInfo) {
+				defer wg.Done()
+
+				fsv.GetAllFilesInDirectory(filepath.Join(root, file.Name()), string_arr)
+			}(file)
+
 		} else {
 			lock.Lock()
-			string_arr = append(string_arr, filepath.Join(root, file.Name()))
+			(*string_arr) = append((*string_arr), filepath.Join(root, file.Name()))
 			lock.Unlock()
 		}
 	}
-	wg.Done()
+
+	wg.Wait()
+
 }

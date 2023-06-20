@@ -9,6 +9,7 @@ import (
 )
 
 type WAL struct {
+	fs     fileService
 	prefix string
 	mut    sync.Mutex
 	wg     sync.WaitGroup
@@ -43,7 +44,7 @@ func (w *WAL) Add(node Node) error {
 // There is no need for update . Update means we are saving a new byte array to the file
 func (w *WAL) Save(key string, buffer *bytes.Buffer) error {
 	w.mut.Lock()
-	err := WriteFileWithDirectories(key, buffer.Bytes())
+	err := w.fs.WriteFileWithDirectories(key, buffer.Bytes())
 	w.mut.Unlock()
 	return err
 }
@@ -57,7 +58,7 @@ func (w *WAL) GetNodeFromKey(key string) (Node, error) {
 
 func (w *WAL) GetNode(dir string) (Node, error) {
 	var n Node
-	node_in_bytes, err := GetLastLineDataOfFile(dir)
+	node_in_bytes, err := w.fs.ReadLatestFromFileInBytes(dir)
 	if err != nil {
 
 		return Node{}, err
@@ -89,7 +90,7 @@ func (w *WAL) GetNodesInParallel(buffered_channel chan string) {
 func (w *WAL) GetALLNodes() {
 
 	node_filedirs := []string{}
-	GetAllFilesInDirectory(w.prefix, node_filedirs)
+	w.fs.GetAllFilesInDirectory(w.prefix, &node_filedirs)
 	if len(node_filedirs) == 0 {
 		log.Println("No data found")
 		// panic here ?

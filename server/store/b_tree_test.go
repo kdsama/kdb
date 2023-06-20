@@ -176,6 +176,7 @@ func TestGetKeysFromPrefix(t *testing.T) {
 	for i := range Testing_Keys {
 		btree.addKeyString(Testing_Keys[i])
 	}
+
 	type prefixKeyStruct struct {
 		prefix string
 		want   []string
