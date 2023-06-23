@@ -2,6 +2,7 @@ package store
 
 import (
 	"bufio"
+	"fmt"
 	"io/fs"
 	"io/ioutil"
 	"log"
@@ -22,6 +23,7 @@ func NewFileService() *fileService {
 	return &fileService{}
 }
 
+// Write a file. Will create directory  if not present
 func (fsv *fileService) WriteFileWithDirectories(fp string, data []byte) error {
 	dir := filepath.Dir(fp)
 
@@ -32,14 +34,19 @@ func (fsv *fileService) WriteFileWithDirectories(fp string, data []byte) error {
 	}
 
 	// Write file using ioutil.WriteFile
-	err = ioutil.WriteFile(fp, data, 0644)
+	file, err := os.OpenFile(fp, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0644)
 	if err != nil {
 		return err
 	}
+	defer file.Close()
+	lock.Lock()
+	_, err = fmt.Fprintln(file, string(data))
+	lock.Unlock()
+	return err
 
-	return nil
 }
 
+// Returns Last line from the file.
 func (fsv *fileService) ReadLatestFromFile(filepath string) (string, error) {
 	file, err := os.Open(filepath)
 	if err != nil {
@@ -61,6 +68,8 @@ func (fsv *fileService) ReadLatestFromFile(filepath string) (string, error) {
 	return lastEntry, nil
 }
 
+// secondary function . Dont need to test it now . Can work on it in future iterations
+// remove the comment once test cases are completed
 func (fsv *fileService) TruncateFile(filepath string, linesToRemove int) error {
 	file, err := os.OpenFile(filepath, os.O_RDWR, 0644)
 	if err != nil {
