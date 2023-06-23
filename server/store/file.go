@@ -2,6 +2,7 @@ package store
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"io/fs"
 	"io/ioutil"
@@ -14,6 +15,9 @@ import (
 var (
 	wg   = sync.WaitGroup{}
 	lock = sync.Mutex{}
+)
+var (
+	err_NoFilesInDirectory = errors.New("no files are present in the directory")
 )
 
 type fileService struct {
@@ -130,6 +134,67 @@ func (fsv *fileService) ReadLatestFromFileInBytes(filepath string) ([]byte, erro
 	return lastLineData, nil
 }
 
+// ReadAllDataFromAFile
+// return file data in bytes
+func (fsv *fileService) ReadAllDataFromAFile(filepath string) ([]byte, error) {
+	return os.ReadFile(filepath)
+
+}
+
+// ReadAllDataFromAFileString
+// same as ReadAllDataFromAFile . Just returns the values in string
+func (fsv *fileService) ReadAllDataFromAFileString(filepath string) (string, error) {
+	data, err := os.ReadFile(filepath)
+	if err != nil {
+		return "", err
+	}
+	return string(data), nil
+
+}
+
+// The length of bytes array .
+// The value can be different, depending upon the operating system
+func (fsv *fileService) GetFileSize(filepath string) (int64, error) {
+	// below code cannot be used if we have TOCTOU  or time-of-check to time-of-use race condition
+	// we use lock here so that when someone is checking the stat of the particular file , it cannot be modified .
+	//
+	lock.Lock()
+	fileinfo, err := os.Stat(filepath)
+	lock.Unlock()
+	if err != nil {
+		return int64(0), err
+	}
+
+	return fileinfo.Size(), nil
+}
+
+// This function will return the latest file in the wal directory, which is meant to be used for appending data
+func (fsv *fileService) GetLatestFile(directorypath string) (string, error) {
+
+	files, err := os.ReadDir(directorypath)
+	if err != nil {
+		return "", err
+	}
+	if len(files) == 0 {
+		return "", err_NoFilesInDirectory
+	}
+	var chosenFile fs.FileInfo
+	for _, file := range files {
+		inf, err := file.Info()
+		if err != nil {
+			return "", err
+		}
+		if inf.Name() > chosenFile.Name() {
+			chosenFile = inf
+		}
+
+	}
+	if chosenFile.IsDir() {
+		return fsv.GetLatestFile(directorypath + "/" + chosenFile.Name())
+	}
+	// if one is a subdirectory , then all of them should be a subdirectory as well
+	return chosenFile.Name(), nil
+}
 func (fsv *fileService) GetAllFilesInDirectory(root string, string_arr *[]string) {
 	wg := sync.WaitGroup{}
 	files, err := ioutil.ReadDir(root)

@@ -39,12 +39,18 @@ func NewPersistance(prefix string) *Persistance {
 
 func (p *Persistance) Add(node Node) error {
 
+	// need to make sure that the node is persistanceready
+	buffer, node := serializeNode(node)
+	return p.Save(node.key, buffer)
+}
+
+func serializeNode(node Node) (*bytes.Buffer, Node) {
 	buffer := bytes.NewBuffer([]byte{})
 	enc := gob.NewEncoder(buffer)
-	// need to make sure that the node is persistanceready
+
 	node = node.persistanceReady()
 	enc.Encode(node)
-	return p.Save(node.key, buffer)
+	return buffer, node
 }
 
 // There is no need for update . Update means we are saving a new byte array to the file
