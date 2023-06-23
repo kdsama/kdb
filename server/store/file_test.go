@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"sync"
 	"testing"
+	"time"
 )
 
 func TestFileService(t *testing.T) {
@@ -151,4 +152,71 @@ func TestGetAllFilesInDirectory(t *testing.T) {
 		}
 	}
 
+}
+
+func TestGetLatestFile(t *testing.T) {
+
+	t.Run("Testing with No Sub-Directories", func(t *testing.T) {
+		// Test Data
+		a := "../../data/mkdirTesting"
+
+		c := "/testing_Data.txt"
+		txt := "Random Data"
+		num_of_files := 20
+
+		fs := NewFileService()
+		for i := 0; i < num_of_files; i++ {
+
+			f2 := a + c + fmt.Sprint(i)
+			// note : we tried here to compare time of modification, but it almost the same.
+			// for all the files. Although We dont expect the same.
+			// each wal file wont be created at the same time .
+			// so we will put a sleep timer between writing files to directories
+
+			time.Sleep(10 * time.Millisecond)
+			fs.WriteFileWithDirectories(f2, []byte(txt))
+		}
+		want := a + c + fmt.Sprint(19)
+
+		got, err := fs.GetLatestFile(a)
+		if err != nil {
+			t.Error("Expected no error but got one ::::", err)
+		}
+		if want != got {
+			t.Errorf("Wanted %v but got %v", want, got)
+		}
+		os.RemoveAll("../../data/mkdirTesting")
+	})
+
+	t.Run("Testing with  Sub-Directories", func(t *testing.T) {
+		// Test Data
+		a := "../../data/mkdirTesting"
+		b := "/testing"
+		c := "/testing_Data.txt"
+		txt := "Random Data"
+		num_of_files := 20
+
+		fs := NewFileService()
+		for i := 0; i < num_of_files; i++ {
+
+			f2 := a + b + fmt.Sprint(i) + c
+			// note : we tried here to compare time of modification, but it almost the same.
+			// for all the files. Although We dont expect the same.
+			// each wal file wont be created at the same time .
+			// so we will put a sleep timer between writing files to directories
+
+			time.Sleep(10 * time.Millisecond)
+			fs.WriteFileWithDirectories(f2, []byte(txt))
+		}
+		want := a + b + fmt.Sprint(19) + c
+
+		got, err := fs.GetLatestFile(a)
+		if err != nil {
+			t.Error("Expected no error but got one ::::", err)
+		}
+		if want != got {
+			t.Errorf("Wanted %v but got %v", want, got)
+		}
+	})
+	os.RemoveAll("../../data/mkdirTesting")
 }

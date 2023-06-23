@@ -178,22 +178,28 @@ func (fsv *fileService) GetLatestFile(directorypath string) (string, error) {
 	if len(files) == 0 {
 		return "", err_NoFilesInDirectory
 	}
-	var chosenFile fs.FileInfo
+	chosenFile, err := files[0].Info()
+	if err != nil {
+		return "", err
+	}
 	for _, file := range files {
 		inf, err := file.Info()
 		if err != nil {
 			return "", err
 		}
-		if inf.Name() > chosenFile.Name() {
+		fmt.Println("File Name ::", filepath.Join(directorypath, inf.Name()))
+		if inf.ModTime().UnixMicro() > chosenFile.ModTime().UnixMicro() {
 			chosenFile = inf
 		}
 
 	}
+	// ff := filepath.Join(directorypath, chosenFile.Name())
+	// fmt.Println("??????????????????????", ff)
 	if chosenFile.IsDir() {
-		return fsv.GetLatestFile(directorypath + "/" + chosenFile.Name())
+		return fsv.GetLatestFile(filepath.Join(directorypath, chosenFile.Name()))
 	}
 	// if one is a subdirectory , then all of them should be a subdirectory as well
-	return chosenFile.Name(), nil
+	return filepath.Join(directorypath, chosenFile.Name()), nil
 }
 func (fsv *fileService) GetAllFilesInDirectory(root string, string_arr *[]string) {
 	wg := sync.WaitGroup{}
