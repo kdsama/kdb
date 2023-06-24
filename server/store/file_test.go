@@ -154,6 +154,7 @@ func TestGetAllFilesInDirectory(t *testing.T) {
 
 }
 
+// GetLatestFile doesnot require  benchmarking
 func TestGetLatestFile(t *testing.T) {
 
 	t.Run("Testing with No Sub-Directories", func(t *testing.T) {
@@ -188,7 +189,7 @@ func TestGetLatestFile(t *testing.T) {
 		os.RemoveAll("../../data/mkdirTesting")
 	})
 
-	t.Run("Testing with  Sub-Directories", func(t *testing.T) {
+	t.Run("Testing with Sub-Directories", func(t *testing.T) {
 		// Test Data
 		a := "../../data/mkdirTesting"
 		b := "/testing"
@@ -219,4 +220,79 @@ func TestGetLatestFile(t *testing.T) {
 		}
 	})
 	os.RemoveAll("../../data/mkdirTesting")
+}
+
+// This should have benchmarking
+func TestGetFileSize(t *testing.T) {
+
+	t.Run("Testing FileSize for File that is not present", func(t *testing.T) {
+
+		a := "../../data/mkdirTesting"
+		b := "/testing"
+		c := "/testing_Data.txt"
+		fs := NewFileService()
+		num_of_lines := 10
+		content := "This is the content . 5 times this content's bytes length should be the response"
+		for i := 0; i < num_of_lines; i++ {
+			fs.WriteFileWithDirectories(a+b+c, []byte(content))
+		}
+		// It will also include linebreaks hence , we are adding num_of_lines as well
+		want := int64(len([]byte(content))*6 + num_of_lines)
+		got, err := fs.GetFileSize(a + b + c)
+
+		if err != nil {
+			t.Errorf("Did not expect an error here but got ")
+		}
+		if want != got {
+			t.Errorf("Wanted %v but got %v", want, got)
+		}
+		os.RemoveAll(a)
+	})
+
+	t.Run("Testing FileSize for File is present", func(t *testing.T) {
+
+		filepath := "../data/mkdirTesting/NotPresent"
+		fs := NewFileService()
+		_, err := fs.GetFileSize(filepath)
+		t.Log(err)
+		if err == nil {
+			t.Error("Expected error but got nil ", err)
+		}
+
+	})
+
+}
+
+func BenchmarkGetFileSize(b *testing.B) {
+
+	// we need to recreate the scenario where multiple Gets are happening for a single file
+	// In Integration test we will benchmark the scenario for read + write in WAL file .
+	// So multiple files will be gettnig the size of wal and then writing to the wal.
+	// we also know that it wont' be like the situation where we need concurrent access to
+	// read file size for different files as one file will be active at a time.
+	b.Run("Multi Access to the same file", func(b *testing.B) {
+		a := "../../data/mkdirTesting"
+
+		c := "/testing_Data.txt"
+		fs := NewFileService()
+		num_of_lines := 10
+		content := "This is the content . 5 times this content's bytes length should be the response"
+		for i := 0; i < num_of_lines; i++ {
+			fs.WriteFileWithDirectories(a+c, []byte(content))
+		}
+
+		want := int64(len([]byte(content))*num_of_lines + num_of_lines)
+		for i := 0; i < b.N; i++ {
+			got, err := fs.GetFileSize(a + c)
+			if err != nil {
+				b.Errorf("Did not expect an error here but got ")
+			}
+			if want != got {
+				b.Errorf("Wanted %v but got %v", want, got)
+			}
+		}
+		os.RemoveAll(a)
+
+	})
+
 }

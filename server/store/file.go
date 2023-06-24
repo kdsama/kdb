@@ -187,7 +187,7 @@ func (fsv *fileService) GetLatestFile(directorypath string) (string, error) {
 		if err != nil {
 			return "", err
 		}
-		fmt.Println("File Name ::", filepath.Join(directorypath, inf.Name()))
+
 		if inf.ModTime().UnixMicro() > chosenFile.ModTime().UnixMicro() {
 			chosenFile = inf
 		}
