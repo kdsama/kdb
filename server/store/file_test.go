@@ -296,3 +296,83 @@ func BenchmarkGetFileSize(b *testing.B) {
 	})
 
 }
+
+func TestReadAllDataFromAFileString(t *testing.T) {
+
+	t.Run("Read from a file that does not exist", func(t *testing.T) {
+
+		filepath := "../data/mkdirTesting/NotPresent"
+		fs := NewFileService()
+		_, err := fs.ReadAllDataFromAFileString(filepath)
+		t.Log(err)
+		if err == nil {
+			t.Error("Expected error but got nil ", err)
+		}
+	})
+
+	t.Run("Read from a file ", func(t *testing.T) {
+
+		a := "../../data/mkdirTesting"
+		b := "/testing"
+		c := "/testing_Data.txt"
+		fs := NewFileService()
+		num_of_lines := 10
+		content := "This is the content . 5 times this content's bytes length should be the response"
+		var want string
+		for i := 0; i < num_of_lines; i++ {
+			fs.WriteFileWithDirectories(a+b+c, []byte(content))
+			want = want + content + "\n"
+		}
+		// It will also include linebreaks hence , we are adding num_of_lines as well
+		got, err := fs.ReadAllDataFromAFileString(a + b + c)
+		if err != nil {
+			t.Error("Didnot expect an error but got ", err)
+		}
+		if want != got {
+			t.Errorf("Wanted %v , but got \n%v", want, got)
+		}
+		os.RemoveAll(a)
+	})
+
+}
+
+func TestReadAllDataFromAFile(t *testing.T) {
+
+	t.Run("Read from a file that does not exist", func(t *testing.T) {
+
+		filepath := "../data/mkdirTesting/NotPresent"
+		fs := NewFileService()
+		_, err := fs.ReadAllDataFromAFile(filepath)
+		t.Log(err)
+		if err == nil {
+			t.Error("Expected error but got nil ", err)
+		}
+	})
+
+	t.Run("Read from a file ", func(t *testing.T) {
+
+		a := "../../data/mkdirTesting"
+		b := "/testing"
+		c := "/testing_Data.txt"
+		fs := NewFileService()
+		num_of_lines := 10
+		content := "This is the content . 5 times this content's bytes length should be the response"
+		var want string
+		for i := 0; i < num_of_lines; i++ {
+			fs.WriteFileWithDirectories(a+b+c, []byte(content))
+			want = want + content + "\n"
+		}
+		// It will also include linebreaks hence , we are adding num_of_lines as well
+		got, err := fs.ReadAllDataFromAFile(a + b + c)
+		if err != nil {
+			t.Error("Didnot expect an error but got ", err)
+		}
+		// want = string(want)
+
+		if want != string(got) {
+			t.Errorf("Wanted %v , but got \n%v", want, got)
+		}
+		os.RemoveAll(a)
+	})
+
+}
