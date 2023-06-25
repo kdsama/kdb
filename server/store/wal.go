@@ -1,5 +1,11 @@
 package store
 
+import (
+	"fmt"
+	"sync"
+	"sync/atomic"
+)
+
 /* Key: The key represents the unique identifier or name associated with the data being stored. It is used to retrieve or reference the data in the database.
 
 Value: The value corresponds to the actual data that is being stored or persisted in the database.
@@ -13,8 +19,8 @@ Operation Type: The operation type indicates the nature of the operation being p
 Common operation types include "create" (inserting a new key-value pair),
 "update" (modifying an existing key-value pair), or "delete" (removing a key-value pair).
 
-Transaction ID or Sequence Number: To ensure atomicity and consistency,
-WAL entries often include a transaction ID or a sequence number.
+Transoperation ID or Sequence Number: To ensure atomicity and consistency,
+WAL entries often include a transoperation ID or a sequence number.
 This identifier helps in tracking the order of operations
 and ensuring that changes are applied in the correct sequence during recovery or replication scenarios.
 
@@ -27,11 +33,48 @@ These can provide information for handling durability, replication, or other spe
 // lampost timestamp , I can write about it in the documentation as well - Use atomic operation for increment of this
 // key
 // value
-// action
+// operation
 // metadata - What is the information that we should put in metadata.
 // we can focus on this metadata when we start with the consensus algorithm
+// we will have a separate struct for WAL Log ?
 
-// for this we would need to add further file operations ?
-// checkFileSize ?
-// setToFile is already there .
-// getAllDataOfFile
+type WAL struct {
+	prefix  string
+	counter int64
+	lock    sync.Mutex
+	fs      fileService
+}
+
+var (
+	wal_buffer = [][]byte{}
+)
+
+var counter = 1
+
+func NewWAL(prefix string, fs fileService) *WAL {
+	counter := getLatestCounter()
+
+	return &WAL{prefix, counter, sync.Mutex{}, fs}
+}
+
+func getLatestCounter() int64 {
+	return int64(counter)
+}
+
+// atomic incrementing the counter
+func (w *WAL) IncrementCounter() int64 {
+	atomic.AddInt64(&w.counter, 1)
+	return w.counter
+}
+
+func (w *WAL) addEntry(node Node, operation string) error {
+	newCounter := w.IncrementCounter()
+	txnID := w.prefix + fmt.Sprint(newCounter)
+	walEntry := NewWalEntry(&node, operation, txnID)
+	toAppendData, err := walEntry.serialize()
+	if err != nil {
+		return err
+	}
+	wal_buffer = append(wal_buffer, toAppendData)
+	return nil
+}
