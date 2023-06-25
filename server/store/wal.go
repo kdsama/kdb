@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"sync"
 	"sync/atomic"
+	"time"
 )
 
 /* Key: The key represents the unique identifier or name associated with the data being stored. It is used to retrieve or reference the data in the database.
@@ -39,26 +40,44 @@ These can provide information for handling durability, replication, or other spe
 // we will have a separate struct for WAL Log ?
 
 type WAL struct {
-	prefix  string
-	counter int64
-	lock    sync.Mutex
-	fs      fileService
+	prefix       string
+	counter      int64
+	file_counter int64
+	lock         sync.Mutex
+	fs           fileService
+	ticker       time.Ticker
 }
 
 var (
-	wal_buffer = [][]byte{}
+	wal_buffer = []byte{}
 )
 
-var counter = 1
+const (
+	MAX_BUFFER_SIZE = 1000
+)
 
-func NewWAL(prefix string, fs fileService) *WAL {
+var (
+	counter      = 1
+	file_counter = 1
+)
+
+func NewWAL(prefix string, fs fileService, duration int) *WAL {
 	counter := getLatestCounter()
+	fi := getLatestFileCounter()
+	t := time.Duration(duration) * time.Second
+	ticker := *time.NewTicker(t)
+	wal := &WAL{prefix, counter, fi, sync.Mutex{}, fs, ticker}
 
-	return &WAL{prefix, counter, sync.Mutex{}, fs}
+	go (*wal).Schedule()
+	return wal
 }
 
 func getLatestCounter() int64 {
 	return int64(counter)
+}
+
+func getLatestFileCounter() int64 {
+	return int64(file_counter)
 }
 
 // atomic incrementing the counter
@@ -67,14 +86,44 @@ func (w *WAL) IncrementCounter() int64 {
 	return w.counter
 }
 
+// atomic incrementing the counter
+func (w *WAL) IncrementFileCounter() int64 {
+	atomic.AddInt64(&w.file_counter, 1)
+	return w.file_counter
+}
+
 func (w *WAL) addEntry(node Node, operation string) error {
 	newCounter := w.IncrementCounter()
 	txnID := w.prefix + fmt.Sprint(newCounter)
 	walEntry := NewWalEntry(&node, operation, txnID)
 	toAppendData, err := walEntry.serialize()
+	toAppendData = append(toAppendData, byte('\n'))
 	if err != nil {
 		return err
 	}
-	wal_buffer = append(wal_buffer, toAppendData)
+	wal_buffer = append(wal_buffer, toAppendData...)
 	return nil
+}
+
+func (w *WAL) Schedule() bool {
+
+	for {
+		select {
+		case <-w.ticker.C:
+			{
+				w.BufferUpdate()
+			}
+		}
+	}
+
+}
+func (w *WAL) BufferUpdate() {
+	len := len(wal_buffer)
+	if len > MAX_BUFFER_SIZE {
+		w.IncrementFileCounter()
+		w.fs.WriteFileWithDirectories(w.prefix+":"+fmt.Sprint(w.file_counter)+".wal", wal_buffer)
+		w.lock.Lock()
+		wal_buffer = []byte{}
+		w.lock.Unlock()
+	}
 }
