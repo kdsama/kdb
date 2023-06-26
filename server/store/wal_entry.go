@@ -36,3 +36,7 @@ func (we *WalEntry) serialize() ([]byte, error) {
 	}
 	return arr, nil
 }
+
+func (we *WalEntry) deserialize(data []byte) (*Node, error) {
+
+}

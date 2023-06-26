@@ -41,6 +41,7 @@ These can provide information for handling durability, replication, or other spe
 
 type WAL struct {
 	prefix       string
+	directory    string
 	counter      int64
 	file_counter int64
 	lock         sync.Mutex
@@ -61,15 +62,15 @@ var (
 	file_counter = 1
 )
 
-func NewWAL(prefix string, fs fileService, duration int) *WAL {
+func NewWAL(prefix, directory string, fs fileService, duration int) *WAL {
 	counter := getLatestCounter()
 	fi := getLatestFileCounter()
 	t := time.Duration(duration) * time.Second
 	ticker := *time.NewTicker(t)
-	wal := &WAL{prefix, counter, fi, sync.Mutex{}, fs, ticker}
+	wal := WAL{prefix, directory, counter, fi, sync.Mutex{}, fs, ticker}
 
-	go (*wal).Schedule()
-	return wal
+	go wal.Schedule()
+	return &wal
 }
 
 func getLatestCounter() int64 {
