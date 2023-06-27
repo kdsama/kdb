@@ -112,6 +112,7 @@ func (w *WAL) Schedule() bool {
 		select {
 		case <-w.ticker.C:
 			{
+				fmt.Println("Are we coming here at all ???? ")
 				w.BufferUpdate()
 			}
 		}
@@ -120,11 +121,22 @@ func (w *WAL) Schedule() bool {
 }
 func (w *WAL) BufferUpdate() {
 	len := len(wal_buffer)
+
 	if len > MAX_BUFFER_SIZE {
 		w.IncrementFileCounter()
-		w.fs.WriteFileWithDirectories(w.prefix+":"+fmt.Sprint(w.file_counter)+".wal", wal_buffer)
-		w.lock.Lock()
-		wal_buffer = []byte{}
-		w.lock.Unlock()
 	}
+
+	w.fs.WriteFileWithDirectories(w.directory+w.prefix+"-"+fmt.Sprint(w.file_counter)+".wal", wal_buffer)
+
+	w.flushall()
+}
+
+func (w *WAL) flushall() {
+	w.lock.Lock()
+	wal_buffer = []byte{}
+	w.lock.Unlock()
+}
+
+func (w *WAL) checkSize() int {
+	return len(wal_buffer)
 }

@@ -26,6 +26,13 @@ func (we *WalEntry) serialize() ([]byte, error) {
 	return arr, nil
 }
 
-// func (we *WalEntry) deserialize(data []byte) (*Node, error) {
+// static method for WalEntry
+// dont need to initiate the object to have access to it. But still placed in the same struct file
+func deserialize(data []byte) (*WalEntry, error) {
+	var obj WalEntry
+	if err := json.Unmarshal(data, &obj); err != nil {
+		return &WalEntry{}, err
 
-// }
+	}
+	return &obj, nil
+}
