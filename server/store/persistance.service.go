@@ -41,7 +41,7 @@ func (p *Persistance) Add(node Node) error {
 
 	// need to make sure that the node is persistanceready
 	buffer, node := serializeNode(node)
-	return p.Save(node.key, buffer)
+	return p.Save(node.Key, buffer)
 }
 
 func serializeNode(node Node) (*bytes.Buffer, Node) {

@@ -225,9 +225,9 @@ func TestGetLatestFile(t *testing.T) {
 // This should have benchmarking
 func TestGetFileSize(t *testing.T) {
 
-	t.Run("Testing FileSize for File that is not present", func(t *testing.T) {
+	t.Run("Testing FileSize for File that is present", func(t *testing.T) {
 
-		a := "../../data/mkdirTesting"
+		a := prefix
 		b := "/testing"
 		c := "/testing_Data.txt"
 		fs := NewFileService()
@@ -237,7 +237,7 @@ func TestGetFileSize(t *testing.T) {
 			fs.WriteFileWithDirectories(a+b+c, []byte(content))
 		}
 		// It will also include linebreaks hence , we are adding num_of_lines as well
-		want := int64(len([]byte(content))*6 + num_of_lines)
+		want := int64(len([]byte(content))*num_of_lines + num_of_lines)
 		got, err := fs.GetFileSize(a + b + c)
 
 		if err != nil {
@@ -249,7 +249,7 @@ func TestGetFileSize(t *testing.T) {
 		os.RemoveAll(a)
 	})
 
-	t.Run("Testing FileSize for File is present", func(t *testing.T) {
+	t.Run("Testing FileSize for File is not present", func(t *testing.T) {
 
 		filepath := "../data/mkdirTesting/NotPresent"
 		fs := NewFileService()
@@ -271,7 +271,7 @@ func BenchmarkGetFileSize(b *testing.B) {
 	// we also know that it wont' be like the situation where we need concurrent access to
 	// read file size for different files as one file will be active at a time.
 	b.Run("Multi Access to the same file", func(b *testing.B) {
-		a := "../../data/mkdirTesting"
+		a := prefix
 
 		c := "/testing_Data.txt"
 		fs := NewFileService()

@@ -5,9 +5,9 @@ import (
 )
 
 type WalEntry struct {
-	node      *Node
-	operation string
-	txnID     string
+	Node      *Node  `json:"node"`
+	Operation string `json:"operation"`
+	TxnID     string `json:"txnID"`
 }
 
 func NewWalEntry(node *Node, operation string, txnID string) *WalEntry {
@@ -16,20 +16,9 @@ func NewWalEntry(node *Node, operation string, txnID string) *WalEntry {
 }
 
 func (we *WalEntry) serialize() ([]byte, error) {
-	type JsonNode struct {
-		Key       string `json:"key"`
-		Value     string `json:"value"`
-		Version   int8   `json:"version"`
-		Deleted   bool   `json:"deleted"`
-		Timestamp int64  `json:"timestamp"`
-	}
-	type JsonWAL struct {
-		Node      JsonNode `json:"node"`
-		Operation string   `json:"operation"`
-		TxnID     string   `json:"txnID"`
-	}
-	b := JsonNode{we.node.key, we.node.value, we.node.version, we.node.deleted, we.node.timestamp}
-	a := JsonWAL{b, we.operation, we.txnID}
+
+	b := Node{we.Node.Key, we.Node.Value, we.Node.Version, nil, we.Node.Deleted, we.Node.Timestamp}
+	a := WalEntry{&b, we.Operation, we.TxnID}
 	arr, err := json.Marshal(a)
 	if err != nil {
 		return []byte{}, err
@@ -37,6 +26,6 @@ func (we *WalEntry) serialize() ([]byte, error) {
 	return arr, nil
 }
 
-func (we *WalEntry) deserialize(data []byte) (*Node, error) {
+// func (we *WalEntry) deserialize(data []byte) (*Node, error) {
 
-}
+// }

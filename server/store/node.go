@@ -4,12 +4,12 @@ import "time"
 
 // compact order of the fields will lead to smaller size
 type Node struct {
-	key           string
-	value         string
-	version       int8
-	prev_versions []Node
-	deleted       bool
-	timestamp     int64
+	Key              string
+	Value            string
+	Version          int8
+	PreviousVersions []Node
+	Deleted          bool
+	Timestamp        int64
 }
 
 func NewNode(key string, value string) *Node {
@@ -19,21 +19,21 @@ func NewNode(key string, value string) *Node {
 
 func (n *Node) Update(value string) Node {
 	// get current information and put it to prev version
-	n.prev_versions = append(n.prev_versions, Node{n.key, n.value, n.version, nil, n.deleted, n.timestamp})
-	n.value = value
-	n.version += 1
+	n.PreviousVersions = append(n.PreviousVersions, Node{n.Key, n.Value, n.Version, nil, n.Deleted, n.Timestamp})
+	n.Value = value
+	n.Version += 1
 	return *n
 }
 func (n *Node) Delete() bool {
 	// get current information and put it to prev version
-	// n.prev_versions = append(n.prev_versions, Node{n.key, n.value, n.version, nil, n.deleted, n.timestamp})
-	n.deleted = true
+	// n.PreviousVersions = append(n.PreviousVersions, Node{n.Key, n.Value, n.Version, nil, n.Deleted, n.Timestamp})
+	n.Deleted = true
 
 	return true
 }
 
 func (n *Node) persistanceReady() Node {
 
-	return_node := Node{n.key, n.value, n.version, nil, n.deleted, n.timestamp}
+	return_node := Node{n.Key, n.Value, n.Version, nil, n.Deleted, n.Timestamp}
 	return return_node
 }

@@ -8,6 +8,8 @@ import (
 	"testing"
 )
 
+var prefix = "../../data/testing/"
+
 func TestPersistanceSave(t *testing.T) {
 	// We will use fs fileService to check if the save Happened correctly
 
@@ -15,7 +17,7 @@ func TestPersistanceSave(t *testing.T) {
 		fs := NewFileService()
 
 		key := "test"
-		prefix := "../../data/"
+
 		want := "test_data"
 		per := NewPersistance(prefix)
 		err := per.Save(key, bytes.NewBuffer([]byte(want)))
@@ -30,13 +32,13 @@ func TestPersistanceSave(t *testing.T) {
 		if got != want {
 			t.Errorf("wanted %v, but got %v for prefix+file %v", want, got, prefix+key)
 		}
-
+		os.RemoveAll(prefix)
 	})
 
 	t.Run("Test Persistance Save for Parallel Scenarios", func(t *testing.T) {
 
 		key := "test"
-		prefix := "../../data/"
+
 		want := "test_data"
 		per := NewPersistance(prefix)
 
@@ -52,11 +54,12 @@ func TestPersistanceSave(t *testing.T) {
 			}()
 		}
 		ws.Wait()
+		os.RemoveAll(prefix)
 	})
+
 }
 func BenchmarkPersistanceSave(b *testing.B) {
 	b.Run("Sequential multi magnitude writes for different locations", func(b *testing.B) {
-		prefix := "../../data/test_data"
 
 		data := `data_in_bytes := bytes.NewBuffer([]byte(data))
 		per := NewPersistance(prefix)
