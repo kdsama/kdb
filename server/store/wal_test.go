@@ -1,7 +1,9 @@
 package store
 
 import (
+	"fmt"
 	"os"
+	"sync"
 	"testing"
 	"time"
 )
@@ -11,7 +13,7 @@ var wal_test_directory = "../../data/testWAL/"
 
 func testwalcleanup(w *WAL) {
 	w.flushall()
-	os.RemoveAll(wal_prefix)
+	os.RemoveAll(wal_test_directory)
 
 }
 func TestAddEntry(t *testing.T) {
@@ -54,7 +56,44 @@ func TestAddEntry(t *testing.T) {
 		}
 		testwalcleanup(w)
 	})
+	// the test below help us realized that we need to make equal sized files for partitioning
+	// what we need to do is
+	// keep on appending to an existing wal file until the limit is reached
+	// once the limit is reached, create a new wal file
+	// the size of buffer may or maynot be equal to the wal file
+	// for our case as we want to continuously write to the wal file, we will keep them different
+	t.Run("Test the same for multiple file creations . The file names should atomically increase", func(t *testing.T) {
+		os.RemoveAll(wal_test_directory)
+		fs := fileService{}
+		w := NewWAL(wal_prefix, wal_test_directory, fs, 1)
+		key := "Key"
+		value := "{\"id\":1,\"n\":\"John Doe\",\"a\":30,\"e\":\"johndoejohndoejohndoejohndoejohndoejohndoejohndoe1@example.com\"}"
+		fmt.Println("Len value", len([]byte(value)))
 
-	// as 5000 seconds , then buffer will not be loaded to the file wal_test_directory yet
+		var counter int64
+		for i := 0; i < 1000000; i++ {
+			node := NewNode(key, fmt.Sprint(i)+value)
+			w.addEntry(*node, "ADD")
+
+		}
+
+		time.Sleep(5 * time.Second)
+		ws := sync.WaitGroup{}
+		files := []string{}
+
+		ws.Add(1)
+		go func() {
+			defer ws.Done()
+			fs.GetAllFilesInDirectory(wal_test_directory, &files)
+		}()
+		ws.Wait()
+		for i := range files {
+			val, _ := fs.GetFileSize(files[i])
+			counter += val
+		}
+		if int(counter) != 1000000*len([]byte(value)) {
+			t.Errorf("WAnted %v but got %v", 1000000*100, counter)
+		}
+	})
 
 }

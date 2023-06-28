@@ -2,6 +2,7 @@ package store
 
 import (
 	"fmt"
+	"log"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -55,11 +56,12 @@ var (
 
 const (
 	MAX_BUFFER_SIZE = 1000
+	MAX_FILE_SIZE   = 100000000
 )
 
 var (
 	counter      = 1
-	file_counter = 1
+	file_counter = 0
 )
 
 func NewWAL(prefix, directory string, fs fileService, duration int) *WAL {
@@ -112,7 +114,6 @@ func (w *WAL) Schedule() bool {
 		select {
 		case <-w.ticker.C:
 			{
-				fmt.Println("Are we coming here at all ???? ")
 				w.BufferUpdate()
 			}
 		}
@@ -120,23 +121,36 @@ func (w *WAL) Schedule() bool {
 
 }
 func (w *WAL) BufferUpdate() {
-	len := len(wal_buffer)
+	w.lock.Lock()
+	len_buffer := len(wal_buffer)
 
-	if len > MAX_BUFFER_SIZE {
+	// increment counter when the latest file size has exceeded the size we expect the file to be
+	size, err := w.fs.GetFileSize(w.getCurrentFileName())
+	if err != nil && file_counter != 0 {
+		// what about the case when there are no files , aka the first time the application is run
+		log.Fatal("Didnot expect an error here , closing the application", err)
+	}
+	if int64(len_buffer)+size > int64(MAX_FILE_SIZE) {
 		w.IncrementFileCounter()
+
 	}
 
-	w.fs.WriteFileWithDirectories(w.directory+w.prefix+"-"+fmt.Sprint(w.file_counter)+".wal", wal_buffer)
-
+	w.fs.WriteFileWithDirectories(w.getCurrentFileName(), wal_buffer)
+	w.lock.Unlock()
 	w.flushall()
+
 }
 
 func (w *WAL) flushall() {
-	w.lock.Lock()
+	// w.lock.Lock()
 	wal_buffer = []byte{}
-	w.lock.Unlock()
+	// w.lock.Unlock()
 }
 
 func (w *WAL) checkSize() int {
 	return len(wal_buffer)
+}
+
+func (w *WAL) getCurrentFileName() string {
+	return w.directory + w.prefix + "-" + fmt.Sprint(w.file_counter) + ".wal"
 }
