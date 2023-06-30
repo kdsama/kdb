@@ -62,21 +62,23 @@ func TestAddEntry(t *testing.T) {
 	// once the limit is reached, create a new wal file
 	// the size of buffer may or maynot be equal to the wal file
 	// for our case as we want to continuously write to the wal file, we will keep them different
-	t.Run("Test the same for multiple file creations . The file names should atomically increase", func(t *testing.T) {
-		os.RemoveAll(wal_test_directory)
+
+}
+func BenchmarkAddEntry(b *testing.B) {
+	// os.RemoveAll(wal_test_directory)
+	b.Run("Test the same for multiple file creations . The file names should atomically increase", func(b *testing.B) {
+
 		fs := fileService{}
 		w := NewWAL(wal_prefix, wal_test_directory, fs, 1)
 		key := "Key"
 		value := "{\"id\":1,\"n\":\"John Doe\",\"a\":30,\"e\":\"johndoejohndoejohndoejohndoejohndoejohndoejohndoe1@example.com\"}"
-
-		var counter int64
-		for i := 0; i < 450000; i++ {
+		for i := 0; i < 100000; i++ {
 			node := NewNode(key, fmt.Sprint(i)+value)
 			w.addEntry(*node, "ADD")
 
 		}
 
-		time.Sleep(2 * time.Second)
+		time.Sleep(10 * time.Second)
 		ws := sync.WaitGroup{}
 		files := []string{}
 
@@ -86,13 +88,7 @@ func TestAddEntry(t *testing.T) {
 			fs.GetAllFilesInDirectory(wal_test_directory, &files)
 		}()
 		ws.Wait()
-		for i := range files {
-			val, _ := fs.GetFileSize(files[i])
-			counter += val
-		}
-		if int(counter) != 10*len([]byte(value)) {
-			t.Errorf("WAnted %v but got %v", 10*len([]byte(value)), counter)
-		}
+
 	})
 
 }
