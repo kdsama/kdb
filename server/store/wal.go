@@ -104,7 +104,12 @@ func (w *WAL) addEntry(node Node, operation string) error {
 	if err != nil {
 		return err
 	}
+	w.lock.Lock()
 	wal_buffer = append(wal_buffer, toAppendData...)
+	w.lock.Unlock()
+	if len(wal_buffer) > MAX_BUFFER_SIZE {
+		go w.Schedule()
+	}
 	return nil
 }
 
@@ -130,14 +135,19 @@ func (w *WAL) BufferUpdate() {
 		// what about the case when there are no files , aka the first time the application is run
 		log.Fatal("Didnot expect an error here , closing the application", err)
 	}
+	// basically the scenario popped up where
+	// when we went to the check for max file size , Nothing in previous file was pushed. So everything got pushed into second file.
+	// There is no issue with the incrementer but the policy of bufferUpdate
+
 	if int64(len_buffer)+size > int64(MAX_FILE_SIZE) {
+
 		w.IncrementFileCounter()
 
 	}
 
 	w.fs.WriteFileWithDirectories(w.getCurrentFileName(), wal_buffer)
-	w.lock.Unlock()
 	w.flushall()
+	w.lock.Unlock()
 
 }
 

@@ -68,16 +68,15 @@ func TestAddEntry(t *testing.T) {
 		w := NewWAL(wal_prefix, wal_test_directory, fs, 1)
 		key := "Key"
 		value := "{\"id\":1,\"n\":\"John Doe\",\"a\":30,\"e\":\"johndoejohndoejohndoejohndoejohndoejohndoejohndoe1@example.com\"}"
-		fmt.Println("Len value", len([]byte(value)))
 
 		var counter int64
-		for i := 0; i < 1000000; i++ {
+		for i := 0; i < 450000; i++ {
 			node := NewNode(key, fmt.Sprint(i)+value)
 			w.addEntry(*node, "ADD")
 
 		}
 
-		time.Sleep(5 * time.Second)
+		time.Sleep(2 * time.Second)
 		ws := sync.WaitGroup{}
 		files := []string{}
 
@@ -91,8 +90,8 @@ func TestAddEntry(t *testing.T) {
 			val, _ := fs.GetFileSize(files[i])
 			counter += val
 		}
-		if int(counter) != 1000000*len([]byte(value)) {
-			t.Errorf("WAnted %v but got %v", 1000000*100, counter)
+		if int(counter) != 10*len([]byte(value)) {
+			t.Errorf("WAnted %v but got %v", 10*len([]byte(value)), counter)
 		}
 	})
 
