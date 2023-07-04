@@ -71,22 +71,32 @@ func NewWAL(prefix, directory string, fs fileService, duration int) *WAL {
 	t := time.Duration(duration) * time.Second
 	ticker := *time.NewTicker(t)
 	wal := WAL{prefix, directory, 0, 0, sync.Mutex{}, fs, ticker}
-	counter := wal.getLatestCounter()
-	fi := wal.getLatestFileCounter()
-	wal.counter = counter
-	wal.file_counter = fi
+
+	wal.setLatestFileCounter()
+	wal.setLatestCounter()
 
 	go wal.Schedule()
 	return &wal
 }
 
-func (w *WAL) getLatestCounter() int64 {
+func (w *WAL) setLatestCounter() {
 	// w.fs.
+	data, err := w.fs.ReadLatestFromFile(w.getCurrentFileName())
+	if err != nil {
+		log.Print(err)
+	}
+	entry, err := deserialize([]byte(data))
+	if err != nil {
+		log.Print(err)
+	}
+	w.counter = w.GetCounterFromTransactionID(entry.TxnID)
+
 }
 
-func (w *WAL) getLatestFileCounter() int64 {
+func (w *WAL) setLatestFileCounter() {
 	filename, _ := w.fs.GetLatestFile(w.directory)
 	counter := w.GetCounterFromFileName(filename)
+	w.file_counter = counter
 }
 
 // atomic incrementing the counter
@@ -176,8 +186,20 @@ func (w *WAL) GetCounterFromFileName(filename string) int64 {
 	arr1 := strings.Split(arr[1], ".")
 	counter, err := strconv.Atoi(arr1[0])
 	if err != nil {
-		log.Fatal(err)
+		log.Print(err)
+		return 0
+
 	}
 	return int64(counter)
 
+}
+
+func (w *WAL) GetCounterFromTransactionID(txn string) int64 {
+	arr := strings.Split(txn, w.prefix)
+	counter, err := strconv.Atoi(arr[1])
+	if err != nil {
+		log.Print(err)
+		return 0
+	}
+	return int64(counter)
 }

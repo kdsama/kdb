@@ -92,3 +92,10 @@ func BenchmarkAddEntry(b *testing.B) {
 	})
 
 }
+
+func TestGetCounterFromFileName(t *testing.T) {
+
+	t.Run("Checking for counter,No file exist yet", func(t *testing.T) {
+
+	})
+}
