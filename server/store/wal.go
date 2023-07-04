@@ -3,6 +3,8 @@ package store
 import (
 	"fmt"
 	"log"
+	"strconv"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -65,22 +67,26 @@ var (
 )
 
 func NewWAL(prefix, directory string, fs fileService, duration int) *WAL {
-	counter := getLatestCounter()
-	fi := getLatestFileCounter()
+
 	t := time.Duration(duration) * time.Second
 	ticker := *time.NewTicker(t)
-	wal := WAL{prefix, directory, counter, fi, sync.Mutex{}, fs, ticker}
+	wal := WAL{prefix, directory, 0, 0, sync.Mutex{}, fs, ticker}
+	counter := wal.getLatestCounter()
+	fi := wal.getLatestFileCounter()
+	wal.counter = counter
+	wal.file_counter = fi
 
 	go wal.Schedule()
 	return &wal
 }
 
-func getLatestCounter() int64 {
-	return int64(counter)
+func (w *WAL) getLatestCounter() int64 {
+	// w.fs.
 }
 
-func getLatestFileCounter() int64 {
-	return int64(file_counter)
+func (w *WAL) getLatestFileCounter() int64 {
+	filename, _ := w.fs.GetLatestFile(w.directory)
+	counter := w.GetCounterFromFileName(filename)
 }
 
 // atomic incrementing the counter
@@ -163,4 +169,15 @@ func (w *WAL) checkSize() int {
 
 func (w *WAL) getCurrentFileName() string {
 	return w.directory + w.prefix + "-" + fmt.Sprint(w.file_counter) + ".wal"
+}
+
+func (w *WAL) GetCounterFromFileName(filename string) int64 {
+	arr := strings.Split(filename, "-")
+	arr1 := strings.Split(arr[1], ".")
+	counter, err := strconv.Atoi(arr1[0])
+	if err != nil {
+		log.Fatal(err)
+	}
+	return int64(counter)
+
 }
