@@ -95,7 +95,20 @@ func BenchmarkAddEntry(b *testing.B) {
 
 func TestGetCounterFromFileName(t *testing.T) {
 
-	t.Run("Checking for counter,No file exist yet", func(t *testing.T) {
+	t.Run("Checking for counter", func(t *testing.T) {
+		w := NewWAL(wal_prefix, wal_test_directory, fileService{}, 1)
+
+		key := "Key"
+		value := "Value"
+		node := NewNode(key, value)
+		w.addEntry(*node, "ADD")
+		time.Sleep(2 * time.Second)
+
+		want := int64(0)
+		got := w.file_counter
+		if want != got {
+			t.Errorf("Wanted %v, but got %v", want, got)
+		}
 
 	})
 }

@@ -2,6 +2,7 @@ package store
 
 import (
 	"fmt"
+	"io/fs"
 	"log"
 	"strconv"
 	"strings"
@@ -79,11 +80,16 @@ func NewWAL(prefix, directory string, fs fileService, duration int) *WAL {
 	return &wal
 }
 
+// make it in a way that it makes sure file is present. If not present yet, it probably means
+// the file counter function returned 0 .
+// This means this should also return zero
 func (w *WAL) setLatestCounter() {
 	// w.fs.
 	data, err := w.fs.ReadLatestFromFile(w.getCurrentFileName())
-	if err != nil {
-		log.Print(err)
+	if err != nil && err == fs.ErrNotExist {
+		w.counter = 0
+		return
+
 	}
 	entry, err := deserialize([]byte(data))
 	if err != nil {
@@ -182,6 +188,9 @@ func (w *WAL) getCurrentFileName() string {
 }
 
 func (w *WAL) GetCounterFromFileName(filename string) int64 {
+	if filename == "" {
+		return int64(0)
+	}
 	arr := strings.Split(filename, "-")
 	arr1 := strings.Split(arr[1], ".")
 	counter, err := strconv.Atoi(arr1[0])
