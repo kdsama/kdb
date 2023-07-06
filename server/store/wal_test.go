@@ -174,3 +174,58 @@ func TestSetCounterFromFileName(t *testing.T) {
 		testwalcleanup(w)
 	})
 }
+
+func TestSetLatestCounter(t *testing.T) {
+
+	t.Run("On initial setup , counter should return as zero", func(t *testing.T) {
+		fs := fileService{}
+		w := NewWAL(wal_prefix, wal_test_directory, fs, 1)
+		// check counter in 1 second.
+		want := 0
+		got := w.counter
+		if int64(want) != got {
+			t.Errorf("wanted %v but got %v", want, got)
+		}
+	})
+	t.Run("Counter on top of several entries single file", func(t *testing.T) {
+
+		fs := fileService{}
+		w := NewWAL(wal_prefix, wal_test_directory, fs, 1)
+		testwalcleanup(w)
+		// check counter in 1 second.
+		want := 100000
+		key := "/Something"
+		value := "Something again maybe "
+		for i := 0; i < 100000; i++ {
+			node := NewNode(key, fmt.Sprint(i)+value)
+			w.addEntry(*node, "ADD")
+		}
+		time.Sleep(1 * time.Second)
+		got := w.counter
+		if int64(want) != got {
+			t.Errorf("wanted %v but got %v", want, got)
+		}
+		testwalcleanup(w)
+	})
+	t.Run("Counter on top of several entries, several files ", func(t *testing.T) {
+
+		fs := fileService{}
+		w := NewWAL(wal_prefix, wal_test_directory, fs, 1)
+		testwalcleanup(w)
+		// check counter in 1 second.
+		want := 1200000
+		key := "/Something"
+		value := "Something again maybe "
+		for i := 0; i < 1200000; i++ {
+			node := NewNode(key, fmt.Sprint(i)+value)
+			w.addEntry(*node, "ADD")
+		}
+		time.Sleep(2 * time.Second)
+		got := w.counter
+		if int64(want) != got {
+			t.Errorf("wanted %v but got %v", want, got)
+		}
+		testwalcleanup(w)
+	})
+
+}
