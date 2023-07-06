@@ -86,11 +86,17 @@ func NewWAL(prefix, directory string, fs fileService, duration int) *WAL {
 func (w *WAL) setLatestCounter() {
 	// w.fs.
 	data, err := w.fs.ReadLatestFromFile(w.getCurrentFileName())
+
 	if err != nil && err == fs.ErrNotExist {
 		w.counter = 0
 		return
 
 	}
+	if len(data) == 0 {
+		w.counter = 0
+		return
+	}
+
 	entry, err := deserialize([]byte(data))
 	if err != nil {
 		log.Print(err)
@@ -100,7 +106,14 @@ func (w *WAL) setLatestCounter() {
 }
 
 func (w *WAL) setLatestFileCounter() {
-	filename, _ := w.fs.GetLatestFile(w.directory)
+	filename, err := w.fs.GetLatestFile(w.directory)
+	if err != nil && err == err_NoFilesInDirectory {
+		w.file_counter = 0
+		return
+	}
+	if err != nil {
+		log.Print(err)
+	}
 	counter := w.GetCounterFromFileName(filename)
 	w.file_counter = counter
 }
@@ -130,7 +143,7 @@ func (w *WAL) addEntry(node Node, operation string) error {
 	wal_buffer = append(wal_buffer, toAppendData...)
 	w.lock.Unlock()
 	if len(wal_buffer) > MAX_BUFFER_SIZE {
-		go w.Schedule()
+		go w.BufferUpdate()
 	}
 	return nil
 }
@@ -164,7 +177,6 @@ func (w *WAL) BufferUpdate() {
 	if int64(len_buffer)+size > int64(MAX_FILE_SIZE) {
 
 		w.IncrementFileCounter()
-
 	}
 
 	w.fs.WriteFileWithDirectories(w.getCurrentFileName(), wal_buffer)

@@ -44,7 +44,7 @@ func (fsv *fileService) WriteFileWithDirectories(fp string, data []byte) error {
 	}
 	defer file.Close()
 	lock.Lock()
-	_, err = fmt.Fprintln(file, string(data))
+	_, err = fmt.Fprint(file, string(data))
 	lock.Unlock()
 	return err
 
@@ -53,9 +53,13 @@ func (fsv *fileService) WriteFileWithDirectories(fp string, data []byte) error {
 // Returns Last line from the file.
 func (fsv *fileService) ReadLatestFromFile(filepath string) (string, error) {
 	file, err := os.Open(filepath)
-	if err != nil {
-		return "", err
+	if err != nil && err != os.ErrNotExist {
+
+		// log.Fatal(err)
+
+		return "", err_NoFilesInDirectory
 	}
+
 	defer file.Close()
 
 	scanner := bufio.NewScanner(file)

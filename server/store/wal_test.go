@@ -93,9 +93,9 @@ func BenchmarkAddEntry(b *testing.B) {
 
 }
 
-func TestGetCounterFromFileName(t *testing.T) {
+func TestSetCounterFromFileName(t *testing.T) {
 
-	t.Run("Checking for counter", func(t *testing.T) {
+	t.Run("Checking for counter, when loaded for the first time", func(t *testing.T) {
 		w := NewWAL(wal_prefix, wal_test_directory, fileService{}, 1)
 
 		key := "Key"
@@ -109,6 +109,68 @@ func TestGetCounterFromFileName(t *testing.T) {
 		if want != got {
 			t.Errorf("Wanted %v, but got %v", want, got)
 		}
+	})
+	t.Run("Checking for counter, when one  file exist", func(t *testing.T) {
 
+		// this function made me realize that the logic of new wal file creation is not strong at all
+		fs := fileService{}
+		w := NewWAL(wal_prefix, wal_test_directory, fs, 1)
+		testwalcleanup(w)
+		key := "Key"
+		value := "{\"id\":1,\"n\":\"John Doe\",\"a\":30,\"e\":\"johndoejohndoejohndoejohndoejohndoejohndoejohndoe1@example.com\"}"
+		for i := 0; i < MAX_FILE_SIZE/1000; i++ {
+			node := NewNode(key, fmt.Sprint(i)+value)
+			w.addEntry(*node, "ADD")
+
+		}
+
+		time.Sleep(5 * time.Second)
+		ws := sync.WaitGroup{}
+		files := []string{}
+
+		ws.Add(1)
+		go func() {
+			defer ws.Done()
+			fs.GetAllFilesInDirectory(wal_test_directory, &files)
+		}()
+		ws.Wait()
+		want := 1
+		got := len(files)
+		if want != got {
+			t.Fatalf("Expected %v but got %v", got, want)
+		}
+		testwalcleanup(w)
+	})
+	t.Run("Checking for counter, when 10  files exist", func(t *testing.T) {
+
+		// this function made me realize that the logic of new wal file creation is not strong at all
+		fs := fileService{}
+		w := NewWAL(wal_prefix, wal_test_directory, fs, 1)
+
+		key := "Key"
+		value := "{\"id\":1,\"n\":\"John Doe\",\"a\":30,\"e\":\"johndoejohndoejohndoejohndoejohndoejohndoejohndoe1@example.com\"}"
+
+		for i := 0; i < 1200000; i++ {
+			node := NewNode(key, fmt.Sprint(i)+value)
+			w.addEntry(*node, "ADD")
+
+		}
+
+		time.Sleep(5 * time.Second)
+		ws := sync.WaitGroup{}
+		files := []string{}
+
+		ws.Add(1)
+		go func() {
+			defer ws.Done()
+			fs.GetAllFilesInDirectory(wal_test_directory, &files)
+		}()
+		ws.Wait()
+		want := 4
+		got := len(files)
+		if want != got {
+			t.Fatalf("Expected %v but got %v", got, want)
+		}
+		testwalcleanup(w)
 	})
 }
