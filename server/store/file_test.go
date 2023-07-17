@@ -50,7 +50,7 @@ func TestReadLatestFromFile(t *testing.T) {
 		rootDir, _ := filepath.Abs(filepath.Dir(fps))
 		for i := 0; i < 10; i++ {
 
-			fs.WriteFileWithDirectories(rootDir, []byte(txt+fmt.Sprint(i)))
+			fs.WriteFileWithDirectories(rootDir, []byte(txt+fmt.Sprint(i)+"\n"))
 		}
 
 		want := txt + "9"
@@ -71,7 +71,7 @@ func TestReadLatestFromFile(t *testing.T) {
 
 		_, got := fs.ReadLatestFromFile(rootDir)
 		// check if the type is correct
-		if _, ok := got.(*os.PathError); !ok {
+		if got != err_NoFilesInDirectory {
 			t.Errorf("expected error of type os.PathError but got %v", got)
 		}
 
@@ -88,7 +88,7 @@ func TestReadLatestFromFileInBytes(t *testing.T) {
 		rootDir, _ := filepath.Abs(filepath.Dir(fps))
 		for i := 0; i < 10; i++ {
 
-			fs.WriteFileWithDirectories(rootDir, []byte(txt+fmt.Sprint(i)))
+			fs.WriteFileWithDirectories(rootDir, []byte(txt+fmt.Sprint(i)+"\n"))
 		}
 
 		want := []byte(txt + "9")
@@ -237,7 +237,7 @@ func TestGetFileSize(t *testing.T) {
 			fs.WriteFileWithDirectories(a+b+c, []byte(content))
 		}
 		// It will also include linebreaks hence , we are adding num_of_lines as well
-		want := int64(len([]byte(content))*num_of_lines + num_of_lines)
+		want := int64(len([]byte(content)) * num_of_lines)
 		got, err := fs.GetFileSize(a + b + c)
 
 		if err != nil {
@@ -281,7 +281,7 @@ func BenchmarkGetFileSize(b *testing.B) {
 			fs.WriteFileWithDirectories(a+c, []byte(content))
 		}
 
-		want := int64(len([]byte(content))*num_of_lines + num_of_lines)
+		want := int64(len([]byte(content)) * num_of_lines)
 		for i := 0; i < b.N; i++ {
 			got, err := fs.GetFileSize(a + c)
 			if err != nil {
@@ -320,7 +320,7 @@ func TestReadAllDataFromAFileString(t *testing.T) {
 		content := "This is the content . 5 times this content's bytes length should be the response"
 		var want string
 		for i := 0; i < num_of_lines; i++ {
-			fs.WriteFileWithDirectories(a+b+c, []byte(content))
+			fs.WriteFileWithDirectories(a+b+c, []byte(content+"\n"))
 			want = want + content + "\n"
 		}
 		// It will also include linebreaks hence , we are adding num_of_lines as well
@@ -359,7 +359,7 @@ func TestReadAllDataFromAFile(t *testing.T) {
 		content := "This is the content . 5 times this content's bytes length should be the response"
 		var want string
 		for i := 0; i < num_of_lines; i++ {
-			fs.WriteFileWithDirectories(a+b+c, []byte(content))
+			fs.WriteFileWithDirectories(a+b+c, []byte(content+"\n"))
 			want = want + content + "\n"
 		}
 		// It will also include linebreaks hence , we are adding num_of_lines as well
