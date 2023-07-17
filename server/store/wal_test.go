@@ -88,7 +88,7 @@ func BenchmarkAddEntry(b *testing.B) {
 			fs.GetAllFilesInDirectory(wal_test_directory, &files)
 		}()
 		ws.Wait()
-
+		testwalcleanup(w)
 	})
 
 }
@@ -109,6 +109,7 @@ func TestSetCounterFromFileName(t *testing.T) {
 		if want != got {
 			t.Errorf("Wanted %v, but got %v", want, got)
 		}
+		testwalcleanup(w)
 	})
 	t.Run("Checking for counter, when one  file exist", func(t *testing.T) {
 
@@ -176,22 +177,24 @@ func TestSetCounterFromFileName(t *testing.T) {
 }
 
 func TestSetLatestCounter(t *testing.T) {
-
+	os.RemoveAll(wal_test_directory)
 	t.Run("On initial setup , counter should return as zero", func(t *testing.T) {
 		fs := fileService{}
 		w := NewWAL(wal_prefix, wal_test_directory, fs, 1)
+
 		// check counter in 1 second.
 		want := 0
 		got := w.counter
 		if int64(want) != got {
 			t.Errorf("wanted %v but got %v", want, got)
 		}
+		testwalcleanup(w)
 	})
 	t.Run("Counter on top of several entries single file", func(t *testing.T) {
 
 		fs := fileService{}
 		w := NewWAL(wal_prefix, wal_test_directory, fs, 1)
-		testwalcleanup(w)
+
 		// check counter in 1 second.
 		want := 100000
 		key := "/Something"
@@ -211,7 +214,7 @@ func TestSetLatestCounter(t *testing.T) {
 
 		fs := fileService{}
 		w := NewWAL(wal_prefix, wal_test_directory, fs, 1)
-		testwalcleanup(w)
+
 		// check counter in 1 second.
 		want := 1200000
 		key := "/Something"

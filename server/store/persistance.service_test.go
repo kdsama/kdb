@@ -59,6 +59,7 @@ func TestPersistanceSave(t *testing.T) {
 
 }
 func BenchmarkPersistanceSave(b *testing.B) {
+
 	b.Run("Sequential multi magnitude writes for different locations", func(b *testing.B) {
 
 		data := `data_in_bytes := bytes.NewBuffer([]byte(data))
@@ -114,7 +115,7 @@ data_in_bytes := bytes.NewBuffer([]byte(data))
 		os.RemoveAll(prefix)
 		// here we would like to have some sub directories as well as well
 		ws := sync.WaitGroup{}
-		for i := 0; i < b.N; i++ {
+		for i := 0; i < 10000; i++ {
 			a := "/someTest"
 			b := "/someTestAgain"
 			c := "/maybeOtherTest"

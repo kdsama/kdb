@@ -11,6 +11,12 @@ var (
 	err_SomeNodesNotFound = errors.New("some nodes not found")
 )
 
+var (
+	COMMITTED = int8(1)
+	WAITING   = int8(0)
+	ABORTED   = int8(2)
+)
+
 type keyValue map[string]*Node
 
 type HashMap struct {
@@ -84,4 +90,20 @@ func (hm *HashMap) Delete(key string) (bool, error) {
 	_ = n.Delete()
 
 	return true, nil
+}
+
+func (hm *HashMap) Commit(key string, version int) error {
+	if _, ok := hm.kv[key]; !ok {
+		panic(err_NodeNotFound)
+	}
+	n := (*hm.kv[key])
+	if n.Version > int8(version) {
+		return err_OldVersion
+	}
+
+	if n.Commit != COMMITTED {
+		return err_AlreadyCommited
+	}
+	n.CommitNode()
+	return nil
 }

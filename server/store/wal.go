@@ -63,7 +63,6 @@ const (
 )
 
 var (
-	counter      = 1
 	file_counter = 0
 )
 
@@ -166,7 +165,7 @@ func (w *WAL) BufferUpdate() {
 
 	// increment counter when the latest file size has exceeded the size we expect the file to be
 	size, err := w.fs.GetFileSize(w.getCurrentFileName())
-	if err != nil && file_counter != 0 {
+	if err != nil && w.file_counter != 0 {
 		// what about the case when there are no files , aka the first time the application is run
 		log.Fatal("Didnot expect an error here , closing the application", err)
 	}

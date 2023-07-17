@@ -118,6 +118,7 @@ func TestReadLatestFromFileInBytes(t *testing.T) {
 }
 
 func TestGetAllFilesInDirectory(t *testing.T) {
+	os.RemoveAll("../../data/mkdirTesting")
 	// Test Data
 	a := "../../data/mkdirTesting"
 	b := "/test"
@@ -140,7 +141,7 @@ func TestGetAllFilesInDirectory(t *testing.T) {
 	ws.Add(1)
 	go func() {
 		defer ws.Done()
-		fs.GetAllFilesInDirectory("../../data", &string_arr)
+		fs.GetAllFilesInDirectory(a, &string_arr)
 	}()
 	ws.Wait()
 	if len(string_arr) != 2*num_of_files {
@@ -151,7 +152,7 @@ func TestGetAllFilesInDirectory(t *testing.T) {
 			t.Errorf("Expected %v but not found", string_arr[i])
 		}
 	}
-
+	os.RemoveAll("../../data/mkdirTesting")
 }
 
 // GetLatestFile doesnot require  benchmarking
