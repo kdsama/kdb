@@ -1,5 +1,7 @@
 package store
 
+import "errors"
+
 // Now here is the service that will bind everything together
 // A request will come to add or delete or update
 // we just pretend all of them to be the same , and just call the add function here
@@ -27,10 +29,80 @@ package store
 // we will persist that transactionID in the memory for now
 // Ideally we would also like to have the file in which that transaction is saved in uncommitted state
 // Ideally we will have multiple states --> waiting, committed and aborted
-//
+
+var (
+	ADD    = "ADD"
+	UPDATE = "UPDATE"
+	DELETE = "DELETE"
+)
+
+var (
+	err_InvalidAction = errors.New("invalid action")
+)
 
 type KVI interface {
-	add(key string, value string, delete bool) error
-	load() error
-	persist()
+	Add(key string, value string) (string, error)
+	Update(key string, value string) (string, error)
+	Delete(key string) (string, error)
+	SetRecord() error
+	Load() error
+}
+
+type KVService struct {
+	hm    HashMap
+	btree BTree
+	wal   WAL
+}
+
+// returns transactionID
+func (kvs *KVService) Add(key string, value string) (string, error) {
+
+	// write to hashmap
+	// write to b-tree
+	// write to WAL
+	node := kvs.hm.Add(key, value)
+	kvs.btree.addKeyString(key)
+	return kvs.wal.addEntry(*node, ADD)
+}
+
+// updates the key value and returns the transactionID
+func (kvs *KVService) Update(key string, value string) (string, error) {
+
+	// write to hashmap
+	// write to b-tree
+	// write to WAL
+	node := kvs.hm.Add(key, value)
+	kvs.btree.addKeyString(key)
+	return kvs.wal.addEntry(*node, UPDATE)
+}
+
+func (kvs *KVService) Delete(key string) (string, error) {
+	// dont do anything on the btree part let the key remain for now
+	node, err := kvs.hm.Delete(key)
+	if err != nil {
+		return "", err
+	}
+	return kvs.wal.addEntry(*node, DELETE)
+}
+
+func SetRecord() error {
+	// this is for syncing up of data
+	// No need transactions are to be generated for this case
+	// we will be receiving transaction ID , and the node itself with appropriate information
+	return nil
+}
+
+func SetRecords() error {
+	// This is to set multiple records .
+	return nil
+}
+
+func GetLastTransaction() error {
+
+	return nil
+}
+
+func Load() error {
+
+	return nil
 }

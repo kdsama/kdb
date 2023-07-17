@@ -24,13 +24,13 @@ type HashMap struct {
 	mut sync.RWMutex
 }
 
-func (hm *HashMap) Add(key string, value string) bool {
+func (hm *HashMap) Add(key string, value string) *Node {
 	node := NewNode(key, value)
 
 	hm.mut.Lock()
 	hm.kv[key] = node
 	hm.mut.Unlock()
-	return true
+	return node
 }
 
 func (hm *HashMap) Get(key string) (Node, error) {
@@ -79,17 +79,17 @@ func (hm *HashMap) Update(key string, value string) (bool, error) {
 	return true, nil
 }
 
-func (hm *HashMap) Delete(key string) (bool, error) {
+func (hm *HashMap) Delete(key string) (*Node, error) {
 
 	hm.mut.RLock()
 	n, ok := hm.kv[key]
 	hm.mut.RUnlock()
 	if !ok {
-		return false, err_NodeNotFound
+		return nil, err_NodeNotFound
 	}
 	_ = n.Delete()
 
-	return true, nil
+	return n, nil
 }
 
 func (hm *HashMap) Commit(key string, version int) error {

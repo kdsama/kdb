@@ -129,14 +129,14 @@ func (w *WAL) IncrementFileCounter() int64 {
 	return w.file_counter
 }
 
-func (w *WAL) addEntry(node Node, operation string) error {
+func (w *WAL) addEntry(node Node, operation string) (string, error) {
 	newCounter := w.IncrementCounter()
 	txnID := w.prefix + fmt.Sprint(newCounter)
 	walEntry := NewWalEntry(&node, operation, txnID)
 	toAppendData, err := walEntry.serialize()
 	toAppendData = append(toAppendData, byte('\n'))
 	if err != nil {
-		return err
+		return "", err
 	}
 	w.lock.Lock()
 	wal_buffer = append(wal_buffer, toAppendData...)
@@ -144,7 +144,7 @@ func (w *WAL) addEntry(node Node, operation string) error {
 	if len(wal_buffer) > MAX_BUFFER_SIZE {
 		go w.BufferUpdate()
 	}
-	return nil
+	return txnID, nil
 }
 
 func (w *WAL) Schedule() bool {
