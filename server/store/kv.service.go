@@ -1,6 +1,10 @@
 package store
 
-import "errors"
+import (
+	"errors"
+	"fmt"
+	"sync"
+)
 
 // Now here is the service that will bind everything together
 // A request will come to add or delete or update
@@ -52,6 +56,7 @@ type KVService struct {
 	hm    HashMap
 	btree BTree
 	wal   WAL
+	mut   sync.Mutex
 }
 
 // returns transactionID
@@ -85,24 +90,58 @@ func (kvs *KVService) Delete(key string) (string, error) {
 	return kvs.wal.addEntry(*node, DELETE)
 }
 
-func SetRecord() error {
+func (kvs *KVService) SetRecord(data *[]byte) error {
+
 	// this is for syncing up of data
-	// No need transactions are to be generated for this case
+	// No newtransactions are to be generated for this case
 	// we will be receiving transaction ID , and the node itself with appropriate information
+	// so we will have to save a new node in the key value store
+	// the node will come with its own timestamp
+	// the WAL transaction will also be saved without generating a new transactionID
+	// No checks for it for now
+	// as we are getting WAL logs we need to serialize it
+	walEntry, err := deserialize(*data)
+	if err != nil {
+		return err
+	}
+	kvs.btree.addKeyString(walEntry.Node.Key)
+	kvs.hm.AddNode(walEntry.Node)
+	// better if we send buffer itself here instead of serializing and deserializing again.
+	kvs.wal.AddWALEntry(data)
 	return nil
 }
 
-func SetRecords() error {
-	// This is to set multiple records .
+// how  multiple records will be shared ??
+
+func (kvs *KVService) SetRecords() error {
+	// we can chuck this for now
+	// the outer layer will just call our function multiple number of times.
+
 	return nil
 }
 
-func GetLastTransaction() error {
-
+func (kvs *KVService) GetLastTransaction() error {
+	// so is this a processed transaction or any transaction ?
+	// we need to find the latest one, which is probably in the memory and not in the storage
+	// Or it is in the storage
+	// so we need to fetch both of them
+	// and figure out which one is the latest one
+	// And return that
+	// We can also save the latest transaction in memory separately
+	// so it is always accessible
+	// we also would need to set a lock here
+	// which means kvs should have a lock of itself
+	kvs.mut.Lock()
+	latestTransaction, err := deserialize(kvs.wal.latestEntry)
+	kvs.mut.Unlock()
+	if err != nil {
+		return err
+	}
+	fmt.Println(latestTransaction)
 	return nil
 }
 
-func Load() error {
+func (kvs *KVService) Load() error {
 
 	return nil
 }

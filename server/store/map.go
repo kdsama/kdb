@@ -33,6 +33,15 @@ func (hm *HashMap) Add(key string, value string) *Node {
 	return node
 }
 
+func (hm *HashMap) AddNode(node *Node) error {
+	n := *node
+
+	hm.mut.Lock()
+	hm.kv[n.Key] = node
+	hm.mut.Unlock()
+	return nil
+}
+
 func (hm *HashMap) Get(key string) (Node, error) {
 	hm.mut.RLock()
 	n, ok := hm.kv[key]

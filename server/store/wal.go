@@ -51,6 +51,7 @@ type WAL struct {
 	lock         sync.Mutex
 	fs           fileService
 	ticker       time.Ticker
+	latestEntry  []byte
 }
 
 var (
@@ -70,7 +71,7 @@ func NewWAL(prefix, directory string, fs fileService, duration int) *WAL {
 
 	t := time.Duration(duration) * time.Second
 	ticker := *time.NewTicker(t)
-	wal := WAL{prefix, directory, 0, 0, sync.Mutex{}, fs, ticker}
+	wal := WAL{prefix, directory, 0, 0, sync.Mutex{}, fs, ticker, []byte{}}
 
 	wal.setLatestFileCounter()
 	wal.setLatestCounter()
@@ -139,6 +140,7 @@ func (w *WAL) addEntry(node Node, operation string) (string, error) {
 		return "", err
 	}
 	w.lock.Lock()
+	w.latestEntry = toAppendData
 	wal_buffer = append(wal_buffer, toAppendData...)
 	w.lock.Unlock()
 	if len(wal_buffer) > MAX_BUFFER_SIZE {
@@ -147,6 +149,19 @@ func (w *WAL) addEntry(node Node, operation string) (string, error) {
 	return txnID, nil
 }
 
+func (w *WAL) AddWALEntry(wal *[]byte) {
+
+	*wal = append(*wal, byte('\n'))
+	w.lock.Lock()
+	// we probably can read the last one first
+	// check its transactionID
+	// if it is bigger than current one
+	// panic
+	// but for now leaving it as is
+	w.latestEntry = *wal
+	wal_buffer = append(wal_buffer, *wal...)
+	w.lock.Unlock()
+}
 func (w *WAL) Schedule() bool {
 
 	for {

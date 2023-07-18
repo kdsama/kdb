@@ -213,7 +213,7 @@ func TestSetLatestCounter(t *testing.T) {
 		testwalcleanup(w)
 	})
 	t.Run("Counter on top of several entries, several files ", func(t *testing.T) {
-		return
+		// return
 		fs := fileService{}
 		w := NewWAL(wal_prefix, wal_test_directory, fs, 1)
 
