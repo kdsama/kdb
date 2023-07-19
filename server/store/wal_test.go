@@ -200,7 +200,7 @@ func TestSetLatestCounter(t *testing.T) {
 		// check counter in 1 second.
 		want := 100000
 		key := "/Something"
-		value := "Something again maybe "
+		value := "cff "
 		for i := 0; i < 100000; i++ {
 			node := NewNode(key, fmt.Sprint(i)+value)
 			w.addEntry(*node, "ADD")
@@ -220,7 +220,7 @@ func TestSetLatestCounter(t *testing.T) {
 		// check counter in 1 second.
 		want := 1200000
 		key := "/Something"
-		value := "Something again maybe "
+		value := "bff"
 		for i := 0; i < 1200000; i++ {
 			node := NewNode(key, fmt.Sprint(i)+value)
 			w.addEntry(*node, "ADD")

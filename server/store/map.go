@@ -24,6 +24,11 @@ type HashMap struct {
 	mut sync.RWMutex
 }
 
+func NewHashMap() *HashMap {
+	kv := map[string]*Node{}
+	mut := sync.RWMutex{}
+	return &HashMap{kv, mut}
+}
 func (hm *HashMap) Add(key string, value string) *Node {
 	node := NewNode(key, value)
 

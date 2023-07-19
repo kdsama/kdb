@@ -53,10 +53,33 @@ type KVI interface {
 }
 
 type KVService struct {
-	hm    HashMap
+	hm    *HashMap
 	btree BTree
-	wal   WAL
+	wal   *WAL
+	ps    *Persistance
 	mut   sync.Mutex
+}
+
+func NewKVService(dataPrefix, walPrefix, directory string, duration int, degree int) *KVService {
+	// load all the data
+	fs := NewFileService()
+	wal := NewWAL(walPrefix, directory, *fs, duration)
+	hm := NewHashMap()
+	btree := newBTree(degree)
+	ps := NewPersistance(dataPrefix)
+	return &KVService{hm, btree, wal, ps, sync.Mutex{}}
+}
+func (kvs *KVService) Init() {
+	// loading part
+	// load values from persistance layer to btree and hashmap
+	// no role of wal here
+	// this will set all nodes in the ps object
+	kvs.ps.GetALLNodes()
+	for _, node := range kvs.ps.nodes {
+		kvs.btree.addKeyString(node.Key)
+		kvs.hm.AddNode(&node)
+	}
+	// I dont mind everything to be sequential here as it is just once.
 }
 
 // returns transactionID
