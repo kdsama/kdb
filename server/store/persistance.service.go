@@ -101,6 +101,7 @@ func (p *Persistance) GetNodesInParallel(buffered_channel chan string) {
 func (p *Persistance) GetALLNodes() {
 
 	node_filedirs := []string{}
+
 	p.fs.GetAllFilesInDirectory(p.prefix, &node_filedirs)
 	if len(node_filedirs) == 0 {
 		log.Println("No data found")
