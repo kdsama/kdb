@@ -32,7 +32,7 @@ func TestPersistanceSave(t *testing.T) {
 		if got != want {
 			t.Errorf("wanted %v, but got %v for prefix+file %v", want, got, prefix+key)
 		}
-		os.RemoveAll(prefix)
+		// os.RemoveAll(prefix)
 	})
 
 	t.Run("Test Persistance Save for Parallel Scenarios", func(t *testing.T) {

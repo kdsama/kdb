@@ -69,6 +69,7 @@ func NewKVService(dataPrefix, walPrefix, directory string, duration int, degree 
 	ps := NewPersistance(dataPrefix)
 	return &KVService{hm, btree, wal, ps, sync.Mutex{}}
 }
+
 func (kvs *KVService) Init() {
 	// loading part
 	// load values from persistance layer to btree and hashmap

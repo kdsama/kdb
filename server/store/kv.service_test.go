@@ -2,6 +2,7 @@ package store
 
 import (
 	"fmt"
+	"os"
 	"testing"
 )
 
@@ -11,6 +12,7 @@ func TestKVInit(t *testing.T) {
 	// we probably should dump some data first
 	// so lets persist some data first
 	ps_prefix := "../../data/kvservice/persist/"
+	os.RemoveAll(ps_prefix)
 	ps := NewPersistance(ps_prefix)
 
 	// Now I will save a few keys

@@ -41,6 +41,7 @@ func (p *Persistance) Add(node Node) error {
 
 	// need to make sure that the node is persistanceready
 	buffer, node := serializeNode(node)
+
 	return p.Save(node.Key, buffer)
 }
 
@@ -87,15 +88,32 @@ func (p *Persistance) GetNode(dir string) (Node, error) {
 
 func (p *Persistance) GetNodesInParallel(buffered_channel chan string) {
 	for file_dir := range buffered_channel {
-		n, err := p.GetNode(file_dir)
+		n, err := p.GetNodeFromAbsolutePath(file_dir)
 		if err != nil {
-			log.Println(err)
+			log.Fatal(err, file_dir)
 		} else {
 			p.mut.Lock()
 			p.nodes = append(p.nodes, n)
 			p.mut.Unlock()
 		}
 	}
+}
+func (p *Persistance) GetNodeFromAbsolutePath(dir string) (Node, error) {
+	var n Node
+	node_in_bytes, err := p.fs.ReadLatestFromFileInBytes(dir)
+	if err != nil {
+
+		return Node{}, err
+
+	}
+	buffer := bytes.NewBuffer(node_in_bytes)
+	dec := gob.NewDecoder(buffer)
+	err = dec.Decode(&n)
+	if err != nil {
+		return Node{}, err
+	}
+
+	return n, nil
 }
 
 func (p *Persistance) GetALLNodes() {
@@ -118,7 +136,7 @@ func (p *Persistance) GetALLNodes() {
 	buffered_channel := make(chan string, 100)
 
 	for i := 0; i < NUM_THREADS; i++ {
-		p.GetNodesInParallel(buffered_channel)
+		go p.GetNodesInParallel(buffered_channel)
 	}
 	p.wg.Add(NUM_THREADS)
 	for i := range node_filedirs {
