@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"testing"
+	"time"
 )
 
 func TestKVInit(t *testing.T) {
@@ -34,6 +35,71 @@ func TestAdd(t *testing.T) {
 	if err != nil {
 		t.Errorf("Expected nil but got %v", err)
 	}
+	time.Sleep(2 * time.Second)
+	// confirm the transactionID
+
+	file := x.wal.getCurrentFileName()
+	data, err := x.ps.fs.ReadLatestFromFile(file)
+	if err != nil {
+		t.Fatal(err)
+	}
+	wal_entry, err := deserialize([]byte(data))
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := wal_entry.TxnID
+	got := txnID
+	if want != got {
+		t.Errorf("want %v , but got %v", want, got)
+	}
+	os.RemoveAll(dir)
+	os.RemoveAll(ps_prefix)
+}
+
+func TestUpdate(t *testing.T) {
+	ps_prefix, wal_prefix, dir := PrepKV()
+	x := NewKVService(ps_prefix, wal_prefix, dir, 1, 10)
+	x.Init()
+	k, v := "newKey", "newValue"
+	txnID, err := x.Update(k, v)
+	if err != nil {
+		t.Errorf("Expected nil but got %v", err)
+	}
+	time.Sleep(2 * time.Second)
+	// confirm the transactionID
+
+	file := x.wal.getCurrentFileName()
+	data, err := x.ps.fs.ReadLatestFromFile(file)
+	if err != nil {
+		t.Fatal(err)
+	}
+	wal_entry, err := deserialize([]byte(data))
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := wal_entry.TxnID
+	got := txnID
+	if want != got {
+		t.Errorf("want %v , but got %v", want, got)
+	}
+	os.RemoveAll(dir)
+	os.RemoveAll(ps_prefix)
+}
+
+func TestDelete(t *testing.T) {
+	ps_prefix, wal_prefix, dir := PrepKV()
+	x := NewKVService(ps_prefix, wal_prefix, dir, 1, 10)
+	x.Init()
+	k, v := "newKey", "newValue"
+	x.Add(k, v)
+	txnID, err := x.Delete(k)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err != nil {
+		t.Errorf("Expected nil but got %v", err)
+	}
+	time.Sleep(2 * time.Second)
 	// confirm the transactionID
 
 	file := x.wal.getCurrentFileName()
@@ -51,6 +117,16 @@ func TestAdd(t *testing.T) {
 		t.Errorf("want %v , but got %v", want, got)
 	}
 
+	// Now check if key is returned or not
+
+	_, g := x.hm.Get(k)
+	w := err_NodeNotFound
+	if w != g {
+		t.Errorf("Expected %v but got %v", w, g)
+	}
+
+	os.RemoveAll(dir)
+	os.RemoveAll(ps_prefix)
 }
 
 func PrepKV() (string, string, string) {

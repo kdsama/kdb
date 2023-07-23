@@ -51,7 +51,7 @@ func (hm *HashMap) Get(key string) (Node, error) {
 	hm.mut.RLock()
 	n, ok := hm.kv[key]
 	hm.mut.RUnlock()
-	if !ok {
+	if !ok || n.Deleted {
 		return Node{}, err_NodeNotFound
 	}
 	return *n, nil
