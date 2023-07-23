@@ -97,6 +97,8 @@ func (p *Persistance) GetNodesInParallel(buffered_channel chan string) {
 			p.mut.Unlock()
 		}
 	}
+
+	p.wg.Done()
 }
 func (p *Persistance) GetNodeFromAbsolutePath(dir string) (Node, error) {
 	var n Node

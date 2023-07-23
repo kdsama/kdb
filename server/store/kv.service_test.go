@@ -30,5 +30,6 @@ func TestKVInit(t *testing.T) {
 	if len(got) != want {
 		t.Errorf("Wanted the length to be %v, but got %v", want, len(got))
 	}
-
+	os.RemoveAll(ps_prefix)
+	os.RemoveAll(dir)
 }
