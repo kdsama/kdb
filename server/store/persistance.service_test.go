@@ -1,7 +1,6 @@
 package store
 
 import (
-	"bytes"
 	"fmt"
 	"os"
 	"sync"
@@ -20,7 +19,8 @@ func TestPersistanceSave(t *testing.T) {
 
 		want := "test_data"
 		per := NewPersistance(prefix)
-		err := per.Save(key, bytes.NewBuffer([]byte(want)))
+		w := []byte(want)
+		err := per.Save(key, &w)
 		defer os.Remove(prefix + want).Error()
 		if err != nil {
 			t.Error("Did not expect error on save . Err::::", err)
@@ -47,7 +47,8 @@ func TestPersistanceSave(t *testing.T) {
 			ws.Add(1)
 			go func() {
 				defer ws.Done()
-				err := per.Save(key, bytes.NewBuffer([]byte(want)))
+				w := []byte(want)
+				err := per.Save(key, &w)
 				if err != nil {
 					t.Error("Did not expect error on save . Err::::", err)
 				}
@@ -110,7 +111,7 @@ data_in_bytes := bytes.NewBuffer([]byte(data))
 }
 
 `
-		data_in_bytes := bytes.NewBuffer([]byte(data))
+		data_in_bytes := []byte(data)
 		per := NewPersistance(prefix)
 		os.RemoveAll(prefix)
 		// here we would like to have some sub directories as well as well
@@ -123,12 +124,12 @@ data_in_bytes := bytes.NewBuffer([]byte(data))
 			go func() {
 				i := i
 				defer ws.Done()
-				per.Save(a+fmt.Sprint(i)+b+c, data_in_bytes)
+				per.Save(a+fmt.Sprint(i)+b+c, &data_in_bytes)
 			}()
 			go func() {
 				i := i
 				defer ws.Done()
-				per.Save(a+b+fmt.Sprint(i)+c, data_in_bytes)
+				per.Save(a+b+fmt.Sprint(i)+c, &data_in_bytes)
 			}()
 
 		}

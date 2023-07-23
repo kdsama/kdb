@@ -3,6 +3,7 @@ package store
 import (
 	"bytes"
 	"encoding/gob"
+	"encoding/json"
 	"errors"
 	"log"
 	"sync"
@@ -42,22 +43,21 @@ func (p *Persistance) Add(node Node) error {
 	// need to make sure that the node is persistanceready
 	buffer, node := serializeNode(node)
 
-	return p.Save(node.Key, buffer)
+	return p.Save(node.Key, &buffer)
 }
 
-func serializeNode(node Node) (*bytes.Buffer, Node) {
-	buffer := bytes.NewBuffer([]byte{})
-	enc := gob.NewEncoder(buffer)
-
-	node = node.persistanceReady()
-	enc.Encode(node)
-	return buffer, node
+func serializeNode(node Node) ([]byte, Node) {
+	bytes, err := json.Marshal(node)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return bytes, node
 }
 
 // There is no need for update . Update means we are saving a new byte array to the file
-func (p *Persistance) Save(key string, buffer *bytes.Buffer) error {
+func (p *Persistance) Save(key string, buffer *[]byte) error {
 	p.mut.Lock()
-	err := p.fs.WriteFileWithDirectories(p.prefix+key, buffer.Bytes())
+	err := p.fs.WriteFileWithDirectories(p.prefix+key, *buffer)
 	p.mut.Unlock()
 	return err
 }
@@ -106,10 +106,7 @@ func (p *Persistance) GetNodeFromAbsolutePath(dir string) (Node, error) {
 		return Node{}, err
 
 	}
-	buffer := bytes.NewBuffer(node_in_bytes)
-	dec := gob.NewDecoder(buffer)
-	err = dec.Decode(&n)
-	if err != nil {
+	if err := json.Unmarshal(node_in_bytes, &n); err != nil {
 		return Node{}, err
 	}
 

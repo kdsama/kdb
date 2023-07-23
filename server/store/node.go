@@ -12,13 +12,13 @@ var (
 
 // compact order of the fields will lead to smaller size
 type Node struct {
-	Key              string
-	Value            string
-	Version          int8
+	Key              string `json:"key"`
+	Value            string `json:"value"`
+	Version          int8   `json:"version"`
 	PreviousVersions []Node
-	Deleted          bool
-	Timestamp        int64
-	Commit           int8
+	Deleted          bool  `json:"deleted"`
+	Timestamp        int64 `json:"timestamp"`
+	Commit           int8  `json:"commit"`
 }
 
 func NewNode(key string, value string) *Node {
