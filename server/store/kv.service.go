@@ -3,6 +3,8 @@ package store
 import (
 	"errors"
 	"fmt"
+	"log"
+	"strings"
 	"sync"
 )
 
@@ -112,6 +114,19 @@ func (kvs *KVService) Delete(key string) (string, error) {
 		return "", err
 	}
 	return kvs.wal.addEntry(*node, DELETE)
+}
+
+func (kvs *KVService) GetNode(key string) (Node, error) {
+	return kvs.hm.Get(key)
+}
+
+func (kvs *KVService) GetManyNodes(key string) ([]Node, error) {
+	key_list := strings.Split(key, "*")
+
+	keys := kvs.btree.getKeysFromPrefix(key_list[0])
+	nodes, missing, err := kvs.hm.GetSeveral(keys)
+	log.Print(missing)
+	return nodes, err
 }
 
 func (kvs *KVService) SetRecord(data *[]byte) error {
