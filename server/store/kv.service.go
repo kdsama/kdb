@@ -2,9 +2,7 @@ package store
 
 import (
 	"errors"
-	"fmt"
 	"log"
-	"strings"
 	"sync"
 )
 
@@ -78,10 +76,13 @@ func (kvs *KVService) Init() {
 	// no role of wal here
 	// this will set all nodes in the ps object
 	kvs.ps.GetALLNodes()
+
 	for _, node := range kvs.ps.nodes {
+		node := node
 		kvs.btree.addKeyString(node.Key)
 		kvs.hm.AddNode(&node)
 	}
+
 	// I dont mind everything to be sequential here as it is just once.
 }
 
@@ -121,9 +122,8 @@ func (kvs *KVService) GetNode(key string) (Node, error) {
 }
 
 func (kvs *KVService) GetManyNodes(key string) ([]Node, error) {
-	key_list := strings.Split(key, "*")
 
-	keys := kvs.btree.getKeysFromPrefix(key_list[0])
+	keys := kvs.btree.getKeysFromPrefix(key)
 	nodes, missing, err := kvs.hm.GetSeveral(keys)
 	log.Print(missing)
 	return nodes, err
@@ -159,7 +159,7 @@ func (kvs *KVService) SetRecords() error {
 	return nil
 }
 
-func (kvs *KVService) GetLastTransaction() error {
+func (kvs *KVService) GetLastTransaction() (string, error) {
 	// so is this a processed transaction or any transaction ?
 	// we need to find the latest one, which is probably in the memory and not in the storage
 	// Or it is in the storage
@@ -174,10 +174,10 @@ func (kvs *KVService) GetLastTransaction() error {
 	latestTransaction, err := deserialize(kvs.wal.latestEntry)
 	kvs.mut.Unlock()
 	if err != nil {
-		return err
+		return "", err
 	}
-	fmt.Println(latestTransaction)
-	return nil
+
+	return latestTransaction.TxnID, nil
 }
 
 func (kvs *KVService) Load() error {

@@ -7,7 +7,7 @@ import (
 
 var (
 	err_NodeNotFound      = errors.New("node not found")
-	err_NoNodeFound       = errors.New("none of the nodes are present")
+	err_NoneNodeFound     = errors.New("none of the nodes are present")
 	err_SomeNodesNotFound = errors.New("some nodes not found")
 )
 
@@ -39,11 +39,12 @@ func (hm *HashMap) Add(key string, value string) *Node {
 }
 
 func (hm *HashMap) AddNode(node *Node) error {
-	n := *node
+	n := node
 
 	hm.mut.Lock()
-	hm.kv[n.Key] = node
+	hm.kv[n.Key] = n
 	hm.mut.Unlock()
+
 	return nil
 }
 
@@ -72,7 +73,7 @@ func (hm *HashMap) GetSeveral(keys []string) ([]Node, []string, error) {
 	}
 	hm.mut.RUnlock()
 	if len(missing_keys) == len(keys) {
-		return []Node{}, missing_keys, err_NoNodeFound
+		return []Node{}, missing_keys, err_NoneNodeFound
 	} else if len(missing_keys) == 0 {
 		return node_list, missing_keys, nil
 	}
