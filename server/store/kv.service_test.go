@@ -228,7 +228,7 @@ func TestSetRecord(t *testing.T) {
 	x := NewKVService(ps_prefix, wal_prefix, dir, 1, 10)
 	x.Init()
 	n := NewNode("someKey", "SomeValue")
-	txnID := "SomeID100000"
+	txnID := "node100000"
 	entry := NewWalEntry(n, ADD, txnID)
 	en, err := entry.serialize()
 	if err != nil {
