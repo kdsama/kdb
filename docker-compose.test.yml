@@ -4,7 +4,7 @@ services:
   servertest:
     build:
       context: .
-      dockerfile: ./server/deploys/Dockerfile.test   
+      dockerfile: ./deploys/Dockerfile.test   
 
 
 

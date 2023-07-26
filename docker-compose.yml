@@ -5,7 +5,7 @@ services:
     build:
     
       context: .
-      dockerfile: ./server/deploys/Dockerfile.production    
+      dockerfile: ./deploys/Dockerfile.production    
     container_name: server  
     volumes:
         - ./data:/go/src/data
