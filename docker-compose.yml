@@ -1,0 +1,15 @@
+version: '2'
+
+services:
+  server:
+    build:
+    
+      context: .
+      dockerfile: ./server/deploys/Dockerfile.production    
+    container_name: server  
+    volumes:
+        - ./data:/go/src/data
+    networks:
+      - backend
+networks:
+  backend:

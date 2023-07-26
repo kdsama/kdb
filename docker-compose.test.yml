@@ -1,0 +1,19 @@
+version: '2'
+
+services:
+  servertest:
+    build:
+      context: .
+      dockerfile: ./server/deploys/Dockerfile.test   
+
+
+
+    
+
+
+
+
+
+    # we cant put up replicas anymore 
+    #  need to do it manually or by using makefile 
+    # There is an option for replicas, but that is for docker-swarm 

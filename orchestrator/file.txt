@@ -1,0 +1,5 @@
+A go file inside orchestrator that will add container on input and remove them as well 
+Better if this is a cli. 
+It should not be a cli It should be running at all times ? 
+For our version we can just make it connect to the main server, or the leader ? 
+package orchestrator
