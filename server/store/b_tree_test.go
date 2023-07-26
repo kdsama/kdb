@@ -3,6 +3,8 @@ package store
 import (
 	"sync"
 	"testing"
+
+	"github.com/kdsama/kdb/server/logger"
 )
 
 func TestBTree(t *testing.T) {
@@ -14,7 +16,8 @@ func TestBTree(t *testing.T) {
 func TestAddKeyString(t *testing.T) {
 	Sample_Keys := []string{"a", "aa", "a*a", "b", "bc", "bcd", "a", "aa", "a*a", "b", "bc", "bcd", "a", "a"}
 	degree := 4
-	btree := newBTree(degree)
+	lg := logger.New(logger.Info)
+	btree := newBTree(degree, lg)
 
 	//setKey
 	want := true
@@ -58,7 +61,7 @@ func TestAddKeyString(t *testing.T) {
 
 func BenchmarkAddKeyString(b *testing.B) {
 	degree := 4
-	btree := newBTree(degree)
+	btree := newBTree(degree, lg)
 	Sample_Keys := []string{"a", "aa", "a*a", "b", "bc", "bcd", "a", "aa", "a*a", "b", "bc", "bcd", "a", "a"}
 	for i := 0; i < b.N; i++ {
 		// Perform the operation to be benchmarked
@@ -76,7 +79,7 @@ func BenchmarkAddKeyString(b *testing.B) {
 func TestGetKey(t *testing.T) {
 	Sample_Keys := []string{"a", "aa", "a*a", "b", "bc", "bcd", "a", "aa", "a*a", "b", "bc", "bcd", "a", "a"}
 	degree := 4
-	btree := newBTree(degree)
+	btree := newBTree(degree, lg)
 	for i := range Sample_Keys {
 		btree.addKeyString(Sample_Keys[i])
 	}
@@ -127,7 +130,7 @@ func TestGetKey(t *testing.T) {
 
 func BenchmarkGetKeyString(b *testing.B) {
 	degree := 4
-	btree := newBTree(degree)
+	btree := newBTree(degree, lg)
 	Sample_Keys := []string{"a", "aa", "a*a", "b", "bc", "bcd", "a", "aa", "a*a", "b", "bc", "bcd", "a", "a"}
 	for i := 0; i < len(Sample_Keys); i++ {
 		btree.addKeyString(Sample_Keys[i])
@@ -171,7 +174,7 @@ func BenchmarkGetKeyString(b *testing.B) {
 
 func TestGetKeysFromPrefix(t *testing.T) {
 	degree := 4
-	btree := newBTree(degree)
+	btree := newBTree(degree, lg)
 	Testing_Keys := []string{"a", "aa", "hamburgerville", "a*a", "baa", "hamburgeroni", "aabcd", "aaqwert", "sda", "123", "hamburger", "hamburgerStedam"}
 	for i := range Testing_Keys {
 		btree.addKeyString(Testing_Keys[i])
@@ -210,7 +213,7 @@ func TestGetKeysFromPrefix(t *testing.T) {
 
 func BenchmarkGetKeysFromPrefix(b *testing.B) {
 	degree := 4
-	btree := newBTree(degree)
+	btree := newBTree(degree, lg)
 	Testing_Keys := []string{"a", "aa", "hamburgerville", "a*a", "baa", "hamburgeroni", "aabcd", "aaqwert", "sda", "123", "hamburger", "hamburgerStedam"}
 	for i := range Testing_Keys {
 		btree.addKeyString(Testing_Keys[i])

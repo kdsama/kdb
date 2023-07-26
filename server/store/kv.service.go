@@ -2,8 +2,9 @@ package store
 
 import (
 	"errors"
-	"log"
 	"sync"
+
+	"github.com/kdsama/kdb/server/logger"
 )
 
 // Now here is the service that will bind everything together
@@ -53,21 +54,22 @@ type KVI interface {
 }
 
 type KVService struct {
-	hm    *HashMap
-	btree BTree
-	wal   *WAL
-	ps    *Persistance
-	mut   sync.Mutex
+	hm     *HashMap
+	btree  BTree
+	wal    *WAL
+	ps     *Persistance
+	mut    sync.Mutex
+	logger *logger.Logger
 }
 
-func NewKVService(dataPrefix, walPrefix, directory string, duration int, degree int) *KVService {
+func NewKVService(dataPrefix, walPrefix, directory string, duration int, degree int, lg *logger.Logger) *KVService {
 	// load all the data
 	fs := NewFileService()
-	wal := NewWAL(walPrefix, directory, *fs, duration)
-	hm := NewHashMap()
-	btree := newBTree(degree)
-	ps := NewPersistance(dataPrefix)
-	return &KVService{hm, btree, wal, ps, sync.Mutex{}}
+	wal := NewWAL(walPrefix, directory, *fs, duration, lg)
+	hm := NewHashMap(lg)
+	btree := newBTree(degree, lg)
+	ps := NewPersistance(dataPrefix, lg)
+	return &KVService{hm, btree, wal, ps, sync.Mutex{}, lg}
 }
 
 func (kvs *KVService) Init() {
@@ -112,6 +114,7 @@ func (kvs *KVService) Delete(key string) (string, error) {
 	// dont do anything on the btree part let the key remain for now
 	node, err := kvs.hm.Delete(key)
 	if err != nil {
+		kvs.logger.Errorf(err.Error())
 		return "", err
 	}
 	return kvs.wal.addEntry(*node, DELETE)
@@ -125,7 +128,7 @@ func (kvs *KVService) GetManyNodes(key string) ([]Node, error) {
 
 	keys := kvs.btree.getKeysFromPrefix(key)
 	nodes, missing, err := kvs.hm.GetSeveral(keys)
-	log.Print(missing)
+	kvs.logger.WARNf("%v", missing)
 	return nodes, err
 }
 

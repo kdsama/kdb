@@ -7,6 +7,8 @@ import (
 	"errors"
 	"log"
 	"sync"
+
+	"github.com/kdsama/kdb/server/logger"
 )
 
 type Persistance struct {
@@ -15,6 +17,7 @@ type Persistance struct {
 	mut    sync.Mutex
 	wg     sync.WaitGroup
 	nodes  []Node
+	logger *logger.Logger
 }
 
 var (
@@ -27,10 +30,10 @@ const (
 	NUM_THREADS = 2
 )
 
-func NewPersistance(prefix string) *Persistance {
+func NewPersistance(prefix string, lg *logger.Logger) *Persistance {
 	fs := NewFileService()
 
-	return &Persistance{fs, prefix, sync.Mutex{}, sync.WaitGroup{}, []Node{}}
+	return &Persistance{fs, prefix, sync.Mutex{}, sync.WaitGroup{}, []Node{}, lg}
 }
 
 // we need to encode the data in a way that we can save it
@@ -90,7 +93,7 @@ func (p *Persistance) GetNodesInParallel(buffered_channel chan string) {
 	for file_dir := range buffered_channel {
 		n, err := p.GetNodeFromAbsolutePath(file_dir)
 		if err != nil {
-			log.Fatal(err, file_dir)
+			p.logger.Fatalf(err.Error())
 		} else {
 			p.mut.Lock()
 			p.nodes = append(p.nodes, n)

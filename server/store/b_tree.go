@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/google/btree"
+	"github.com/kdsama/kdb/server/logger"
 )
 
 type Key string
@@ -18,12 +19,13 @@ type BTree interface {
 }
 
 type GoogleBTree struct {
-	tree *btree.BTree
+	tree   *btree.BTree
+	logger *logger.Logger
 }
 
-func newBTree(degree int) *GoogleBTree {
+func newBTree(degree int, lg *logger.Logger) *GoogleBTree {
 	t := btree.New(degree)
-	return &GoogleBTree{t}
+	return &GoogleBTree{t, lg}
 }
 
 func (bt *GoogleBTree) addKeyString(key string) bool {

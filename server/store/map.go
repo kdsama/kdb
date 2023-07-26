@@ -3,6 +3,8 @@ package store
 import (
 	"errors"
 	"sync"
+
+	"github.com/kdsama/kdb/server/logger"
 )
 
 var (
@@ -20,14 +22,15 @@ var (
 type keyValue map[string]*Node
 
 type HashMap struct {
-	kv  keyValue
-	mut sync.RWMutex
+	kv     keyValue
+	mut    sync.RWMutex
+	logger *logger.Logger
 }
 
-func NewHashMap() *HashMap {
+func NewHashMap(lg *logger.Logger) *HashMap {
 	kv := map[string]*Node{}
 	mut := sync.RWMutex{}
-	return &HashMap{kv, mut}
+	return &HashMap{kv, mut, lg}
 }
 func (hm *HashMap) Add(key string, value string) *Node {
 	node := NewNode(key, value)

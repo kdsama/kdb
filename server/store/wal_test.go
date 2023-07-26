@@ -20,7 +20,7 @@ func TestAddEntry(t *testing.T) {
 
 	t.Run("Check the value in buffer array", func(t *testing.T) {
 
-		w := NewWAL(wal_prefix, wal_test_directory, fileService{}, 5000)
+		w := NewWAL(wal_prefix, wal_test_directory, fileService{}, 5000, lg)
 
 		key := "Key"
 		value := "Value"
@@ -42,7 +42,7 @@ func TestAddEntry(t *testing.T) {
 	})
 	t.Run("Check size of buffer after timeout and not insertions", func(t *testing.T) {
 
-		w := NewWAL(wal_prefix, wal_test_directory, fileService{}, 1)
+		w := NewWAL(wal_prefix, wal_test_directory, fileService{}, 1, lg)
 
 		key := "Key"
 		value := "Value"
@@ -69,7 +69,7 @@ func BenchmarkAddEntry(b *testing.B) {
 	b.Run("Test the same for multiple file creations . The file names should atomically increase", func(b *testing.B) {
 
 		fs := fileService{}
-		w := NewWAL(wal_prefix, wal_test_directory, fs, 1)
+		w := NewWAL(wal_prefix, wal_test_directory, fs, 1, lg)
 		key := "Key"
 		value := "{\"id\":1,\"n\":\"John Doe\",\"a\":30,\"e\":\"johndoejohndoejohndoejohndoejohndoejohndoejohndoe1@example.com\"}"
 		for i := 0; i < 100000; i++ {
@@ -96,7 +96,7 @@ func BenchmarkAddEntry(b *testing.B) {
 func TestSetCounterFromFileName(t *testing.T) {
 
 	t.Run("Checking for counter, when loaded for the first time", func(t *testing.T) {
-		w := NewWAL(wal_prefix, wal_test_directory, fileService{}, 1)
+		w := NewWAL(wal_prefix, wal_test_directory, fileService{}, 1, lg)
 
 		key := "Key"
 		value := "Value"
@@ -115,7 +115,7 @@ func TestSetCounterFromFileName(t *testing.T) {
 
 		// this function made me realize that the logic of new wal file creation is not strong at all
 		fs := fileService{}
-		w := NewWAL(wal_prefix, wal_test_directory, fs, 1)
+		w := NewWAL(wal_prefix, wal_test_directory, fs, 1, lg)
 		testwalcleanup(w)
 		key := "Key"
 		value := "{\"id\":1,\"n\":\"John Doe\",\"a\":30,\"e\":\"johndoejohndoejohndoejohndoejohndoejohndoejohndoe1@example.com\"}"
@@ -146,7 +146,7 @@ func TestSetCounterFromFileName(t *testing.T) {
 
 		// this function made me realize that the logic of new wal file creation is not strong at all
 		fs := fileService{}
-		w := NewWAL(wal_prefix, wal_test_directory, fs, 1)
+		w := NewWAL(wal_prefix, wal_test_directory, fs, 1, lg)
 
 		key := "Key"
 		value := "{\"id\":1,\"n\":\"John Doe\",\"a\":30,\"e\":\"johndoejohndoejohndoejohndoejohndoejohndoejohndoe1@example.com\"}"
@@ -180,7 +180,7 @@ func TestSetLatestCounter(t *testing.T) {
 	os.RemoveAll(wal_test_directory)
 	t.Run("On initial setup , counter should return as zero", func(t *testing.T) {
 		fs := fileService{}
-		w := NewWAL(wal_prefix, wal_test_directory, fs, 1)
+		w := NewWAL(wal_prefix, wal_test_directory, fs, 1, lg)
 
 		// check counter in 1 second.
 		want := 0
@@ -195,7 +195,7 @@ func TestSetLatestCounter(t *testing.T) {
 	t.Run("Counter on top of several entries single file", func(t *testing.T) {
 
 		fs := fileService{}
-		w := NewWAL(wal_prefix, wal_test_directory, fs, 1)
+		w := NewWAL(wal_prefix, wal_test_directory, fs, 1, lg)
 
 		// check counter in 1 second.
 		want := 100000
@@ -215,7 +215,7 @@ func TestSetLatestCounter(t *testing.T) {
 	t.Run("Counter on top of several entries, several files ", func(t *testing.T) {
 		// return
 		fs := fileService{}
-		w := NewWAL(wal_prefix, wal_test_directory, fs, 1)
+		w := NewWAL(wal_prefix, wal_test_directory, fs, 1, lg)
 
 		// check counter in 1 second.
 		want := 1200000

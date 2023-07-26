@@ -18,7 +18,7 @@ func TestPersistanceSave(t *testing.T) {
 		key := "test"
 
 		want := "test_data"
-		per := NewPersistance(prefix)
+		per := NewPersistance(prefix, lg)
 		w := []byte(want)
 		err := per.Save(key, &w)
 		defer os.Remove(prefix + want).Error()
@@ -40,7 +40,7 @@ func TestPersistanceSave(t *testing.T) {
 		key := "test"
 
 		want := "test_data"
-		per := NewPersistance(prefix)
+		per := NewPersistance(prefix, lg)
 
 		ws := sync.WaitGroup{}
 		for i := 0; i < 100; i++ {
@@ -112,7 +112,7 @@ data_in_bytes := bytes.NewBuffer([]byte(data))
 
 `
 		data_in_bytes := []byte(data)
-		per := NewPersistance(prefix)
+		per := NewPersistance(prefix, lg)
 		os.RemoveAll(prefix)
 		// here we would like to have some sub directories as well as well
 		ws := sync.WaitGroup{}

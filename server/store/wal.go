@@ -9,6 +9,8 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"github.com/kdsama/kdb/server/logger"
 )
 
 /* Key: The key represents the unique identifier or name associated with the data being stored. It is used to retrieve or reference the data in the database.
@@ -52,6 +54,7 @@ type WAL struct {
 	fs           fileService
 	ticker       time.Ticker
 	latestEntry  []byte
+	logger       *logger.Logger
 }
 
 var (
@@ -67,11 +70,11 @@ var (
 	file_counter = 0
 )
 
-func NewWAL(prefix, directory string, fs fileService, duration int) *WAL {
+func NewWAL(prefix, directory string, fs fileService, duration int, lg *logger.Logger) *WAL {
 
 	t := time.Duration(duration) * time.Second
 	ticker := *time.NewTicker(t)
-	wal := WAL{prefix, directory, 0, 0, sync.Mutex{}, fs, ticker, []byte{}}
+	wal := WAL{prefix, directory, 0, 0, sync.Mutex{}, fs, ticker, []byte{}, lg}
 
 	wal.setLatestFileCounter()
 	wal.setLatestCounter()
@@ -112,7 +115,7 @@ func (w *WAL) setLatestFileCounter() {
 		return
 	}
 	if err != nil {
-		log.Print(err)
+		w.logger.Errorf(err.Error())
 	}
 	counter := w.GetCounterFromFileName(filename)
 	w.file_counter = counter
@@ -182,7 +185,7 @@ func (w *WAL) BufferUpdate() {
 	size, err := w.fs.GetFileSize(w.getCurrentFileName())
 	if err != nil && w.file_counter != 0 {
 		// what about the case when there are no files , aka the first time the application is run
-		log.Fatal("Didnot expect an error here , closing the application", err)
+		w.logger.Fatalf("Didnot expect an error here %v, closing the application", err)
 	}
 	// basically the scenario popped up where
 	// when we went to the check for max file size , Nothing in previous file was pushed. So everything got pushed into second file.

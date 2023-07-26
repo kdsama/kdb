@@ -5,7 +5,20 @@ import (
 	"os"
 	"testing"
 	"time"
+
+	"github.com/kdsama/kdb/server/logger"
 )
+
+// next big thing that I need to do is , save the last transactionID which was persisted in the storage layer
+// and create a service that will pick the ones that are after that
+// how can we pick those ?
+// Its important to iterate the fields after that
+// thats because We might have multiple adds or saves in the wal entry
+// we would also have to skip the acknowledgements and other stuff
+// Should we also have a persistance buffer ?
+// wal buffer doesn't make sense as of now.
+// Or does it ?
+var lg = logger.New(logger.Info)
 
 func TestKVInit(t *testing.T) {
 
@@ -15,7 +28,7 @@ func TestKVInit(t *testing.T) {
 	// Now I will save a few keys
 	// and I should be able to get data of these keys
 	ps_prefix, wal_prefix, dir := PrepKV()
-	x := NewKVService(ps_prefix, wal_prefix, dir, 1, 10)
+	x := NewKVService(ps_prefix, wal_prefix, dir, 1, 10, lg)
 	x.Init()
 	got := x.btree.getKeysFromPrefix("key")
 	want := 10
@@ -30,7 +43,7 @@ func TestGetNode(t *testing.T) {
 	// the test has made me realize that the setting part, in the hashmap is inconsistent.
 	// saving key9 at key8 is just plain wrong
 	ps_prefix, wal_prefix, dir := PrepKV()
-	x := NewKVService(ps_prefix, wal_prefix, dir, 1, 10)
+	x := NewKVService(ps_prefix, wal_prefix, dir, 1, 10, lg)
 	x.Init()
 	want := "key1"
 	node, err := x.GetNode(want)
@@ -56,7 +69,7 @@ func TestGetManyNodes(t *testing.T) {
 	// the test has made me realize that the setting part, in the hashmap is inconsistent.
 	// saving key9 at key8 is just plain wrong
 	ps_prefix, wal_prefix, dir := PrepKV()
-	x := NewKVService(ps_prefix, wal_prefix, dir, 1, 10)
+	x := NewKVService(ps_prefix, wal_prefix, dir, 1, 10, lg)
 	x.Init()
 	key := "key"
 	nodes, err := x.GetManyNodes(key)
@@ -73,7 +86,7 @@ func TestGetManyNodes(t *testing.T) {
 
 func TestAdd(t *testing.T) {
 	ps_prefix, wal_prefix, dir := PrepKV()
-	x := NewKVService(ps_prefix, wal_prefix, dir, 1, 10)
+	x := NewKVService(ps_prefix, wal_prefix, dir, 1, 10, lg)
 	x.Init()
 	k, v := "newKey", "newValue"
 	txnID, err := x.Add(k, v)
@@ -103,7 +116,7 @@ func TestAdd(t *testing.T) {
 
 func TestUpdate(t *testing.T) {
 	ps_prefix, wal_prefix, dir := PrepKV()
-	x := NewKVService(ps_prefix, wal_prefix, dir, 1, 10)
+	x := NewKVService(ps_prefix, wal_prefix, dir, 1, 10, lg)
 	x.Init()
 	k, v := "newKey", "newValue"
 	txnID, err := x.Update(k, v)
@@ -133,7 +146,7 @@ func TestUpdate(t *testing.T) {
 
 func TestGetLastTransaction(t *testing.T) {
 	ps_prefix, wal_prefix, dir := PrepKV()
-	x := NewKVService(ps_prefix, wal_prefix, dir, 1, 10)
+	x := NewKVService(ps_prefix, wal_prefix, dir, 1, 10, lg)
 	x.Init()
 	k, v := "anotherkey", "anotherValue"
 	want, err := x.Add(k, v)
@@ -154,7 +167,7 @@ func TestGetLastTransaction(t *testing.T) {
 	os.RemoveAll(ps_prefix)
 	t.Run("Add thousands of transactions so we have multiple files, reinitiate the kv service and get the latest transaction", func(t *testing.T) {
 		ps_prefix, wal_prefix, dir := PrepKV()
-		x := NewKVService(ps_prefix, wal_prefix, dir, 1, 10)
+		x := NewKVService(ps_prefix, wal_prefix, dir, 1, 10, lg)
 		x.Init()
 		k, v := "anotherkey", "anotherValue"
 		var want string
@@ -182,7 +195,7 @@ func TestGetLastTransaction(t *testing.T) {
 
 func TestDelete(t *testing.T) {
 	ps_prefix, wal_prefix, dir := PrepKV()
-	x := NewKVService(ps_prefix, wal_prefix, dir, 1, 10)
+	x := NewKVService(ps_prefix, wal_prefix, dir, 1, 10, lg)
 	x.Init()
 	k, v := "newKey", "newValue"
 	x.Add(k, v)
@@ -225,7 +238,7 @@ func TestDelete(t *testing.T) {
 
 func TestSetRecord(t *testing.T) {
 	ps_prefix, wal_prefix, dir := PrepKV()
-	x := NewKVService(ps_prefix, wal_prefix, dir, 1, 10)
+	x := NewKVService(ps_prefix, wal_prefix, dir, 1, 10, lg)
 	x.Init()
 	n := NewNode("someKey", "SomeValue")
 	txnID := "node100000"
@@ -253,7 +266,7 @@ func TestSetRecord(t *testing.T) {
 func PrepKV() (string, string, string) {
 	ps_prefix := "../../data/kvservice/persist/"
 	os.RemoveAll(ps_prefix)
-	ps := NewPersistance(ps_prefix)
+	ps := NewPersistance(ps_prefix, lg)
 
 	for i := 0; i < 10; i++ {
 		node := NewNode(fmt.Sprintf("key%v", i), fmt.Sprintf("Some Value:%v", i))
