@@ -13,12 +13,6 @@ var (
 	err_SomeNodesNotFound = errors.New("some nodes not found")
 )
 
-var (
-	COMMITTED = int8(1)
-	WAITING   = int8(0)
-	ABORTED   = int8(2)
-)
-
 type keyValue map[string]*Node
 
 type HashMap struct {
@@ -119,7 +113,7 @@ func (hm *HashMap) Commit(key string, version int) error {
 		return err_OldVersion
 	}
 
-	if n.Commit != COMMITTED {
+	if commitLevel(n.Commit) != COMMITTED {
 		return err_AlreadyCommited
 	}
 	n.CommitNode()

@@ -16,14 +16,14 @@ type Node struct {
 	Value            string `json:"value"`
 	Version          int8   `json:"version"`
 	PreviousVersions []Node
-	Deleted          bool  `json:"deleted"`
-	Timestamp        int64 `json:"timestamp"`
-	Commit           int8  `json:"commit"`
+	Deleted          bool        `json:"deleted"`
+	Timestamp        int64       `json:"timestamp"`
+	Commit           commitLevel `json:"commit"`
 }
 
 func NewNode(key string, value string) *Node {
 	t := time.Now().Unix()
-	return &Node{key, value, 0, nil, false, t, int8(WAITING)}
+	return &Node{key, value, 0, nil, false, t, commitLevel(WAITING)}
 }
 
 func (n *Node) CommitNode() {

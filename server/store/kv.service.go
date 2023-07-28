@@ -88,13 +88,46 @@ func (kvs *KVService) Init() {
 	// I dont mind everything to be sequential here as it is just once.
 }
 
+func (kvs *KVService) Commit(we *WalEntry) error {
+
+	// commit the node
+	(*we).Node.CommitNode()
+	// add it to logs
+	_, err := kvs.wal.addEntry(*(*we).Node, (*we).Operation)
+	if err != nil {
+		return err
+	}
+	// make it persistance ready
+	node := (*we).Node.persistanceReady()
+	// save it to persistance layer
+	return kvs.ps.Add(node)
+
+}
+
+func (kvs *KVService) Abort(we *WalEntry) error {
+
+	// commit the node
+	(*we).Node.Abort()
+	// add it to logs
+	_, err := kvs.wal.addEntry(*(*we).Node, (*we).Operation)
+	if err != nil {
+		return err
+	}
+	// make it persistance ready
+	node := (*we).Node.persistanceReady()
+	// save it to persistance layer
+	return kvs.ps.Add(node)
+
+}
+
 // returns WAL Entry
 func (kvs *KVService) Add(key string, value string) (WalEntry, error) {
 
+	// no adding until the commit is done.
 	// write to hashmap
 	// write to b-tree
 	// write to WAL
-	node := kvs.hm.Add(key, value)
+
 	kvs.btree.addKeyString(key)
 	// need to return the whole WAL log here instead of just transactionID
 	// same for all the other
