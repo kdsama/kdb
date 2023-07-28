@@ -5,7 +5,8 @@ services:
     build:
       context: .
       dockerfile: ./deploys/Dockerfile.test   
-
+    volumes:
+        - ./data/data-node-1:/go/src/data
 
 
     

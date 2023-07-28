@@ -3,8 +3,8 @@ new: down upnew
 
 
 up:
-	docker-compose -f docker-compose.yml up -d --force-recreate --build
-	docker-compose logs -f 
+	docker build -t kdb -f "$$(pwd)/deploys/Dockerfile.production" .
+	docker run -it -d -p 5869:5869 --name kdb_node_leader --network backend -v ./data:/go/src/data
 stop:
 	docker-compose -f docker-compose.yml stop
 down:

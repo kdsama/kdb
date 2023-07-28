@@ -88,34 +88,35 @@ func (kvs *KVService) Init() {
 	// I dont mind everything to be sequential here as it is just once.
 }
 
-// returns transactionID
-func (kvs *KVService) Add(key string, value string) (string, error) {
+// returns WAL Entry
+func (kvs *KVService) Add(key string, value string) (WalEntry, error) {
 
 	// write to hashmap
 	// write to b-tree
 	// write to WAL
 	node := kvs.hm.Add(key, value)
 	kvs.btree.addKeyString(key)
+	// need to return the whole WAL log here instead of just transactionID
+	// same for all the other
 	return kvs.wal.addEntry(*node, ADD)
 }
 
 // updates the key value and returns the transactionID
-func (kvs *KVService) Update(key string, value string) (string, error) {
+func (kvs *KVService) Update(key string, value string) (WalEntry, error) {
 
-	// write to hashmap
-	// write to b-tree
-	// write to WAL
 	node := kvs.hm.Add(key, value)
 	kvs.btree.addKeyString(key)
 	return kvs.wal.addEntry(*node, UPDATE)
+
 }
 
-func (kvs *KVService) Delete(key string) (string, error) {
+func (kvs *KVService) Delete(key string) (WalEntry, error) {
 	// dont do anything on the btree part let the key remain for now
 	node, err := kvs.hm.Delete(key)
 	if err != nil {
 		kvs.logger.Errorf(err.Error())
-		return "", err
+		// the separation between layers is a bit too blurry
+		return WalEntry{}, err
 	}
 	return kvs.wal.addEntry(*node, DELETE)
 }

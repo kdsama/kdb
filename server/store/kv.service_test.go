@@ -107,7 +107,7 @@ func TestAdd(t *testing.T) {
 	}
 	want := wal_entry.TxnID
 	got := txnID
-	if want != got {
+	if want != got.TxnID {
 		t.Errorf("want %v , but got %v", want, got)
 	}
 	os.RemoveAll(dir)
@@ -137,7 +137,7 @@ func TestUpdate(t *testing.T) {
 	}
 	want := wal_entry.TxnID
 	got := txnID
-	if want != got {
+	if want != got.TxnID {
 		t.Errorf("want %v , but got %v", want, got)
 	}
 	os.RemoveAll(dir)
@@ -160,7 +160,7 @@ func TestGetLastTransaction(t *testing.T) {
 
 	}
 	time.Sleep(2 * time.Second)
-	if want != got {
+	if want.TxnID != got {
 		t.Errorf("want %v , but got %v", want, got)
 	}
 	os.RemoveAll(dir)
@@ -170,7 +170,7 @@ func TestGetLastTransaction(t *testing.T) {
 		x := NewKVService(ps_prefix, wal_prefix, dir, 1, 10, lg)
 		x.Init()
 		k, v := "anotherkey", "anotherValue"
-		var want string
+		var want WalEntry
 		for i := 0; i < 1000000; i++ {
 			want, err = x.Add(k+fmt.Sprintf("%v", i), v+fmt.Sprintf("%v", i))
 			if err != nil {
@@ -187,7 +187,7 @@ func TestGetLastTransaction(t *testing.T) {
 
 		}
 
-		if want != got {
+		if want.TxnID != got {
 			t.Errorf("want %v , but got %v", want, got)
 		}
 	})
@@ -199,7 +199,7 @@ func TestDelete(t *testing.T) {
 	x.Init()
 	k, v := "newKey", "newValue"
 	x.Add(k, v)
-	txnID, err := x.Delete(k)
+	wle, err := x.Delete(k)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -219,7 +219,7 @@ func TestDelete(t *testing.T) {
 		t.Fatal(err)
 	}
 	want := wal_entry.TxnID
-	got := txnID
+	got := wle.TxnID
 	if want != got {
 		t.Errorf("want %v , but got %v", want, got)
 	}

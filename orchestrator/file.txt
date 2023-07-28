@@ -3,3 +3,15 @@ Better if this is a cli.
 It should not be a cli It should be running at all times ? 
 For our version we can just make it connect to the main server, or the leader ? 
 package orchestrator
+
+
+
+
+// so this orchestration is difficult
+// I need to add new containers 
+// I need to give them each a new volume location, probably in the same directory itself
+// I think I need to remove docker-compose 
+// add docker run instead of compose 
+// whatever random name is being given to be stored at a different location 
+// I will add a folder inside of data and It will act like the data folder itself 
+// lets test this on docker-compose test file first 

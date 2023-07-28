@@ -26,9 +26,9 @@ import (
 	"log"
 	"net"
 
-	client "github.com/kdsama/kdb/client"
+	"github.com/kdsama/kdb/consensus"
+	pb "github.com/kdsama/kdb/consensus/protodata"
 	"google.golang.org/grpc"
-	pb "google.golang.org/grpc/examples/helloworld/helloworld"
 )
 
 var (
@@ -53,7 +53,7 @@ func main() {
 		log.Fatalf("failed to listen: %v", err)
 	}
 	s := grpc.NewServer()
-	go client.Run("localhost:50051")
+	go consensus.Run("localhost:50051")
 	pb.RegisterGreeterServer(s, &server{})
 	log.Printf("server listening at %v", lis.Addr())
 	if err := s.Serve(lis); err != nil {

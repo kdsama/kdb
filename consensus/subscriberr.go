@@ -17,7 +17,7 @@
  */
 
 // Package main implements a client for Greeter service.
-package client
+package consensus
 
 import (
 	"context"
@@ -26,9 +26,9 @@ import (
 	"log"
 	"time"
 
+	pb "github.com/kdsama/kdb/consensus/protodata"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-	pb "google.golang.org/grpc/examples/helloworld/helloworld"
 )
 
 const (
