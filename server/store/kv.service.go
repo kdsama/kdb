@@ -93,6 +93,9 @@ func (kvs *KVService) Commit(we *WalEntry) error {
 	// commit the node
 	(*we).Node.CommitNode()
 	// add it to logs
+
+	kvs.hm.AddNode(we.Node)
+	kvs.btree.addKeyString(we.Node.Key)
 	_, err := kvs.wal.addEntry(*(*we).Node, (*we).Operation)
 	if err != nil {
 		return err
@@ -106,6 +109,9 @@ func (kvs *KVService) Commit(we *WalEntry) error {
 
 func (kvs *KVService) Abort(we *WalEntry) error {
 
+	// as we are aborting
+	// this means data is not there in the persistance layer, or hashmap or btree
+	// we just need to log it in wal transactional records
 	// commit the node
 	(*we).Node.Abort()
 	// add it to logs
@@ -124,11 +130,8 @@ func (kvs *KVService) Abort(we *WalEntry) error {
 func (kvs *KVService) Add(key string, value string) (WalEntry, error) {
 
 	// no adding until the commit is done.
-	// write to hashmap
-	// write to b-tree
-	// write to WAL
 
-	kvs.btree.addKeyString(key)
+	node := NewNode(key, value)
 	// need to return the whole WAL log here instead of just transactionID
 	// same for all the other
 	return kvs.wal.addEntry(*node, ADD)
