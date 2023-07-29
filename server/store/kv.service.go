@@ -90,14 +90,24 @@ func (kvs *KVService) Init() {
 
 func (kvs *KVService) Commit(we *WalEntry) error {
 
-	// commit the node
-	(*we).Node.CommitNode()
-	// add it to logs
-
-	kvs.hm.AddNode(we.Node)
-	kvs.btree.addKeyString(we.Node.Key)
-	_, err := kvs.wal.addEntry(*(*we).Node, (*we).Operation)
+	// add the node and then commit it <-- this is wrong because , if we add Node the version will be increased automatically
+	// the flow should be like this
+	// if node doesnot exist --> add node
+	// else check the version
+	// if version is >
+	// return error
+	// else continue committing
+	err := kvs.hm.AddNode(we.Node)
 	if err != nil {
+		kvs.logger.Errorf(err.Error())
+		return err
+	}
+
+	// add it to logs
+	kvs.btree.addKeyString(we.Node.Key)
+	_, err = kvs.wal.addEntry(*(*we).Node, (*we).Operation)
+	if err != nil {
+		kvs.logger.Errorf(err.Error())
 		return err
 	}
 	// make it persistance ready
@@ -116,13 +126,7 @@ func (kvs *KVService) Abort(we *WalEntry) error {
 	(*we).Node.Abort()
 	// add it to logs
 	_, err := kvs.wal.addEntry(*(*we).Node, (*we).Operation)
-	if err != nil {
-		return err
-	}
-	// make it persistance ready
-	node := (*we).Node.persistanceReady()
-	// save it to persistance layer
-	return kvs.ps.Add(node)
+	return err
 
 }
 

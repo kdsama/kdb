@@ -37,9 +37,15 @@ func (hm *HashMap) Add(key string, value string) *Node {
 
 func (hm *HashMap) AddNode(node *Node) error {
 	n := node
-
+	if _, ok := hm.kv[n.Key]; ok {
+		err := hm.Commit(n.Key, int(n.Version))
+		if err != nil {
+			return err
+		}
+	}
 	hm.mut.Lock()
 	hm.kv[n.Key] = n
+	n.Commit = COMMITTED
 	hm.mut.Unlock()
 
 	return nil
@@ -105,15 +111,13 @@ func (hm *HashMap) Delete(key string) (*Node, error) {
 }
 
 func (hm *HashMap) Commit(key string, version int) error {
-	if _, ok := hm.kv[key]; !ok {
-		panic(err_NodeNotFound)
-	}
+
 	n := (*hm.kv[key])
 	if n.Version > int8(version) {
 		return err_OldVersion
 	}
 
-	if commitLevel(n.Commit) != COMMITTED {
+	if commitLevel(n.Commit) == COMMITTED {
 		return err_AlreadyCommited
 	}
 	n.CommitNode()

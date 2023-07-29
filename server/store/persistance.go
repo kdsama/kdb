@@ -67,7 +67,7 @@ func (p *Persistance) Save(key string, buffer *[]byte) error {
 
 func (p *Persistance) GetNodeFromKey(key string) (Node, error) {
 	dir := p.prefix + key
-	return p.GetNode(dir)
+	return p.GetNodeFromAbsolutePath(dir)
 
 }
 

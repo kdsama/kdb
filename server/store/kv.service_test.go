@@ -9,6 +9,12 @@ import (
 	"github.com/kdsama/kdb/server/logger"
 )
 
+var (
+	kv_wal_prefix = "node"
+	kv_dir        = "../../data/kvservice/wal/"
+	ps_prefix     = "../../data/kvservice/persist/"
+)
+
 // next big thing that I need to do is , save the last transactionID which was persisted in the storage layer
 // and create a service that will pick the ones that are after that
 // how can we pick those ?
@@ -27,8 +33,8 @@ func TestKVInit(t *testing.T) {
 	// so lets persist some data first
 	// Now I will save a few keys
 	// and I should be able to get data of these keys
-	ps_prefix, wal_prefix, dir := PrepKV()
-	x := NewKVService(ps_prefix, wal_prefix, dir, 1, 10, lg)
+	PrepKV()
+	x := NewKVService(ps_prefix, kv_wal_prefix, kv_dir, 1, 10, lg)
 	x.Init()
 	got := x.btree.getKeysFromPrefix("key")
 	want := 10
@@ -36,14 +42,14 @@ func TestKVInit(t *testing.T) {
 		t.Errorf("Wanted the length to be %v, but got %v", want, len(got))
 	}
 	// os.RemoveAll(ps_prefix)
-	// os.RemoveAll(dir)
+	// os.RemoveAll(kv_dir)
 }
 
 func TestGetNode(t *testing.T) {
 	// the test has made me realize that the setting part, in the hashmap is inconsistent.
 	// saving key9 at key8 is just plain wrong
-	ps_prefix, wal_prefix, dir := PrepKV()
-	x := NewKVService(ps_prefix, wal_prefix, dir, 1, 10, lg)
+	PrepKV()
+	x := NewKVService(ps_prefix, kv_wal_prefix, kv_dir, 1, 10, lg)
 	x.Init()
 	want := "key1"
 	node, err := x.GetNode(want)
@@ -68,8 +74,8 @@ func TestGetNode(t *testing.T) {
 func TestGetManyNodes(t *testing.T) {
 	// the test has made me realize that the setting part, in the hashmap is inconsistent.
 	// saving key9 at key8 is just plain wrong
-	ps_prefix, wal_prefix, dir := PrepKV()
-	x := NewKVService(ps_prefix, wal_prefix, dir, 1, 10, lg)
+	PrepKV()
+	x := NewKVService(ps_prefix, kv_wal_prefix, kv_dir, 1, 10, lg)
 	x.Init()
 	key := "key"
 	nodes, err := x.GetManyNodes(key)
@@ -85,8 +91,8 @@ func TestGetManyNodes(t *testing.T) {
 }
 
 func TestAdd(t *testing.T) {
-	ps_prefix, wal_prefix, dir := PrepKV()
-	x := NewKVService(ps_prefix, wal_prefix, dir, 1, 10, lg)
+	PrepKV()
+	x := NewKVService(ps_prefix, kv_wal_prefix, kv_dir, 1, 10, lg)
 	x.Init()
 	k, v := "newKey", "newValue"
 	txnID, err := x.Add(k, v)
@@ -110,13 +116,13 @@ func TestAdd(t *testing.T) {
 	if want != got.TxnID {
 		t.Errorf("want %v , but got %v", want, got)
 	}
-	os.RemoveAll(dir)
+	os.RemoveAll(kv_dir)
 	os.RemoveAll(ps_prefix)
 }
 
 func TestUpdate(t *testing.T) {
-	ps_prefix, wal_prefix, dir := PrepKV()
-	x := NewKVService(ps_prefix, wal_prefix, dir, 1, 10, lg)
+	PrepKV()
+	x := NewKVService(ps_prefix, kv_wal_prefix, kv_dir, 1, 10, lg)
 	x.Init()
 	k, v := "newKey", "newValue"
 	txnID, err := x.Update(k, v)
@@ -140,13 +146,13 @@ func TestUpdate(t *testing.T) {
 	if want != got.TxnID {
 		t.Errorf("want %v , but got %v", want, got)
 	}
-	os.RemoveAll(dir)
+	os.RemoveAll(kv_dir)
 	os.RemoveAll(ps_prefix)
 }
 
 func TestGetLastTransaction(t *testing.T) {
-	ps_prefix, wal_prefix, dir := PrepKV()
-	x := NewKVService(ps_prefix, wal_prefix, dir, 1, 10, lg)
+	PrepKV()
+	x := NewKVService(ps_prefix, kv_wal_prefix, kv_dir, 1, 10, lg)
 	x.Init()
 	k, v := "anotherkey", "anotherValue"
 	want, err := x.Add(k, v)
@@ -163,11 +169,11 @@ func TestGetLastTransaction(t *testing.T) {
 	if want.TxnID != got {
 		t.Errorf("want %v , but got %v", want, got)
 	}
-	os.RemoveAll(dir)
+	os.RemoveAll(kv_dir)
 	os.RemoveAll(ps_prefix)
 	t.Run("Add thousands of transactions so we have multiple files, reinitiate the kv service and get the latest transaction", func(t *testing.T) {
-		ps_prefix, wal_prefix, dir := PrepKV()
-		x := NewKVService(ps_prefix, wal_prefix, dir, 1, 10, lg)
+		PrepKV()
+		x := NewKVService(ps_prefix, kv_wal_prefix, kv_dir, 1, 10, lg)
 		x.Init()
 		k, v := "anotherkey", "anotherValue"
 		var want WalEntry
@@ -194,8 +200,8 @@ func TestGetLastTransaction(t *testing.T) {
 }
 
 func TestDelete(t *testing.T) {
-	ps_prefix, wal_prefix, dir := PrepKV()
-	x := NewKVService(ps_prefix, wal_prefix, dir, 1, 10, lg)
+	PrepKV()
+	x := NewKVService(ps_prefix, kv_wal_prefix, kv_dir, 1, 10, lg)
 	x.Init()
 	k, v := "newKey", "newValue"
 	x.Add(k, v)
@@ -232,13 +238,13 @@ func TestDelete(t *testing.T) {
 		t.Errorf("Expected %v but got %v", w, g)
 	}
 
-	os.RemoveAll(dir)
+	os.RemoveAll(kv_dir)
 	os.RemoveAll(ps_prefix)
 }
 
 func TestSetRecord(t *testing.T) {
-	ps_prefix, wal_prefix, dir := PrepKV()
-	x := NewKVService(ps_prefix, wal_prefix, dir, 1, 10, lg)
+	PrepKV()
+	x := NewKVService(ps_prefix, kv_wal_prefix, kv_dir, 1, 10, lg)
 	x.Init()
 	n := NewNode("someKey", "SomeValue")
 	txnID := "node100000"
@@ -263,8 +269,45 @@ func TestSetRecord(t *testing.T) {
 	}
 }
 
-func PrepKV() (string, string, string) {
-	ps_prefix := "../../data/kvservice/persist/"
+func TestCommit(t *testing.T) {
+	PrepKV()
+
+	x := NewKVService(ps_prefix, kv_wal_prefix, kv_dir, 1, 10, lg)
+	x.Init()
+
+	n := NewNode("someKey", "SomeValue")
+	txnID := "node100000"
+	entry := NewWalEntry(n, ADD, txnID)
+	got := x.Commit(entry)
+
+	var want error
+	if want != got {
+		t.Errorf("want %v , but got %v", want, got)
+	}
+
+	t.Run("Trying to commit the same version as already saved", func(t *testing.T) {
+		want = err_AlreadyCommited
+		got = x.Commit(entry)
+		if want != got {
+			t.Errorf("want %v , but got %v", want, got)
+		}
+
+	})
+	t.Run("Check the data in the file", func(t *testing.T) {
+		key := n.Key
+		node, err := x.ps.GetNodeFromKey(key)
+		if err != nil {
+			t.Errorf("Expected nil but got %v", err)
+		}
+		if n.Key != node.Key && n.Value != node.Value && n.Version != node.Version {
+			t.Errorf("Wanted %v but got %v", n, node)
+		}
+	})
+
+}
+
+func PrepKV() {
+	// ps_prefix := "../../data/kvservice/persist/"
 	os.RemoveAll(ps_prefix)
 	ps := NewPersistance(ps_prefix, lg)
 
@@ -272,7 +315,7 @@ func PrepKV() (string, string, string) {
 		node := NewNode(fmt.Sprintf("key%v", i), fmt.Sprintf("Some Value:%v", i))
 		ps.Add(*node)
 	}
-	wal_prefix := "node"
-	dir := "../../data/kvservice/wal/"
-	return ps_prefix, wal_prefix, dir
+	// kv_wal_prefix := "node"
+	// kv_dir := "../../data/kvservice/wal/"
+	// return ps_prefix, kv_wal_prefix, kv_dir
 }
