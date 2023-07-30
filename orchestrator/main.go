@@ -59,6 +59,11 @@ func main() {
 }
 
 func (dc *dockercli) addContainer() {
+	// check if kdb_backend exists
+	_, err := dc.NetworkCreate(context.Background(), "kdb_backend", types.NetworkCreate{})
+	if err != nil {
+		log.Fatal(err)
+	}
 	// Check number of containers that already exist for the particular image
 	// if its the first, somehow we also need to mention that its a leader
 	// we actually shouldn't care much about the name, as long as it is unique
@@ -67,6 +72,7 @@ func (dc *dockercli) addContainer() {
 	// bind it to the network-bridge
 
 	// give it a name
+
 	rand.Seed(time.Now().UnixNano())
 	randId := fmt.Sprintf("%v", rand.Int31n(100000))
 	name := "node" + randId
