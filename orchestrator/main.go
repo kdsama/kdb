@@ -60,9 +60,25 @@ func main() {
 
 func (dc *dockercli) addContainer() {
 	// check if kdb_backend exists
-	_, err := dc.NetworkCreate(context.Background(), "kdb_backend", types.NetworkCreate{})
+	nw, err := dc.NetworkList(context.Background(), types.NetworkListOptions{})
 	if err != nil {
 		log.Fatal(err)
+	}
+
+	count := 0
+	for _, network := range nw {
+		if network.Name == "kdb_backend" {
+			count++
+		}
+	}
+	if count == 0 {
+		_, err = dc.NetworkCreate(context.Background(), "kdb_backend", types.NetworkCreate{})
+	}
+
+	if err != nil {
+		// means there is none existing as of now
+		// we need to clean the servers.txt file
+		os.Truncate(filepath.Dir("serverInfo")+"/servers.txt", int64(0))
 	}
 	// Check number of containers that already exist for the particular image
 	// if its the first, somehow we also need to mention that its a leader
