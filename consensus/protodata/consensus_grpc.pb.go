@@ -18,124 +18,124 @@ import (
 // Requires gRPC-Go v1.32.0 or later.
 const _ = grpc.SupportPackageIsVersion7
 
-// GreeterClient is the client API for Greeter service.
+// ConsensusClient is the client API for Consensus service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type GreeterClient interface {
+type ConsensusClient interface {
 	// Sends a greeting
 	SendRecord(ctx context.Context, in *WalEntry, opts ...grpc.CallOption) (*WalResponse, error)
 	Ack(ctx context.Context, in *Hearbeat, opts ...grpc.CallOption) (*HearbeatResponse, error)
 }
 
-type greeterClient struct {
+type consensusClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewGreeterClient(cc grpc.ClientConnInterface) GreeterClient {
-	return &greeterClient{cc}
+func NewConsensusClient(cc grpc.ClientConnInterface) ConsensusClient {
+	return &consensusClient{cc}
 }
 
-func (c *greeterClient) SendRecord(ctx context.Context, in *WalEntry, opts ...grpc.CallOption) (*WalResponse, error) {
+func (c *consensusClient) SendRecord(ctx context.Context, in *WalEntry, opts ...grpc.CallOption) (*WalResponse, error) {
 	out := new(WalResponse)
-	err := c.cc.Invoke(ctx, "/helloworld.Greeter/SendRecord", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/consensus.Consensus/SendRecord", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *greeterClient) Ack(ctx context.Context, in *Hearbeat, opts ...grpc.CallOption) (*HearbeatResponse, error) {
+func (c *consensusClient) Ack(ctx context.Context, in *Hearbeat, opts ...grpc.CallOption) (*HearbeatResponse, error) {
 	out := new(HearbeatResponse)
-	err := c.cc.Invoke(ctx, "/helloworld.Greeter/Ack", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/consensus.Consensus/Ack", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// GreeterServer is the server API for Greeter service.
-// All implementations must embed UnimplementedGreeterServer
+// ConsensusServer is the server API for Consensus service.
+// All implementations must embed UnimplementedConsensusServer
 // for forward compatibility
-type GreeterServer interface {
+type ConsensusServer interface {
 	// Sends a greeting
 	SendRecord(context.Context, *WalEntry) (*WalResponse, error)
 	Ack(context.Context, *Hearbeat) (*HearbeatResponse, error)
-	mustEmbedUnimplementedGreeterServer()
+	mustEmbedUnimplementedConsensusServer()
 }
 
-// UnimplementedGreeterServer must be embedded to have forward compatible implementations.
-type UnimplementedGreeterServer struct {
+// UnimplementedConsensusServer must be embedded to have forward compatible implementations.
+type UnimplementedConsensusServer struct {
 }
 
-func (UnimplementedGreeterServer) SendRecord(context.Context, *WalEntry) (*WalResponse, error) {
+func (UnimplementedConsensusServer) SendRecord(context.Context, *WalEntry) (*WalResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SendRecord not implemented")
 }
-func (UnimplementedGreeterServer) Ack(context.Context, *Hearbeat) (*HearbeatResponse, error) {
+func (UnimplementedConsensusServer) Ack(context.Context, *Hearbeat) (*HearbeatResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Ack not implemented")
 }
-func (UnimplementedGreeterServer) mustEmbedUnimplementedGreeterServer() {}
+func (UnimplementedConsensusServer) mustEmbedUnimplementedConsensusServer() {}
 
-// UnsafeGreeterServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to GreeterServer will
+// UnsafeConsensusServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to ConsensusServer will
 // result in compilation errors.
-type UnsafeGreeterServer interface {
-	mustEmbedUnimplementedGreeterServer()
+type UnsafeConsensusServer interface {
+	mustEmbedUnimplementedConsensusServer()
 }
 
-func RegisterGreeterServer(s grpc.ServiceRegistrar, srv GreeterServer) {
-	s.RegisterService(&Greeter_ServiceDesc, srv)
+func RegisterConsensusServer(s grpc.ServiceRegistrar, srv ConsensusServer) {
+	s.RegisterService(&Consensus_ServiceDesc, srv)
 }
 
-func _Greeter_SendRecord_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _Consensus_SendRecord_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(WalEntry)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(GreeterServer).SendRecord(ctx, in)
+		return srv.(ConsensusServer).SendRecord(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/helloworld.Greeter/SendRecord",
+		FullMethod: "/consensus.Consensus/SendRecord",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GreeterServer).SendRecord(ctx, req.(*WalEntry))
+		return srv.(ConsensusServer).SendRecord(ctx, req.(*WalEntry))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Greeter_Ack_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _Consensus_Ack_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(Hearbeat)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(GreeterServer).Ack(ctx, in)
+		return srv.(ConsensusServer).Ack(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/helloworld.Greeter/Ack",
+		FullMethod: "/consensus.Consensus/Ack",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GreeterServer).Ack(ctx, req.(*Hearbeat))
+		return srv.(ConsensusServer).Ack(ctx, req.(*Hearbeat))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-// Greeter_ServiceDesc is the grpc.ServiceDesc for Greeter service.
+// Consensus_ServiceDesc is the grpc.ServiceDesc for Consensus service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var Greeter_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "helloworld.Greeter",
-	HandlerType: (*GreeterServer)(nil),
+var Consensus_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "consensus.Consensus",
+	HandlerType: (*ConsensusServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "SendRecord",
-			Handler:    _Greeter_SendRecord_Handler,
+			Handler:    _Consensus_SendRecord_Handler,
 		},
 		{
 			MethodName: "Ack",
-			Handler:    _Greeter_Ack_Handler,
+			Handler:    _Consensus_Ack_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

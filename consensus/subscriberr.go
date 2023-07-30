@@ -28,7 +28,7 @@ import (
 
 // server is used to implement helloworld.GreeterServer.
 type Server struct {
-	pb.UnimplementedGreeterServer
+	pb.UnimplementedConsensusServer
 }
 
 // SayHello implements helloworld.GreeterServer
@@ -36,7 +36,3 @@ func (s *Server) Ack(ctx context.Context, in *pb.Hearbeat) (*pb.HearbeatResponse
 	log.Printf("Received: %v", in.GetMessage())
 	return &pb.HearbeatResponse{Message: "Hello " + in.GetMessage()}, nil
 }
-
-const (
-	defaultName = "stfu stupid"
-)

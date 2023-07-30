@@ -19,10 +19,10 @@ option go_package = "github.com/kdb/consensus/protodata";
 // option java_package = "io.grpc.examples.helloworld";
 // option java_outer_classname = "HelloWorldProto";
 
-package helloworld;
+package consensus;
 
 // The greeting service definition.
-service Greeter {
+service Consensus {
   // Sends a greeting
   rpc SendRecord (WalEntry) returns (WalResponse) {}
   rpc Ack(Hearbeat) returns (HearbeatResponse) {}

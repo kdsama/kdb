@@ -12,9 +12,6 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-// here I need to implement the acknowledgement first
-// I need a map of grpc connections as well
-// create a map of all the connections for all the servers
 func Run(addr string) {
 	flag.Parse()
 	// Set up a connection to the server.
@@ -23,7 +20,7 @@ func Run(addr string) {
 		log.Fatalf("did not connect: %v", err)
 	}
 	defer conn.Close()
-	c := pb.NewGreeterClient(conn)
+	c := pb.NewConsensusClient(conn)
 
 	// Contact the server and print out its response.
 	i := 0
@@ -35,9 +32,9 @@ func Run(addr string) {
 		if err != nil {
 			log.Fatalf("could not greet: %v", err)
 		}
-		time.Sleep(2 * time.Second)
+		time.Sleep(10 * time.Second)
 
-		log.Printf("Greeting: %s", r.GetMessage())
+		log.Printf("Greeting: from %s %s", addr, r.GetMessage())
 	}
 
 }

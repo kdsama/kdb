@@ -22,8 +22,8 @@ type dockercli struct {
 }
 
 const (
-	IMAGE   = "go-docker-grpc_server"
-	NETWORK = "go-docker-grpc_server_backend"
+	IMAGE   = "kdb"
+	NETWORK = "kdb_backend"
 )
 
 func main() {
@@ -67,12 +67,12 @@ func (dc *dockercli) addContainer() {
 
 	count := 0
 	for _, network := range nw {
-		if network.Name == "kdb_backend" {
+		if network.Name == NETWORK {
 			count++
 		}
 	}
 	if count == 0 {
-		_, err = dc.NetworkCreate(context.Background(), "kdb_backend", types.NetworkCreate{})
+		_, err = dc.NetworkCreate(context.Background(), NETWORK, types.NetworkCreate{})
 	}
 
 	if err != nil {
@@ -115,7 +115,7 @@ func (dc *dockercli) addContainer() {
 	resp, err := dc.ContainerCreate(context.Background(), &container.Config{
 		Image: dc.image,
 		Cmd:   []string{"./serve", name},
-	}, &container.HostConfig{Binds: []string{volume + ":/go/src/data", serverInf + ":/go/src/serverInfo"}}, &network.NetworkingConfig{EndpointsConfig: map[string]*network.EndpointSettings{"kdb_backend": {NetworkID: "kdb_backend"}}}, nil, name)
+	}, &container.HostConfig{Binds: []string{volume + ":/go/src/data", serverInf + ":/go/src/serverInfo"}}, &network.NetworkingConfig{EndpointsConfig: map[string]*network.EndpointSettings{NETWORK: {NetworkID: NETWORK}}}, nil, name)
 
 	if err != nil {
 		panic(err)
@@ -173,6 +173,10 @@ func (dc *dockercli) deleteAll() {
 			}
 		}
 	}
+
+	f, _ := filepath.Abs(filepath.Dir("serverInfo/"))
+	fmt.Println(f + "/servers.txt")
+	os.Truncate(f+"/servers.txt", int64(0))
 }
 func (dc *dockercli) listContainers() {
 

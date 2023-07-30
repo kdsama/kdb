@@ -48,8 +48,8 @@ func main() {
 		log.Fatalf("failed to listen: %v", err)
 	}
 	s := grpc.NewServer()
-	go consensus.Run("localhost:50051")
-	pb.RegisterGreeterServer(s, &consensus.Server{})
+	go consensus.RunServers(name)
+	pb.RegisterConsensusServer(s, &consensus.Server{})
 	log.Printf("server listening at %v", lis.Addr())
 	if err := s.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %v", err)
