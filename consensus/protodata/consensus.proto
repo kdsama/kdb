@@ -15,24 +15,34 @@
 syntax = "proto3";
 
 option go_package = "github.com/kdb/consensus/protodata";
-option java_multiple_files = true;
-option java_package = "io.grpc.examples.helloworld";
-option java_outer_classname = "HelloWorldProto";
+// option java_multiple_files = true;
+// option java_package = "io.grpc.examples.helloworld";
+// option java_outer_classname = "HelloWorldProto";
 
 package helloworld;
 
 // The greeting service definition.
 service Greeter {
   // Sends a greeting
-  rpc SayHello (HelloRequest) returns (HelloReply) {}
+  rpc SendRecord (WalEntry) returns (WalResponse) {}
+  rpc Ack(Hearbeat) returns (HearbeatResponse) {}
 }
 
 // The request message containing the user's name.
-message HelloRequest {
-  string name = 1;
+message WalEntry {
+  bytes entry = 1;
 }
 
 // The response message containing the greetings
-message HelloReply {
+message WalResponse {
   string message = 1;
+}
+
+
+message Hearbeat {
+  string message = 1 ;
+}
+
+message HearbeatResponse {
+  string message = 1 ;
 }

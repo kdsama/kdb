@@ -21,3 +21,6 @@ delete:
 
 deleteAll:
 	go run orchestrator/main.go deleteAll kdb
+
+proto:
+	protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative consensus/protodata/consensus.proto
