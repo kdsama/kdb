@@ -72,7 +72,7 @@ func (dc *dockercli) addContainer() {
 	name := "node" + randId
 
 	volume, _ := filepath.Abs(filepath.Dir("data/"))
-
+	serverInf, _ := filepath.Abs(filepath.Dir("serverInfo/"))
 	volume += "/" + "data" + randId
 	err1 := os.Mkdir(volume, 0755)
 	if err1 != nil {
@@ -84,6 +84,7 @@ func (dc *dockercli) addContainer() {
 		log.Fatal(err)
 	}
 	defer file.Close()
+	// write to server info file
 	fmt.Fprintln(file, randId)
 	if err != nil {
 		fmt.Println()
@@ -92,7 +93,7 @@ func (dc *dockercli) addContainer() {
 	resp, err := dc.ContainerCreate(context.Background(), &container.Config{
 		Image: dc.image,
 		Cmd:   []string{"./serve", name},
-	}, &container.HostConfig{Binds: []string{volume + ":/go/src/data"}}, &network.NetworkingConfig{EndpointsConfig: map[string]*network.EndpointSettings{"kdb_backend": {NetworkID: "kdb_backend"}}}, nil, "")
+	}, &container.HostConfig{Binds: []string{volume + ":/go/src/data", serverInf + ":/go/src/data/serverInfo"}}, &network.NetworkingConfig{EndpointsConfig: map[string]*network.EndpointSettings{"kdb_backend": {NetworkID: "kdb_backend"}}}, nil, "")
 
 	if err != nil {
 		panic(err)
