@@ -93,7 +93,7 @@ func (dc *dockercli) addContainer() {
 	resp, err := dc.ContainerCreate(context.Background(), &container.Config{
 		Image: dc.image,
 		Cmd:   []string{"./serve", name},
-	}, &container.HostConfig{Binds: []string{volume + ":/go/src/data", serverInf + ":/go/src/data/serverInfo"}}, &network.NetworkingConfig{EndpointsConfig: map[string]*network.EndpointSettings{"kdb_backend": {NetworkID: "kdb_backend"}}}, nil, "")
+	}, &container.HostConfig{Binds: []string{volume + ":/go/src/data", serverInf + ":/go/src/serverInfo"}}, &network.NetworkingConfig{EndpointsConfig: map[string]*network.EndpointSettings{"kdb_backend": {NetworkID: "kdb_backend"}}}, nil, "")
 
 	if err != nil {
 		panic(err)
