@@ -13,6 +13,6 @@ COPY ./ ./
 
 RUN set -ex; \
     CGO_ENABLED=0 GOOS=linux go build -o ./serve ./cmd/main.go;
-CMD ["./serve"]
+# CMD ["./serve"]
 # Final image, no source code
 

@@ -25,6 +25,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"os"
 
 	"github.com/kdsama/kdb/consensus"
 	pb "github.com/kdsama/kdb/consensus/protodata"
@@ -49,6 +50,11 @@ func (s *server) SayHello(ctx context.Context, in *pb.HelloRequest) (*pb.HelloRe
 func main() {
 	flag.Parse()
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *port))
+	name := os.Args[1]
+	if name == "" {
+		log.Fatal("container name is required, exitting")
+	}
+
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}

@@ -6,10 +6,13 @@ import (
 	"log"
 	"math/rand"
 	"os"
+	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/client"
 )
 
@@ -56,10 +59,41 @@ func main() {
 }
 
 func (dc *dockercli) addContainer() {
+	// Check number of containers that already exist for the particular image
+	// if its the first, somehow we also need to mention that its a leader
+	// we actually shouldn't care much about the name, as long as it is unique
+
+	// give it volume, create a folder first inside data folder
+	// bind it to the network-bridge
+
+	// give it a name
+	rand.Seed(time.Now().UnixNano())
+	randId := fmt.Sprintf("%v", rand.Int31n(100000))
+	name := "node" + randId
+
+	volume, _ := filepath.Abs(filepath.Dir("data/"))
+
+	volume += "/" + "data" + randId
+	err1 := os.Mkdir(volume, 0755)
+	if err1 != nil {
+		log.Fatal(err1)
+	}
+
+	file, err := os.OpenFile(filepath.Dir("serverInfo/")+"/servers.txt", os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0644)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer file.Close()
+	fmt.Fprintln(file, randId)
+	if err != nil {
+		fmt.Println()
+		log.Fatal(err)
+	}
 	resp, err := dc.ContainerCreate(context.Background(), &container.Config{
 		Image: dc.image,
-	}, nil, nil, nil, "")
-	fmt.Println(resp)
+		Cmd:   []string{"./serve", name},
+	}, &container.HostConfig{Binds: []string{volume + ":/go/src/data"}}, &network.NetworkingConfig{EndpointsConfig: map[string]*network.EndpointSettings{"kdb_backend": {NetworkID: "kdb_backend"}}}, nil, "")
+
 	if err != nil {
 		panic(err)
 	}
