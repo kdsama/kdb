@@ -56,7 +56,7 @@ func Run(addr string) {
 		i++
 		ctx, _ := context.WithTimeout(context.Background(), time.Second)
 
-		r, err := c.SayHello(ctx, &pb.HelloRequest{Name: (fmt.Sprint(i))})
+		r, err := c.Ack(ctx, &pb.Hearbeat{Message: (fmt.Sprint(i))})
 		if err != nil {
 			log.Fatalf("could not greet: %v", err)
 		}
