@@ -93,41 +93,39 @@ func (cs *ConsensusService) connectClients() {
 	// leader should be set here before any connection
 	// and each of them should have the information about the leader as well
 	// need to sit and think this one through
-	fmt.Println(arr)
-	fmt.Println(clients)
+
 	for _, node := range arr {
 		node := node
 
-		if _, ok := clients[node]; ok {
-			fmt.Println("Node already connected", node)
+		ap := "node" + node
+		if _, ok := clients[ap]; ok {
+
 			continue
 		}
-		ap := "node" + node
-
 		if ap == cs.name {
 
 			continue
 		}
 		conn := connect(ap)
 
-		nc := NewClient(ap, &conn, 5, cs.logger)
+		nc := NewClient(ap, conn, 5, cs.logger)
 		if cs.leader {
-			fmt.Println("Schedule the client then ")
 			go nc.Schedule()
 		}
 
 	}
 
 }
-func connect(addr string) pb.ConsensusClient {
+func connect(addr string) *pb.ConsensusClient {
 	flag.Parse()
 	addr += ":50051"
+
 	conn, err := grpc.Dial(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)
 	}
 
-	defer conn.Close()
+	// defer conn.Close()
 	c := pb.NewConsensusClient(conn)
-	return c
+	return &c
 }

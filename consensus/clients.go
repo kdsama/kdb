@@ -22,6 +22,9 @@ type Client struct {
 var clients = map[string]*Client{}
 
 func NewClient(name string, con *pb.ConsensusClient, factor int, logger *logger.Logger) *Client {
+	if val, ok := clients[name]; ok {
+		return val
+	}
 	t := time.Duration(factor) * time.Second
 	ticker := *time.NewTicker(t)
 
@@ -57,11 +60,11 @@ func (c *Client) Hearbeat() {
 	// 	c.ticker = *time.NewTicker(t)
 	// }
 
-	ctx, _ := context.WithTimeout(context.Background(), 2*time.Second)
+	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
 	nc := c.con
 	r, err := (*nc).Ack(ctx, &pb.Hearbeat{Message: (fmt.Sprint(time.Now()))})
 	if err != nil {
-		c.logger.Errorf("Ouch, No heartbeat from %v\n", c.name)
+		c.logger.Errorf("Ouch, No heartbeat from %v\n", c.name, err)
 		return
 	}
 	// c.ticker = *time.NewTicker(time.Duration(c.factor) * time.Second)
