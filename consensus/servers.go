@@ -2,11 +2,16 @@ package consensus
 
 import (
 	"bufio"
+	"flag"
+	"fmt"
 	"log"
 	"os"
 	"time"
 
+	pb "github.com/kdsama/kdb/consensus/protodata"
 	"github.com/kdsama/kdb/server/logger"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 // here I need to implement the acknowledgement first
@@ -52,10 +57,13 @@ type ConsensusService struct {
 
 func NewConsensusService(leader bool, name string, filepath string, logger *logger.Logger) *ConsensusService {
 	ticker := time.NewTicker(time.Duration(5) * time.Second)
+	fmt.Println("LEADER VALUE", leader)
 	return &ConsensusService{leader, name, filepath, logger, ticker}
 }
 
 func (cs *ConsensusService) Init() {
+	fmt.Println("Initialized ", cs.name)
+	fmt.Println("IS LEADER ???", cs.leader)
 	go cs.Schedule()
 }
 func (cs *ConsensusService) Schedule() {
@@ -77,6 +85,7 @@ func (cs *ConsensusService) connectClients() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	// The problem here is we need to setup a leader and do the connection afterwards
 	// so it will be better if I put everything in a map first
 	// and add new ones to the list by doing a cron call every n seconds
@@ -84,23 +93,41 @@ func (cs *ConsensusService) connectClients() {
 	// leader should be set here before any connection
 	// and each of them should have the information about the leader as well
 	// need to sit and think this one through
-
+	fmt.Println(arr)
+	fmt.Println(clients)
 	for _, node := range arr {
 		node := node
+
 		if _, ok := clients[node]; ok {
+			fmt.Println("Node already connected", node)
 			continue
 		}
 		ap := "node" + node
+
 		if ap == cs.name {
+
 			continue
 		}
 		conn := connect(ap)
-		nc := NewClient(ap, &conn, 5, cs.logger)
-		if nc.leader {
 
+		nc := NewClient(ap, &conn, 5, cs.logger)
+		if cs.leader {
+			fmt.Println("Schedule the client then ")
 			go nc.Schedule()
 		}
 
 	}
 
+}
+func connect(addr string) pb.ConsensusClient {
+	flag.Parse()
+	addr += ":50051"
+	conn, err := grpc.Dial(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		log.Fatalf("did not connect: %v", err)
+	}
+
+	defer conn.Close()
+	c := pb.NewConsensusClient(conn)
+	return c
 }

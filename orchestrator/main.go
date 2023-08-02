@@ -38,7 +38,7 @@ func main() {
 	dc := dockercli{cli, args[2]}
 	defer cli.Close()
 
-	if len(args) > 3 {
+	if len(args) > 4 {
 		log.Fatal("Exiting, cannot take more than 1 arguments")
 	}
 	switch args[1] {
@@ -112,9 +112,17 @@ func (dc *dockercli) addContainer() {
 		fmt.Println()
 		log.Fatal(err)
 	}
+	cmd := []string{"./serve", name}
+	// check if containers existed previously
+	arr := dc.listContainers()
+	if len(arr) == 0 {
+		fmt.Println("Yes this will be a leader")
+		cmd = append(cmd, "leader")
+	}
+	fmt.Println("CMD now is ", cmd)
 	resp, err := dc.ContainerCreate(context.Background(), &container.Config{
 		Image: dc.image,
-		Cmd:   []string{"./serve", name},
+		Cmd:   cmd,
 	}, &container.HostConfig{Binds: []string{volume + ":/go/src/data", serverInf + ":/go/src/serverInfo"}}, &network.NetworkingConfig{EndpointsConfig: map[string]*network.EndpointSettings{NETWORK: {NetworkID: NETWORK}}}, nil, name)
 
 	if err != nil {
@@ -178,18 +186,21 @@ func (dc *dockercli) deleteAll() {
 	fmt.Println(f + "/servers.txt")
 	os.Truncate(f+"/servers.txt", int64(0))
 }
-func (dc *dockercli) listContainers() {
+func (dc *dockercli) listContainers() []string {
 
 	containers, err := dc.ContainerList(context.Background(), types.ContainerListOptions{})
 	if err != nil {
 
 		panic(err)
 	}
-
+	arr := []string{}
+	fmt.Println(dc.image)
 	for _, container := range containers {
 
 		if container.Image == dc.image {
-			fmt.Println(strings.Split(container.Names[0], "/")[1])
+			fmt.Println("container is", strings.Split(container.Names[0], "/")[1])
+			arr = append(arr, strings.Split(container.Names[0], "/")[1])
 		}
 	}
+	return arr
 }

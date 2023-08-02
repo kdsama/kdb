@@ -41,9 +41,11 @@ func main() {
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *port))
 	name := os.Args[1]
 
-	var leader bool
+	leader := false
 	filepath := "serverInfo/servers.txt"
-	if len(os.Args) == 2 {
+
+	if len(os.Args) > 2 {
+		fmt.Println("LEADER ")
 		leader = true
 	}
 	if name == "" {
@@ -57,7 +59,8 @@ func main() {
 
 	opts := logger.ToOutput(os.Stdout)
 	logger := logger.New(0, opts)
-	go consensus.NewConsensusService(leader, name, filepath, logger)
+	cs := consensus.NewConsensusService(leader, name, filepath, logger)
+	go cs.Init()
 	pb.RegisterConsensusServer(s, &consensus.Server{})
 	log.Printf("server listening at %v", lis.Addr())
 	if err := s.Serve(lis); err != nil {

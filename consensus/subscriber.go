@@ -21,6 +21,7 @@ package consensus
 
 import (
 	"context"
+	"fmt"
 	"log"
 
 	pb "github.com/kdsama/kdb/consensus/protodata"
@@ -33,6 +34,7 @@ type Server struct {
 
 // SayHello implements helloworld.GreeterServer
 func (s *Server) Ack(ctx context.Context, in *pb.Hearbeat) (*pb.HearbeatResponse, error) {
+	fmt.Println("YAYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYy")
 	log.Printf("Received: %v", in.GetMessage())
 	return &pb.HearbeatResponse{Message: "Hello " + in.GetMessage()}, nil
 }
