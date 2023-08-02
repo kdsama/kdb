@@ -116,10 +116,10 @@ func (dc *dockercli) addContainer() {
 	// check if containers existed previously
 	arr := dc.listContainers()
 	if len(arr) == 0 {
-		fmt.Println("Yes this will be a leader")
+
 		cmd = append(cmd, "leader")
 	}
-	fmt.Println("CMD now is ", cmd)
+
 	resp, err := dc.ContainerCreate(context.Background(), &container.Config{
 		Image: dc.image,
 		Cmd:   cmd,
@@ -198,7 +198,7 @@ func (dc *dockercli) listContainers() []string {
 	for _, container := range containers {
 
 		if container.Image == dc.image {
-			fmt.Println("container is", strings.Split(container.Names[0], "/")[1])
+
 			arr = append(arr, strings.Split(container.Names[0], "/")[1])
 		}
 	}

@@ -127,5 +127,6 @@ func connect(addr string) *pb.ConsensusClient {
 
 	// defer conn.Close()
 	c := pb.NewConsensusClient(conn)
+
 	return &c
 }

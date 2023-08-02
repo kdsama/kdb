@@ -2,7 +2,6 @@ package consensus
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"time"
 
@@ -51,22 +50,22 @@ func (c *Client) Schedule() {
 
 func (c *Client) Hearbeat() {
 
-	// if time.Since(c.lastBeat) > time.Duration(3*c.factor)*time.Second {
-	// 	c.factor = 3 * c.factor
-	// 	// the server is not responsive
-	// 	// changing the ticker timing
-	// 	t := time.Duration(3*c.factor) * time.Second
-	// 	c.logger.Infof("duration changed for server %v, now heartbeats will be sent at an interval of %v seconds\n", c.name, c.factor)
-	// 	c.ticker = *time.NewTicker(t)
-	// }
+	if time.Since(c.lastBeat) > time.Duration(10*c.factor)*time.Second {
+		c.logger.Errorf("Server %v is dead\n", c.name)
+		// the server is not responsive
+		// changing the ticker timing
+
+		return
+	}
 
 	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
 	nc := c.con
-	r, err := (*nc).Ack(ctx, &pb.Hearbeat{Message: (fmt.Sprint(time.Now()))})
+	r, err := (*nc).Ack(ctx, &pb.Hearbeat{Message: "i"})
 	if err != nil {
 		c.logger.Errorf("Ouch, No heartbeat from %v\n", c.name, err)
 		return
 	}
+	c.lastBeat = time.Now()
 	// c.ticker = *time.NewTicker(time.Duration(c.factor) * time.Second)
 	log.Printf("Greeting: from %s %s", c.name, r.GetMessage())
 }
