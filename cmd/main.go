@@ -28,6 +28,7 @@ import (
 
 	"github.com/kdsama/kdb/consensus"
 	pb "github.com/kdsama/kdb/consensus/protodata"
+	"github.com/kdsama/kdb/server/logger"
 	"google.golang.org/grpc"
 )
 
@@ -40,6 +41,11 @@ func main() {
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *port))
 	name := os.Args[1]
 
+	var leader bool
+	filepath := "serverInfo/servers.txt"
+	if len(os.Args) == 2 {
+		leader = true
+	}
 	if name == "" {
 		log.Fatal("container name is required, exitting")
 	}
@@ -48,7 +54,10 @@ func main() {
 		log.Fatalf("failed to listen: %v", err)
 	}
 	s := grpc.NewServer()
-	go consensus.RunServers(name)
+
+	opts := logger.ToOutput(os.Stdout)
+	logger := logger.New(0, opts)
+	go consensus.NewConsensusService(leader, name, filepath, logger)
 	pb.RegisterConsensusServer(s, &consensus.Server{})
 	log.Printf("server listening at %v", lis.Addr())
 	if err := s.Serve(lis); err != nil {
