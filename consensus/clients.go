@@ -2,7 +2,6 @@ package consensus
 
 import (
 	"context"
-	"sync"
 	"time"
 
 	pb "github.com/kdsama/kdb/consensus/protodata"
@@ -16,20 +15,15 @@ type Client struct {
 	lastBeat time.Time
 	factor   int
 	logger   *logger.Logger
-	mut      sync.Mutex
+	delete   bool
 }
 
-var clients = map[string]*Client{}
-
 func NewClient(name string, con *pb.ConsensusClient, factor int, logger *logger.Logger) *Client {
-	if val, ok := clients[name]; ok {
-		return val
-	}
+
 	t := time.Duration(factor) * time.Second
 	ticker := *time.NewTicker(t)
 
-	c := &Client{name, con, ticker, time.Now(), factor, logger, sync.Mutex{}}
-	clients[name] = c
+	c := &Client{name, con, ticker, time.Now(), factor, logger, false}
 
 	// go c.Schedule()
 	return c
@@ -57,10 +51,9 @@ func (c *Client) Hearbeat() {
 		// changing the ticker timing
 		// remove it from the client map
 		c.logger.WARNf("%v is dead as no hearbeat received for last 10 requests", c.name)
-		// this is just wrong
-		// I am deleting my own self here
-		// need to find a better way to do this bit
-		delete(clients, c.name)
+
+		// this is us informing the service to delete this
+		c.delete = true
 		return
 	}
 

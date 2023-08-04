@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"sync"
 	"time"
 
 	pb "github.com/kdsama/kdb/consensus/protodata"
@@ -56,11 +57,22 @@ type ConsensusService struct {
 	filepath string
 	logger   *logger.Logger
 	ticker   *time.Ticker
+
+	clientMux sync.Mutex
+	clients   map[string]*Client
 }
 
 func NewConsensusService(leader bool, name string, filepath string, logger *logger.Logger) *ConsensusService {
 	ticker := time.NewTicker(time.Duration(5) * time.Second)
-	return &ConsensusService{leader, name, filepath, logger, ticker}
+	return &ConsensusService{
+		leader:    leader,
+		name:      name,
+		filepath:  filepath,
+		logger:    logger,
+		ticker:    ticker,
+		clientMux: sync.Mutex{},
+		clients:   map[string]*Client{},
+	}
 }
 
 func (cs *ConsensusService) Init() {
@@ -82,9 +94,10 @@ func (cs *ConsensusService) SendTransaction(data []byte) {
 	// when quorum is reached
 	// send TransactionConfirmation To all the clients
 	d := data
-	for _, client := range clients {
+	for _, client := range cs.clients {
 		client := client
-		if client.name == cs.name {
+		// we are not going to delete the client from multiple location
+		if client.name == cs.name || client.delete {
 			continue
 		}
 		go func() {
@@ -99,7 +112,7 @@ func (cs *ConsensusService) SendTransactionConfirmation(data []byte) {
 	// when quorum is reached
 	// send TransactionConfirmation To all the clients
 	d := data
-	for _, client := range clients {
+	for _, client := range cs.clients {
 		client.SendRecord(&d)
 	}
 }
@@ -125,14 +138,23 @@ func (cs *ConsensusService) connectClients() {
 	for _, addr := range addresses {
 		addr := addr
 
-		if _, ok := clients[addr]; ok {
+		val, ok := cs.clients[addr]
+		if ok {
+			// has the client layer marked itself to be deleted ?
+			if val.delete {
+				cs.clientMux.Lock()
+				delete(cs.clients, val.name)
+				cs.clientMux.Unlock()
+			} else {
+				continue
+			}
 
-			continue
 		}
+
 		if addr == cs.name {
-
 			continue
 		}
+
 		conn := connect(addr)
 
 		nc := NewClient(addr, conn, 5, cs.logger)
