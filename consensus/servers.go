@@ -83,10 +83,14 @@ func (cs *ConsensusService) SendTransaction(data []byte) {
 	// send TransactionConfirmation To all the clients
 	d := data
 	for _, client := range clients {
+		client := client
 		if client.name == cs.name {
 			continue
 		}
-		client.SendRecord(&d)
+		go func() {
+			client.SendRecord(&d)
+		}()
+
 	}
 }
 

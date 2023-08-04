@@ -176,7 +176,7 @@ func TestGetLastTransaction(t *testing.T) {
 		x := NewKVService(ps_prefix, kv_wal_prefix, kv_dir, 1, 10, lg)
 		x.Init()
 		k, v := "anotherkey", "anotherValue"
-		var want [WalEntry]
+		var want WalEntry
 		for i := 0; i < 1000000; i++ {
 			want, err = x.Add(k+fmt.Sprintf("%v", i), v+fmt.Sprintf("%v", i))
 			if err != nil {
