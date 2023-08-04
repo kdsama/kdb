@@ -93,6 +93,18 @@ func (cs *ConsensusService) SendTransaction(data []byte) {
 	// send transactions to all the clients
 	// when quorum is reached
 	// send TransactionConfirmation To all the clients
+	// what I am thinking of doing is
+	// if quorum is reached we add a value to a transaction map
+	// and change its value from 0 to 1
+	// on the client layer we implement a lock interface
+	// and do spinup locks that when the value is set to 1
+	// we can proceed to get into acknowledgement
+	// but what if the value doesnot reach 1 ? or it reaches -1 ?
+	// in that case we need to abort transaction
+	// should we be doing all this in the client layer or here in the transaction layer itself ?
+	// i think it should be done here in the transaction layer
+	// so need to figure out the steps for that
+	// the client shouldn't even know that there is a transaction acknowledgement
 	d := data
 	for _, client := range cs.clients {
 		client := client
