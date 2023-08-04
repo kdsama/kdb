@@ -45,7 +45,7 @@ var (
 	err_InvalidAction = errors.New("invalid action")
 )
 
-type KVI interface {
+type KVer interface {
 	Add(key string, value string) (string, error)
 	Update(key string, value string) (string, error)
 	Delete(key string) (string, error)
@@ -131,14 +131,18 @@ func (kvs *KVService) Abort(we *WalEntry) error {
 }
 
 // returns WAL Entry
-func (kvs *KVService) Add(key string, value string) (WalEntry, error) {
+func (kvs *KVService) Add(key string, value string) ([]byte, error) {
 
 	// no adding until the commit is done.
 
 	node := NewNode(key, value)
 	// need to return the whole WAL log here instead of just transactionID
 	// same for all the other
-	return kvs.wal.addEntry(*node, ADD)
+	entry, err := kvs.wal.addEntry(*node, ADD)
+	if err != nil {
+		return []byte{}, err
+	}
+	return kvs.serializeRecord(&entry)
 }
 
 // updates the key value and returns the transactionID
@@ -171,6 +175,10 @@ func (kvs *KVService) GetManyNodes(key string) ([]Node, error) {
 	nodes, missing, err := kvs.hm.GetSeveral(keys)
 	kvs.logger.WARNf("%v", missing)
 	return nodes, err
+}
+
+func (kvs *KVService) serializeRecord(entry *WalEntry) ([]byte, error) {
+	return entry.serialize()
 }
 
 func (kvs *KVService) SetRecord(data *[]byte) error {

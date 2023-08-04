@@ -61,7 +61,7 @@ func main() {
 	logger := logger.New(0, opts)
 	cs := consensus.NewConsensusService(leader, name, filepath, logger)
 	go cs.Init()
-	pb.RegisterConsensusServer(s, &consensus.Server{})
+	pb.RegisterConsensusServer(s, &consensus.Receiver{})
 	log.Printf("server listening at %v", lis.Addr())
 	if err := s.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %v", err)
