@@ -31,9 +31,16 @@ type Server struct {
 	pb.UnimplementedConsensusServer
 }
 
-// SayHello implements helloworld.GreeterServer
+// Acknowledgement that the heartbeat has been received
 func (s *Server) Ack(ctx context.Context, in *pb.Hearbeat) (*pb.HearbeatResponse, error) {
 
 	log.Printf("Received: %v", in.GetMessage())
 	return &pb.HearbeatResponse{Message: "Hello " + in.GetMessage()}, nil
+}
+
+// SayHello implements helloworld.GreeterServer
+func (s *Server) SendRecord(ctx context.Context, in *pb.WalEntry) (*pb.WalResponse, error) {
+
+	log.Printf("Received: %v", in.GetEntry())
+	return &pb.WalResponse{Message: "ok"}, nil
 }

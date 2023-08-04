@@ -2,7 +2,6 @@ package consensus
 
 import (
 	"context"
-	"log"
 	"time"
 
 	pb "github.com/kdsama/kdb/consensus/protodata"
@@ -54,7 +53,9 @@ func (c *Client) Hearbeat() {
 		c.logger.Errorf("Server %v is dead\n", c.name)
 		// the server is not responsive
 		// changing the ticker timing
-
+		// remove it from the client map
+		c.logger.WARNf("%v is dead as no hearbeat received for last 10 requests", c.name)
+		delete(clients, c.name)
 		return
 	}
 
@@ -67,5 +68,17 @@ func (c *Client) Hearbeat() {
 	}
 	c.lastBeat = time.Now()
 	// c.ticker = *time.NewTicker(time.Duration(c.factor) * time.Second)
-	log.Printf("Greeting: from %s %s", c.name, r.GetMessage())
+	c.logger.Infof("Greeting: from %s %s", c.name, r.GetMessage())
+}
+
+func (c *Client) SendRecord(data *[]byte) {
+	// we should not send it to dead ones
+	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+	nc := c.con
+	r, err := (*nc).SendRecord(ctx, &pb.WalEntry{Entry: *data})
+	if err != nil {
+		c.logger.Errorf("Ouch, Failed sending data to  %v\n", c.name, err)
+		return
+	}
+	c.logger.Infof("data acknowledged by %v = %v", c.name, r)
 }

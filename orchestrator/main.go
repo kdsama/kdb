@@ -107,7 +107,7 @@ func (dc *dockercli) addContainer() {
 	}
 	defer file.Close()
 	// write to server info file
-	fmt.Fprintln(file, randId)
+	fmt.Fprintln(file, name)
 	if err != nil {
 		fmt.Println()
 		log.Fatal(err)
@@ -194,7 +194,7 @@ func (dc *dockercli) listContainers() []string {
 		panic(err)
 	}
 	arr := []string{}
-	fmt.Println(dc.image)
+
 	for _, container := range containers {
 
 		if container.Image == dc.image {
