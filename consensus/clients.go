@@ -57,8 +57,10 @@ func (c *Client) Hearbeat() {
 		return
 	}
 
-	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
 	nc := c.con
+
 	r, err := (*nc).Ack(ctx, &pb.Hearbeat{Message: "i"})
 	if err != nil {
 		c.logger.Errorf("Ouch, No heartbeat from %v\n", c.name, err)
@@ -69,14 +71,16 @@ func (c *Client) Hearbeat() {
 	c.logger.Infof("Greeting: from %s %s", c.name, r.GetMessage())
 }
 
-func (c *Client) SendRecord(data *[]byte) {
+func (c *Client) SendRecord(ctx context.Context, data *[]byte) error {
 	// we should not send it to dead ones
-	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 500*time.Millisecond)
+	defer cancel()
 	nc := c.con
 	r, err := (*nc).SendRecord(ctx, &pb.WalEntry{Entry: *data})
 	if err != nil {
 		c.logger.Errorf("Ouch, Failed sending data to  %v\n", c.name, err)
-		return
+		return err
 	}
 	c.logger.Infof("data acknowledged by %v = %v", c.name, r)
+	return nil
 }

@@ -34,7 +34,7 @@ func (c *Client) Add(key, value string) error {
 		c.logger.Errorf("%v", err)
 		return err
 	}
-	go c.cs.SendTransaction(dat)
+	go c.cs.SendTransaction(dat, entry.TxnID)
 
 	return nil
 

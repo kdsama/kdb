@@ -2,6 +2,7 @@ package consensus
 
 import (
 	"bufio"
+	"context"
 	"flag"
 	"fmt"
 	"log"
@@ -89,7 +90,7 @@ func (cs *ConsensusService) Schedule() {
 	}
 }
 
-func (cs *ConsensusService) SendTransaction(data []byte) {
+func (cs *ConsensusService) SendTransaction(data []byte, TxnID string) {
 	// send transactions to all the clients
 	// when quorum is reached
 	// send TransactionConfirmation To all the clients
@@ -106,16 +107,55 @@ func (cs *ConsensusService) SendTransaction(data []byte) {
 	// so need to figure out the steps for that
 	// the client shouldn't even know that there is a transaction acknowledgement
 	d := data
+	type Response struct {
+		err  error
+		name string
+	}
+	resp := make(chan Response)
+	ctx := context.WithValue(context.Background(), "transaction-ID", TxnID)
+	count := 0
+	errCount := 0
+	quorum := len(cs.clients) / 2
 	for _, client := range cs.clients {
 		client := client
 		// we are not going to delete the client from multiple location
 		if client.name == cs.name || client.delete {
 			continue
 		}
+		// create a channel
+		// send a value to the channel when we receive non-error
+		// open a switch case in for-select context
+		// whenever we receive something in the channel
+		// we do a counter++
+		// and once the counter reaches the quorum consistency
+		// we go ahead with sending COnfirmation record to all the servers
+		// the method shared about is okay for single context, but we have multiple contexts
+		// what will be the termination condition for the context
+
 		go func() {
-			client.SendRecord(&d)
+			err := client.SendRecord(ctx, &d)
+			resp <- Response{err, client.name}
 		}()
 
+	}
+	for {
+		select {
+		case <-ctx.Done():
+			// does this mean the parent context is finished ?
+		case res := <-resp:
+			{
+				if res.err != nil {
+					errCount++
+				} else {
+					count++
+				}
+				if count >= quorum {
+					ctx.Done()
+				}
+
+			}
+
+		}
 	}
 }
 
