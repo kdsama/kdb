@@ -3,6 +3,7 @@ package consensus
 import (
 	"bufio"
 	"context"
+	"errors"
 	"flag"
 	"fmt"
 	"log"
@@ -19,8 +20,18 @@ import (
 // here I need to implement the acknowledgement first
 // I need a maddr of grpc connections as well
 // create a maddr of all the connections for all the servers
+type recordState int32
+
 const (
-	addressPort = ":50051"
+	addressPort             = ":50051"
+	Acknowledge recordState = iota
+	Commit
+	Abort
+)
+
+var (
+	errTransactionAborted = errors.New("the transaction was aborted, this can happen if enough acknowledgement arenot received")
+	errTransactionBroken  = errors.New("couldnot reach quorum after getting enough acknowledements from other nodes")
 )
 
 func ReadFromFile(filepath string) ([]string, error) {
@@ -61,6 +72,8 @@ type ConsensusService struct {
 
 	clientMux sync.Mutex
 	clients   map[string]*Client
+
+	wg sync.WaitGroup
 }
 
 func NewConsensusService(leader bool, name string, filepath string, logger *logger.Logger) *ConsensusService {
@@ -73,6 +86,7 @@ func NewConsensusService(leader bool, name string, filepath string, logger *logg
 		ticker:    ticker,
 		clientMux: sync.Mutex{},
 		clients:   map[string]*Client{},
+		wg:        sync.WaitGroup{},
 	}
 }
 
@@ -90,83 +104,83 @@ func (cs *ConsensusService) Schedule() {
 	}
 }
 
-func (cs *ConsensusService) SendTransaction(data []byte, TxnID string) {
-	// send transactions to all the clients
-	// when quorum is reached
-	// send TransactionConfirmation To all the clients
-	// what I am thinking of doing is
-	// if quorum is reached we add a value to a transaction map
-	// and change its value from 0 to 1
-	// on the client layer we implement a lock interface
-	// and do spinup locks that when the value is set to 1
-	// we can proceed to get into acknowledgement
-	// but what if the value doesnot reach 1 ? or it reaches -1 ?
-	// in that case we need to abort transaction
-	// should we be doing all this in the client layer or here in the transaction layer itself ?
-	// i think it should be done here in the transaction layer
-	// so need to figure out the steps for that
-	// the client shouldn't even know that there is a transaction acknowledgement
+func (cs *ConsensusService) SendTransaction(data []byte, TxnID string) error {
+
 	d := data
 	type Response struct {
 		err  error
 		name string
 	}
-	resp := make(chan Response)
 	ctx := context.WithValue(context.Background(), "transaction-ID", TxnID)
 	count := 0
 	errCount := 0
-	quorum := len(cs.clients) / 2
+	quorum := (len(cs.clients) - 1) / 2
+	cs.wg.Add(len(cs.clients))
+	mu := sync.Mutex{}
 	for _, client := range cs.clients {
 		client := client
 		// we are not going to delete the client from multiple location
 		if client.name == cs.name || client.delete {
 			continue
 		}
-		// create a channel
-		// send a value to the channel when we receive non-error
-		// open a switch case in for-select context
-		// whenever we receive something in the channel
-		// we do a counter++
-		// and once the counter reaches the quorum consistency
-		// we go ahead with sending COnfirmation record to all the servers
-		// the method shared about is okay for single context, but we have multiple contexts
-		// what will be the termination condition for the context
 
 		go func() {
-			err := client.SendRecord(ctx, &d)
-			resp <- Response{err, client.name}
+			err := client.SendRecord(ctx, &d, Acknowledge)
+			mu.Lock()
+			if err != nil {
+				errCount++
+			} else {
+				count++
+			}
+			mu.Unlock()
+			cs.wg.Done()
 		}()
 
 	}
-	for {
-		select {
-		case <-ctx.Done():
-			// does this mean the parent context is finished ?
-		case res := <-resp:
-			{
-				if res.err != nil {
-					errCount++
-				} else {
-					count++
-				}
-				if count >= quorum {
-					ctx.Done()
-				}
-
-			}
-
-		}
+	cs.wg.Wait()
+	if count > quorum {
+		return cs.SendTransactionConfirmation(data, TxnID, Commit)
 	}
+	return errTransactionAborted
+
 }
 
-func (cs *ConsensusService) SendTransactionConfirmation(data []byte) {
-	// send transactions to all the clients
-	// when quorum is reached
-	// send TransactionConfirmation To all the clients
+func (cs *ConsensusService) SendTransactionConfirmation(data []byte, TxnID string, state recordState) error {
+
 	d := data
+
+	ctx := context.WithValue(context.Background(), "transaction-ID", TxnID)
+	count := 0
+	errCount := 0
+	quorum := (len(cs.clients) - 1) / 2
+	cs.wg.Add(len(cs.clients))
+	mu := sync.Mutex{}
 	for _, client := range cs.clients {
-		client.SendRecord(&d)
+		client := client
+		// we are not going to delete the client from multiple location
+		if client.name == cs.name || client.delete {
+			continue
+		}
+
+		go func() {
+			err := client.SendRecord(ctx, &d, Commit)
+			mu.Lock()
+			if err != nil {
+				errCount++
+			} else {
+				count++
+			}
+			mu.Unlock()
+			cs.wg.Done()
+		}()
+
 	}
+	cs.wg.Wait()
+	if count > quorum {
+		return nil
+	}
+
+	return errTransactionBroken
 }
 
 func (cs *ConsensusService) connectClients() {

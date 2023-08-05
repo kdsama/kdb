@@ -178,6 +178,16 @@ func (kvs *KVService) SerializeRecord(entry *WalEntry) ([]byte, error) {
 	return entry.serialize()
 }
 
+func (kvs *KVService) AcknowledgeRecord(data *[]byte) error {
+	// check if data is malformed or not
+	_, err := deserialize(*data)
+	if err != nil {
+		return err
+	}
+	kvs.wal.AddWALEntry(data)
+	return nil
+}
+
 func (kvs *KVService) SetRecord(data *[]byte) error {
 
 	// this is for syncing up of data
@@ -188,14 +198,20 @@ func (kvs *KVService) SetRecord(data *[]byte) error {
 	// the WAL transaction will also be saved without generating a new transactionID
 	// No checks for it for now
 	// as we are getting WAL logs we need to serialize it
+
 	walEntry, err := deserialize(*data)
 	if err != nil {
 		return err
 	}
+	walEntry.Node.CommitNode()
 	kvs.btree.addKeyString(walEntry.Node.Key)
 	kvs.hm.AddNode(walEntry.Node)
 	// better if we send buffer itself here instead of serializing and deserializing again.
-	kvs.wal.AddWALEntry(data)
+	d, e := walEntry.serialize()
+	if e != nil {
+		return e
+	}
+	kvs.wal.AddWALEntry(&d)
 	return nil
 }
 

@@ -1,6 +1,9 @@
 package client
 
 import (
+	"fmt"
+	"time"
+
 	"github.com/kdsama/kdb/consensus"
 	"github.com/kdsama/kdb/server/logger"
 	"github.com/kdsama/kdb/server/store"
@@ -38,4 +41,13 @@ func (c *Client) Add(key, value string) error {
 
 	return nil
 
+}
+
+func (c *Client) Automate() error {
+	time.Sleep(10 * time.Second)
+	for i := 0; i < 1000; i++ {
+		err := c.Add("key"+fmt.Sprint(i), "value")
+		fmt.Println(err)
+	}
+	return nil
 }

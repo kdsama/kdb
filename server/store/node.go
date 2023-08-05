@@ -23,15 +23,15 @@ type Node struct {
 
 func NewNode(key string, value string) *Node {
 	t := time.Now().Unix()
-	return &Node{key, value, 0, nil, false, t, commitLevel(WAITING)}
+	return &Node{key, value, 0, nil, false, t, commitLevel(Waiting)}
 }
 
 func (n *Node) CommitNode() {
 	// get current information and put it to prev version
-	n.Commit = COMMITTED
+	n.Commit = Committed
 }
 func (n *Node) Abort() {
-	n.Commit = ABORTED
+	n.Commit = Aborted
 }
 
 func (n *Node) Update(value string) Node {

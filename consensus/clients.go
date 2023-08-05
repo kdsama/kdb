@@ -71,12 +71,12 @@ func (c *Client) Hearbeat() {
 	c.logger.Infof("Greeting: from %s %s", c.name, r.GetMessage())
 }
 
-func (c *Client) SendRecord(ctx context.Context, data *[]byte) error {
+func (c *Client) SendRecord(ctx context.Context, data *[]byte, state recordState) error {
 	// we should not send it to dead ones
 	ctx, cancel := context.WithTimeout(ctx, 500*time.Millisecond)
 	defer cancel()
 	nc := c.con
-	r, err := (*nc).SendRecord(ctx, &pb.WalEntry{Entry: *data})
+	r, err := (*nc).SendRecord(ctx, &pb.WalEntry{Entry: *data, Status: int32(state)})
 	if err != nil {
 		c.logger.Errorf("Ouch, Failed sending data to  %v\n", c.name, err)
 		return err

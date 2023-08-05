@@ -45,7 +45,7 @@ func (hm *HashMap) AddNode(node *Node) error {
 	}
 	hm.mut.Lock()
 	hm.kv[n.Key] = n
-	n.Commit = COMMITTED
+	n.Commit = Committed
 	hm.mut.Unlock()
 
 	return nil
@@ -117,7 +117,7 @@ func (hm *HashMap) Commit(key string, version int) error {
 		return err_OldVersion
 	}
 
-	if commitLevel(n.Commit) == COMMITTED {
+	if commitLevel(n.Commit) == Committed {
 		return err_AlreadyCommited
 	}
 	n.CommitNode()
