@@ -60,6 +60,7 @@ func serializeNode(node Node) ([]byte, Node) {
 // There is no need for update . Update means we are saving a new byte array to the file
 func (p *Persistance) Save(key string, buffer *[]byte) error {
 	p.mut.Lock()
+
 	err := p.fs.WriteFileWithDirectories(p.prefix+key, *buffer)
 	p.mut.Unlock()
 	return err

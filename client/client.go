@@ -46,9 +46,15 @@ func (c *Client) Add(key, value string) error {
 
 func (c *Client) Automate() error {
 	time.Sleep(20 * time.Second)
-	fmt.Println("Automating starts now")
-	for i := 0; i < 1000; i++ {
+
+	for i := 0; i < 10000; i++ {
+
+		i := i
+		time.Sleep(10 * time.Millisecond)
+
 		c.Add("key"+fmt.Sprint(i), "value")
+
 	}
+
 	return nil
 }

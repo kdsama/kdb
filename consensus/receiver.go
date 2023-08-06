@@ -21,7 +21,6 @@ package consensus
 
 import (
 	"context"
-	"fmt"
 
 	pb "github.com/kdsama/kdb/consensus/protodata"
 	"github.com/kdsama/kdb/server/store"
@@ -53,7 +52,7 @@ func (s *Receiver) SendRecord(ctx context.Context, in *pb.WalEntry) (*pb.WalResp
 		s.kv.AcknowledgeRecord(&in.Entry)
 
 	case int32(Commit):
-		fmt.Println("Set Record")
+
 		s.kv.SetRecord(&in.Entry)
 	}
 

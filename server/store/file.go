@@ -29,6 +29,7 @@ func NewFileService() *fileService {
 
 // Write a file. Will create directory  if not present
 func (fsv *fileService) WriteFileWithDirectories(fp string, data []byte) error {
+
 	dir := filepath.Dir(fp)
 
 	// Create directories recursively if they don't exist
