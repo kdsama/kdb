@@ -71,8 +71,10 @@ func main() {
 	if leader {
 		clientService := client.New(kv, cs, logger)
 
-		go clientService.Automate()
+		go clientService.AutomateSet()
 	}
+
+	clientService.AutomateGet()
 
 	pb.RegisterConsensusServer(s, consensus.NewReciever(kv))
 	log.Printf("server listening at %v", lis.Addr())

@@ -44,10 +44,19 @@ func (c *Client) Add(key, value string) error {
 
 }
 
-func (c *Client) Automate() error {
+func (c *Client) AutomateGet(key string) error {
+	// this should be a bit different
+	// we should not getting data from a random client thats not us
+	// we should add delay to it as well probably
+	// and we should be doing bulk reads
+
+	return nil
+}
+
+func (c *Client) AutomateSet() error {
 	time.Sleep(20 * time.Second)
 
-	c.BulkAdd("val")
+	go c.BulkAdd("val")
 	// the below one is to check if
 	// we are getting another line in the persistance layer
 	c.BulkAdd("pre")
