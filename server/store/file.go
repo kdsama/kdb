@@ -28,6 +28,30 @@ func NewFileService() *fileService {
 }
 
 // Write a file. Will create directory  if not present
+func (fsv *fileService) WriteFileLnWithDirectories(fp string, data []byte) error {
+
+	dir := filepath.Dir(fp)
+
+	// Create directories recursively if they don't exist
+	err := os.MkdirAll(dir, 0755)
+	if err != nil {
+		return err
+	}
+
+	// Write file using ioutil.WriteFile
+	file, err := os.OpenFile(fp, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0644)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	lock.Lock()
+	_, err = fmt.Fprintln(file, string(data))
+	lock.Unlock()
+	return err
+
+}
+
+// Write a file. Will create directory  if not present
 func (fsv *fileService) WriteFileWithDirectories(fp string, data []byte) error {
 
 	dir := filepath.Dir(fp)

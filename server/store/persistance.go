@@ -61,7 +61,7 @@ func serializeNode(node Node) ([]byte, Node) {
 func (p *Persistance) Save(key string, buffer *[]byte) error {
 	p.mut.Lock()
 
-	err := p.fs.WriteFileWithDirectories(p.prefix+key, *buffer)
+	err := p.fs.WriteFileLnWithDirectories(p.prefix+key, *buffer)
 	p.mut.Unlock()
 	return err
 }
