@@ -29,6 +29,7 @@ func (c *Client) Add(key, value string) error {
 		c.logger.Errorf("%v", err)
 		return err
 	}
+
 	// when we get the entry we should send the entry to the consensus service
 	// should we implement spinning locks for this ?
 	// what will be the criteria for that ?
@@ -37,17 +38,17 @@ func (c *Client) Add(key, value string) error {
 		c.logger.Errorf("%v", err)
 		return err
 	}
-	go c.cs.SendTransaction(dat, entry.TxnID)
+	c.cs.SendTransaction(dat, entry.TxnID)
 
 	return nil
 
 }
 
 func (c *Client) Automate() error {
-	time.Sleep(10 * time.Second)
+	time.Sleep(20 * time.Second)
+	fmt.Println("Automating starts now")
 	for i := 0; i < 1000; i++ {
-		err := c.Add("key"+fmt.Sprint(i), "value")
-		fmt.Println(err)
+		c.Add("key"+fmt.Sprint(i), "value")
 	}
 	return nil
 }

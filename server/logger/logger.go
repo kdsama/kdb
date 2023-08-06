@@ -23,6 +23,7 @@ func New(threshold Level, opts ...Options) *Logger {
 }
 
 func (lg *Logger) Infof(format string, args ...any) {
+	format += "\n"
 	if lg.threshold > Info {
 		return
 	}
@@ -34,6 +35,7 @@ func (lg *Logger) Infof(format string, args ...any) {
 }
 
 func (lg *Logger) WARNf(format string, args ...any) {
+	format += "\n"
 	if lg.threshold > Warn {
 		return
 	}
@@ -45,6 +47,7 @@ func (lg *Logger) WARNf(format string, args ...any) {
 }
 
 func (lg *Logger) Errorf(format string, args ...any) {
+	format += "\n"
 	if lg.threshold > Error {
 		return
 	}

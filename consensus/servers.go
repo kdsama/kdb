@@ -107,16 +107,16 @@ func (cs *ConsensusService) Schedule() {
 func (cs *ConsensusService) SendTransaction(data []byte, TxnID string) error {
 
 	d := data
-	type Response struct {
-		err  error
-		name string
-	}
+	fmt.Println("We are here to send transaction", TxnID)
 	ctx := context.WithValue(context.Background(), "transaction-ID", TxnID)
 	count := 0
 	errCount := 0
 	quorum := (len(cs.clients) - 1) / 2
+	fmt.Println("len cs clients and what it looks like as well", len(cs.clients), cs.clients)
 	cs.wg.Add(len(cs.clients))
 	mu := sync.Mutex{}
+	fmt.Println("Clients are", cs.clients)
+
 	for _, client := range cs.clients {
 		client := client
 		// we are not going to delete the client from multiple location
@@ -126,6 +126,7 @@ func (cs *ConsensusService) SendTransaction(data []byte, TxnID string) error {
 
 		go func() {
 			err := client.SendRecord(ctx, &d, Acknowledge)
+			fmt.Println("ERR ? ", client.name, ":::::", err)
 			mu.Lock()
 			if err != nil {
 				errCount++
@@ -138,6 +139,7 @@ func (cs *ConsensusService) SendTransaction(data []byte, TxnID string) error {
 
 	}
 	cs.wg.Wait()
+	fmt.Println("count v quorum v errorCount", count, quorum, errCount)
 	if count > quorum {
 		return cs.SendTransactionConfirmation(data, TxnID, Commit)
 	}
@@ -203,7 +205,7 @@ func (cs *ConsensusService) connectClients() {
 
 	for _, addr := range addresses {
 		addr := addr
-
+		fmt.Println(addr)
 		val, ok := cs.clients[addr]
 		if ok {
 			// has the client layer marked itself to be deleted ?
@@ -224,6 +226,7 @@ func (cs *ConsensusService) connectClients() {
 		conn := connect(addr)
 
 		nc := NewClient(addr, conn, 5, cs.logger)
+		cs.clients[nc.name] = nc
 		if cs.leader {
 			go nc.Schedule()
 		}
@@ -234,7 +237,6 @@ func (cs *ConsensusService) connectClients() {
 func connect(addr string) *pb.ConsensusClient {
 	flag.Parse()
 	addr += addressPort
-	fmt.Println("addr", addr)
 	conn, err := grpc.Dial(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)

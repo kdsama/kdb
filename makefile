@@ -29,4 +29,5 @@ reload:
 	make deleteAll
 	make build 
 	make add 
-	make add 
+	make add
+	make add	

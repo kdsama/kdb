@@ -61,14 +61,14 @@ func (c *Client) Hearbeat() {
 	defer cancel()
 	nc := c.con
 
-	r, err := (*nc).Ack(ctx, &pb.Hearbeat{Message: "i"})
+	_, err := (*nc).Ack(ctx, &pb.Hearbeat{Message: "i"})
 	if err != nil {
 		c.logger.Errorf("Ouch, No heartbeat from %v\n", c.name, err)
 		return
 	}
 	c.lastBeat = time.Now()
 	// c.ticker = *time.NewTicker(time.Duration(c.factor) * time.Second)
-	c.logger.Infof("Greeting: from %s %s", c.name, r.GetMessage())
+	c.logger.Infof("Greeting: from %s \n", c.name)
 }
 
 func (c *Client) SendRecord(ctx context.Context, data *[]byte, state recordState) error {
