@@ -47,14 +47,20 @@ func (c *Client) Add(key, value string) error {
 func (c *Client) Automate() error {
 	time.Sleep(20 * time.Second)
 
+	c.BulkAdd("val")
+	// the below one is to check if
+	// we are getting another line in the persistance layer
+	c.BulkAdd("pre")
+	return nil
+}
+
+func (c *Client) BulkAdd(value string) {
 	for i := 0; i < 10000; i++ {
 
 		i := i
 		time.Sleep(1 * time.Millisecond)
 
-		c.Add("key"+fmt.Sprint(i), "value")
+		c.Add("key"+fmt.Sprint(i), value)
 
 	}
-
-	return nil
 }
