@@ -153,7 +153,7 @@ func (w *WAL) addEntry(node Node, operation string) (WalEntry, error) {
 }
 
 func (w *WAL) AddWALEntry(wal *[]byte) {
-
+	fmt.Println("Is the wal sent incorrectly here ???", wal)
 	arr := append(*wal, byte('\n'))
 	fmt.Println("Before lock")
 	w.lock.Lock()

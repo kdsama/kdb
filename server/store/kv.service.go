@@ -181,12 +181,14 @@ func (kvs *KVService) SerializeRecord(entry *WalEntry) ([]byte, error) {
 
 func (kvs *KVService) AcknowledgeRecord(data *[]byte) error {
 	// check if data is malformed or not
+
 	record, err := deserialize(*data)
 	if err != nil {
 		return err
 	}
-	fmt.Println("Record deserialized is ", record)
-	fmt.Println("Data is", data)
+	fmt.Println(record)
+	fmt.Println(kvs)
+	fmt.Println("WAL IS ", kvs.wal)
 
 	// we dont have to deserialize data that is already deserialized
 	kvs.wal.AddWALEntry(data)

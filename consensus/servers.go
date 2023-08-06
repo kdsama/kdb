@@ -125,7 +125,7 @@ func (cs *ConsensusService) SendTransaction(data []byte, TxnID string) error {
 
 		go func() {
 			err := client.SendRecord(ctx, &d, Acknowledge)
-			fmt.Println("ERR ? ", client.name, ":::::", err)
+
 			mu.Lock()
 			if err != nil {
 				errCount++
@@ -204,7 +204,6 @@ func (cs *ConsensusService) connectClients() {
 
 	for _, addr := range addresses {
 		addr := addr
-		fmt.Println(addr)
 		val, ok := cs.clients[addr]
 		if ok {
 			// has the client layer marked itself to be deleted ?

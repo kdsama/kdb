@@ -22,7 +22,6 @@ package consensus
 import (
 	"context"
 	"fmt"
-	"log"
 
 	pb "github.com/kdsama/kdb/consensus/protodata"
 	"github.com/kdsama/kdb/server/store"
@@ -30,18 +29,19 @@ import (
 
 type Receiver struct {
 	pb.UnimplementedConsensusServer
-	kv store.KVService
+	kv *store.KVService
 }
 
 // Acknowledgement that the heartbeat has been received
 func (s *Receiver) Ack(ctx context.Context, in *pb.Hearbeat) (*pb.HearbeatResponse, error) {
 
-	log.Printf("Received: %v", in.GetMessage())
+	// log.Printf("Received: %v", in.GetMessage())
 	return &pb.HearbeatResponse{Message: "Hello " + in.GetMessage()}, nil
 }
 
 // Record received, now commit/ acknowledge according to the type of data
 func (s *Receiver) SendRecord(ctx context.Context, in *pb.WalEntry) (*pb.WalResponse, error) {
+
 	switch in.Status {
 	case int32(Acknowledge):
 		// a function is required to just add a wal entry
