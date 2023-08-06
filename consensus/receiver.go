@@ -32,6 +32,10 @@ type Receiver struct {
 	kv *store.KVService
 }
 
+func NewReciever(kv *store.KVService) *Receiver {
+	return &Receiver{kv: kv}
+}
+
 // Acknowledgement that the heartbeat has been received
 func (s *Receiver) Ack(ctx context.Context, in *pb.Hearbeat) (*pb.HearbeatResponse, error) {
 
@@ -45,10 +49,13 @@ func (s *Receiver) SendRecord(ctx context.Context, in *pb.WalEntry) (*pb.WalResp
 	switch in.Status {
 	case int32(Acknowledge):
 		// a function is required to just add a wal entry
-		fmt.Println("Acknowledging the record")
+
 		s.kv.AcknowledgeRecord(&in.Entry)
+
 	case int32(Commit):
+		fmt.Println("Set Record")
 		s.kv.SetRecord(&in.Entry)
 	}
+
 	return &pb.WalResponse{Message: "ok"}, nil
 }

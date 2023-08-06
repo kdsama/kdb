@@ -138,7 +138,7 @@ func (cs *ConsensusService) SendTransaction(data []byte, TxnID string) error {
 
 	}
 	cs.wg.Wait()
-	fmt.Println("count v quorum v errorCount", count, quorum, errCount)
+	fmt.Println("count v quorum v errorCount v clients ", count, quorum, errCount, len(cs.clients))
 	if count > quorum {
 		return cs.SendTransactionConfirmation(data, TxnID, Commit)
 	}
@@ -151,6 +151,7 @@ func (cs *ConsensusService) SendTransactionConfirmation(data []byte, TxnID strin
 	d := data
 
 	ctx := context.WithValue(context.Background(), "transaction-ID", TxnID)
+	fmt.Println("Transaction", TxnID)
 	count := 0
 	errCount := 0
 	quorum := (len(cs.clients) - 1) / 2

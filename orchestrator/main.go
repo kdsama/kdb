@@ -95,7 +95,8 @@ func (dc *dockercli) addContainer() {
 
 	volume, _ := filepath.Abs(filepath.Dir("data/"))
 	serverInf, _ := filepath.Abs(filepath.Dir("serverInfo/"))
-	volume += "/" + "data" + randId
+	volume += "/" + "data" + randId + "/"
+	fmt.Println("Volume :", volume)
 	err1 := os.Mkdir(volume, 0755)
 	if err1 != nil {
 		log.Fatal(err1)

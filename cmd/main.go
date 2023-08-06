@@ -74,7 +74,7 @@ func main() {
 		go clientService.Automate()
 	}
 
-	pb.RegisterConsensusServer(s, &consensus.Receiver{})
+	pb.RegisterConsensusServer(s, consensus.NewReciever(kv))
 	log.Printf("server listening at %v", lis.Addr())
 	if err := s.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %v", err)

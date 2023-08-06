@@ -68,7 +68,7 @@ func (c *Client) Hearbeat() {
 	}
 	c.lastBeat = time.Now()
 	// c.ticker = *time.NewTicker(time.Duration(c.factor) * time.Second)
-	c.logger.Infof("Greeting: from %s \n", c.name)
+	c.logger.Infof("Greeting: from %s ", c.name)
 }
 
 func (c *Client) SendRecord(ctx context.Context, data *[]byte, state recordState) error {

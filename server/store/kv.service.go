@@ -1,8 +1,8 @@
 package store
 
 import (
+	"encoding/json"
 	"errors"
-	"fmt"
 	"sync"
 
 	"github.com/kdsama/kdb/logger"
@@ -182,13 +182,10 @@ func (kvs *KVService) SerializeRecord(entry *WalEntry) ([]byte, error) {
 func (kvs *KVService) AcknowledgeRecord(data *[]byte) error {
 	// check if data is malformed or not
 
-	record, err := deserialize(*data)
+	_, err := deserialize(*data)
 	if err != nil {
 		return err
 	}
-	fmt.Println(record)
-	fmt.Println(kvs)
-	fmt.Println("WAL IS ", kvs.wal)
 
 	// we dont have to deserialize data that is already deserialized
 	kvs.wal.AddWALEntry(data)
@@ -211,15 +208,20 @@ func (kvs *KVService) SetRecord(data *[]byte) error {
 		return err
 	}
 	walEntry.Node.CommitNode()
-	kvs.btree.addKeyString(walEntry.Node.Key)
-	kvs.hm.AddNode(walEntry.Node)
+	go kvs.btree.addKeyString(walEntry.Node.Key)
+	go kvs.hm.AddNode(walEntry.Node)
 	// better if we send buffer itself here instead of serializing and deserializing again.
 	d, e := walEntry.serialize()
 	if e != nil {
 		return e
 	}
 	kvs.wal.AddWALEntry(&d)
-	return nil
+	arr, err := json.Marshal(walEntry.Node)
+	if err != nil {
+		kvs.logger.Fatalf("Some stupid error")
+	}
+
+	return kvs.ps.Save(walEntry.Node.Key, &arr)
 }
 
 // how  multiple records will be shared ??
