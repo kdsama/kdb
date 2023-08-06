@@ -44,7 +44,7 @@ func (c *Client) Add(key, value string) error {
 
 }
 
-func (c *Client) AutomateGet(key string) error {
+func (c *Client) AutomateGet() error {
 	// this should be a bit different
 	// we should not getting data from a random client thats not us
 	// we should add delay to it as well probably
