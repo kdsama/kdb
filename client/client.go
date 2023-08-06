@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/kdsama/kdb/consensus"
-	"github.com/kdsama/kdb/server/logger"
+	"github.com/kdsama/kdb/logger"
 	"github.com/kdsama/kdb/server/store"
 )
 

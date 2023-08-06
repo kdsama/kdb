@@ -2,9 +2,10 @@ package store
 
 import (
 	"errors"
+	"fmt"
 	"sync"
 
-	"github.com/kdsama/kdb/server/logger"
+	"github.com/kdsama/kdb/logger"
 )
 
 // Now here is the service that will bind everything together
@@ -180,10 +181,14 @@ func (kvs *KVService) SerializeRecord(entry *WalEntry) ([]byte, error) {
 
 func (kvs *KVService) AcknowledgeRecord(data *[]byte) error {
 	// check if data is malformed or not
-	_, err := deserialize(*data)
+	record, err := deserialize(*data)
 	if err != nil {
 		return err
 	}
+	fmt.Println("Record deserialized is ", record)
+	fmt.Println("Data is", data)
+
+	// we dont have to deserialize data that is already deserialized
 	kvs.wal.AddWALEntry(data)
 	return nil
 }

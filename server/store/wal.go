@@ -10,7 +10,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/kdsama/kdb/server/logger"
+	"github.com/kdsama/kdb/logger"
 )
 
 /* Key: The key represents the unique identifier or name associated with the data being stored. It is used to retrieve or reference the data in the database.
@@ -50,7 +50,7 @@ type WAL struct {
 	directory    string
 	counter      int64
 	file_counter int64
-	lock         sync.Mutex
+	lock         *sync.Mutex
 	fs           fileService
 	ticker       time.Ticker
 	latestEntry  []byte
@@ -74,7 +74,7 @@ func NewWAL(prefix, directory string, fs fileService, duration int, lg *logger.L
 
 	t := time.Duration(duration) * time.Second
 	ticker := *time.NewTicker(t)
-	wal := WAL{prefix, directory, 0, 0, sync.Mutex{}, fs, ticker, []byte{}, lg}
+	wal := WAL{prefix, directory, 0, 0, &sync.Mutex{}, fs, ticker, []byte{}, lg}
 
 	wal.setLatestFileCounter()
 	wal.setLatestCounter()
@@ -154,15 +154,17 @@ func (w *WAL) addEntry(node Node, operation string) (WalEntry, error) {
 
 func (w *WAL) AddWALEntry(wal *[]byte) {
 
-	*wal = append(*wal, byte('\n'))
+	arr := append(*wal, byte('\n'))
+	fmt.Println("Before lock")
 	w.lock.Lock()
+	fmt.Println("After lock ")
 	// we probably can read the last one first
 	// check its transactionID
 	// if it is bigger than current one
 	// panic
 	// but for now leaving it as is
-	w.latestEntry = *wal
-	wal_buffer = append(wal_buffer, *wal...)
+	w.latestEntry = arr
+	wal_buffer = append(wal_buffer, arr...)
 	w.lock.Unlock()
 }
 func (w *WAL) Schedule() bool {

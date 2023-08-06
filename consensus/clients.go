@@ -5,7 +5,7 @@ import (
 	"time"
 
 	pb "github.com/kdsama/kdb/consensus/protodata"
-	"github.com/kdsama/kdb/server/logger"
+	"github.com/kdsama/kdb/logger"
 )
 
 type Client struct {

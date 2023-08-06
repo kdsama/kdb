@@ -51,6 +51,6 @@ func TestLogger(t *testing.T) {
 }
 
 func (tw *twriter) Write(p []byte) (n int, err error) {
-	tw.contents += string(p) + "\n"
+	tw.contents += string(p)
 	return len(p), nil
 }

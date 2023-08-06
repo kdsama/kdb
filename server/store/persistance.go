@@ -8,7 +8,7 @@ import (
 	"log"
 	"sync"
 
-	"github.com/kdsama/kdb/server/logger"
+	"github.com/kdsama/kdb/logger"
 )
 
 type Persistance struct {

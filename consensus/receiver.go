@@ -21,6 +21,7 @@ package consensus
 
 import (
 	"context"
+	"fmt"
 	"log"
 
 	pb "github.com/kdsama/kdb/consensus/protodata"
@@ -44,6 +45,7 @@ func (s *Receiver) SendRecord(ctx context.Context, in *pb.WalEntry) (*pb.WalResp
 	switch in.Status {
 	case int32(Acknowledge):
 		// a function is required to just add a wal entry
+		fmt.Println("Acknowledging the record")
 		s.kv.AcknowledgeRecord(&in.Entry)
 	case int32(Commit):
 		s.kv.SetRecord(&in.Entry)

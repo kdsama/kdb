@@ -8,11 +8,11 @@ import (
 	"time"
 )
 
-var wal_prefix = "pref"
+var wal_prefix = "node"
 var wal_test_directory = "../../data/testWAL/"
 
-func testwalcleanup(w *WAL) {
-	w.flushall()
+func testwalcleanup() {
+
 	os.RemoveAll(wal_test_directory)
 
 }
@@ -21,7 +21,7 @@ func TestAddEntry(t *testing.T) {
 	t.Run("Check the value in buffer array", func(t *testing.T) {
 
 		w := NewWAL(wal_prefix, wal_test_directory, fileService{}, 5000, lg)
-
+		w.flushall()
 		key := "Key"
 		value := "Value"
 		node := NewNode(key, value)
@@ -38,7 +38,7 @@ func TestAddEntry(t *testing.T) {
 			t.Errorf("Expected key %v but got %v", value, wanEntry.Node.Value)
 		}
 		// cleanup
-		testwalcleanup(w)
+		testwalcleanup()
 	})
 	t.Run("Check size of buffer after timeout and not insertions", func(t *testing.T) {
 
@@ -54,7 +54,7 @@ func TestAddEntry(t *testing.T) {
 		if want != got {
 			t.Errorf("wanted %v but got %v", want, got)
 		}
-		testwalcleanup(w)
+		testwalcleanup()
 	})
 	// the test below help us realized that we need to make equal sized files for partitioning
 	// what we need to do is
@@ -88,7 +88,7 @@ func BenchmarkAddEntry(b *testing.B) {
 			fs.GetAllFilesInDirectory(wal_test_directory, &files)
 		}()
 		ws.Wait()
-		testwalcleanup(w)
+		testwalcleanup()
 	})
 
 }
@@ -109,14 +109,16 @@ func TestSetCounterFromFileName(t *testing.T) {
 		if want != got {
 			t.Errorf("Wanted %v, but got %v", want, got)
 		}
-		testwalcleanup(w)
+		testwalcleanup()
 	})
+
 	t.Run("Checking for counter, when one  file exist", func(t *testing.T) {
 
 		// this function made me realize that the logic of new wal file creation is not strong at all
 		fs := fileService{}
+		testwalcleanup()
 		w := NewWAL(wal_prefix, wal_test_directory, fs, 1, lg)
-		testwalcleanup(w)
+
 		key := "Key"
 		value := "{\"id\":1,\"n\":\"John Doe\",\"a\":30,\"e\":\"johndoejohndoejohndoejohndoejohndoejohndoejohndoe1@example.com\"}"
 		for i := 0; i < MAX_FILE_SIZE/1000; i++ {
@@ -138,14 +140,17 @@ func TestSetCounterFromFileName(t *testing.T) {
 		want := 1
 		got := len(files)
 		if want != got {
-			t.Fatalf("Expected %v but got %v", got, want)
+			t.Errorf("Expected %v but got %v", got, want)
 		}
-		testwalcleanup(w)
+		testwalcleanup()
 	})
+
+	// the test is running fine, just that the default time given to this test case is making it time out
 	t.Run("Checking for counter, when 10  files exist", func(t *testing.T) {
 
 		// this function made me realize that the logic of new wal file creation is not strong at all
 		fs := fileService{}
+		testwalcleanup()
 		w := NewWAL(wal_prefix, wal_test_directory, fs, 1, lg)
 
 		key := "Key"
@@ -158,21 +163,16 @@ func TestSetCounterFromFileName(t *testing.T) {
 		}
 
 		time.Sleep(5 * time.Second)
-		ws := sync.WaitGroup{}
 		files := []string{}
 
-		ws.Add(1)
-		go func() {
-			defer ws.Done()
-			fs.GetAllFilesInDirectory(wal_test_directory, &files)
-		}()
-		ws.Wait()
+		fs.GetAllFilesInDirectory(wal_test_directory, &files)
+
 		want := 4
 		got := len(files)
 		if want != got {
-			t.Fatalf("Expected %v but got %v", got, want)
+			t.Errorf("Expected %v but got %v", got, want)
 		}
-		testwalcleanup(w)
+		testwalcleanup()
 	})
 }
 
@@ -188,7 +188,7 @@ func TestSetLatestCounter(t *testing.T) {
 		if int64(want) != got {
 			t.Errorf("wanted %v but got %v", want, got)
 		}
-		testwalcleanup(w)
+		testwalcleanup()
 	})
 
 	// checkagain Test case ....
@@ -210,7 +210,7 @@ func TestSetLatestCounter(t *testing.T) {
 		if int64(want) != got {
 			t.Errorf("wanted %v but got %v", want, got)
 		}
-		testwalcleanup(w)
+		testwalcleanup()
 	})
 	t.Run("Counter on top of several entries, several files ", func(t *testing.T) {
 		// return
@@ -230,7 +230,7 @@ func TestSetLatestCounter(t *testing.T) {
 		if int64(want) != got {
 			t.Errorf("wanted %v but got %v", want, got)
 		}
-		testwalcleanup(w)
+		testwalcleanup()
 	})
 
 }

@@ -4,7 +4,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/kdsama/kdb/server/logger"
+	"github.com/kdsama/kdb/logger"
 )
 
 func TestBTree(t *testing.T) {

@@ -12,7 +12,7 @@ import (
 	"time"
 
 	pb "github.com/kdsama/kdb/consensus/protodata"
-	"github.com/kdsama/kdb/server/logger"
+	"github.com/kdsama/kdb/logger"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -107,15 +107,14 @@ func (cs *ConsensusService) Schedule() {
 func (cs *ConsensusService) SendTransaction(data []byte, TxnID string) error {
 
 	d := data
-	fmt.Println("We are here to send transaction", TxnID)
+
 	ctx := context.WithValue(context.Background(), "transaction-ID", TxnID)
 	count := 0
 	errCount := 0
 	quorum := (len(cs.clients) - 1) / 2
-	fmt.Println("len cs clients and what it looks like as well", len(cs.clients), cs.clients)
+
 	cs.wg.Add(len(cs.clients))
 	mu := sync.Mutex{}
-	fmt.Println("Clients are", cs.clients)
 
 	for _, client := range cs.clients {
 		client := client

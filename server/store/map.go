@@ -4,7 +4,7 @@ import (
 	"errors"
 	"sync"
 
-	"github.com/kdsama/kdb/server/logger"
+	"github.com/kdsama/kdb/logger"
 )
 
 var (

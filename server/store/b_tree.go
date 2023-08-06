@@ -4,7 +4,7 @@ import (
 	"strings"
 
 	"github.com/google/btree"
-	"github.com/kdsama/kdb/server/logger"
+	"github.com/kdsama/kdb/logger"
 )
 
 type Key string
