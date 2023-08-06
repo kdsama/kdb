@@ -62,7 +62,7 @@ var (
 )
 
 const (
-	MAX_BUFFER_SIZE = 1000
+	MAX_BUFFER_SIZE = 30000
 	MAX_FILE_SIZE   = 100000000
 )
 
@@ -130,6 +130,7 @@ func (w *WAL) IncrementCounter() int64 {
 // atomic incrementing the counter
 func (w *WAL) IncrementFileCounter() int64 {
 	atomic.AddInt64(&w.file_counter, 1)
+	fmt.Println("New file counter ", w.file_counter)
 	return w.file_counter
 }
 
@@ -193,7 +194,7 @@ func (w *WAL) BufferUpdate() {
 	// when we went to the check for max file size , Nothing in previous file was pushed. So everything got pushed into second file.
 	// There is no issue with the incrementer but the policy of bufferUpdate
 
-	if int64(len_buffer)+size > int64(MAX_FILE_SIZE) {
+	if int64(len_buffer)+size > int64(MAX_BUFFER_SIZE) {
 
 		w.IncrementFileCounter()
 	}

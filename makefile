@@ -27,6 +27,7 @@ proto:
 
 reload:
 	make deleteAll
+	sudo rm -rf data/*
 	make build 
 	make add 
 	make add

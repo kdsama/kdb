@@ -50,7 +50,7 @@ func (c *Client) Automate() error {
 	for i := 0; i < 10000; i++ {
 
 		i := i
-		time.Sleep(10 * time.Millisecond)
+		time.Sleep(1 * time.Millisecond)
 
 		c.Add("key"+fmt.Sprint(i), "value")
 
