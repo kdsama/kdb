@@ -2,6 +2,7 @@ package client
 
 import (
 	"fmt"
+	"math/rand"
 	"time"
 
 	"github.com/kdsama/kdb/consensus"
@@ -56,20 +57,19 @@ func (c *Client) AutomateGet() error {
 func (c *Client) AutomateSet() error {
 	time.Sleep(20 * time.Second)
 
-	c.BulkAdd("val")
+	go c.BulkAdd("val")
 	// the below one is to check if
 	// we are getting another line in the persistance layer
-	c.BulkAdd("preval")
+	go c.BulkAdd("preval")
 	return nil
 }
 
 func (c *Client) BulkAdd(value string) {
-	for i := 0; i < 10; i++ {
-
-		i := i
+	rand.Seed(time.Now().UnixNano())
+	for i := 0; i < 10000; i++ {
 		time.Sleep(10 * time.Millisecond)
 
-		err := c.Add("key"+fmt.Sprint(i), value)
+		err := c.Add("key"+fmt.Sprint(rand.Int31n(10000)), fmt.Sprint(rand.Int31n(10000)))
 		if err != nil {
 			fmt.Println(err)
 		}
