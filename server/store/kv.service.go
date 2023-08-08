@@ -183,7 +183,6 @@ func (kvs *KVService) SerializeRecord(entry *WalEntry) ([]byte, error) {
 
 func (kvs *KVService) AcknowledgeRecord(data *[]byte) error {
 	// check if data is malformed or not
-	t := time.Now()
 
 	_, err := deserialize(*data)
 	if err != nil {
@@ -192,7 +191,7 @@ func (kvs *KVService) AcknowledgeRecord(data *[]byte) error {
 
 	// we dont have to deserialize data that is already deserialized
 	kvs.wal.AddWALEntry(data)
-	fmt.Println("Acknwoledge records-- Done :- ", time.Since(t))
+
 	return nil
 }
 
@@ -211,18 +210,18 @@ func (kvs *KVService) SetRecord(data *[]byte) error {
 	if err != nil {
 		return err
 	}
-
+	fmt.Println("Wal Entry is ", walEntry)
 	if walEntry.Node == nil {
 		kvs.logger.Fatalf("Error caused by this walEntry %v", walEntry)
 	}
 
 	walEntry.Node.CommitNode()
-
+	fmt.Println("Node has been committed ")
 	err = kvs.hm.AddNode(walEntry.Node)
 	if err != nil && err != err_Upserted {
 		return err
 	}
-
+	fmt.Println("Added now ")
 	if err == err_Upserted {
 		kvs.logger.Errorf("THe key already exists in the map ")
 	}

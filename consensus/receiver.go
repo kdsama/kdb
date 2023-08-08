@@ -53,7 +53,7 @@ func (s *Receiver) SendRecord(ctx context.Context, in *pb.WalEntry) (*pb.WalResp
 	switch in.Status {
 	case int32(Acknowledge):
 		// a function is required to just add a wal entry
-		fmt.Println(counter, "Receiving Acknowledge stuff at ", time.Now())
+
 		s.kv.AcknowledgeRecord(&in.Entry)
 
 	case int32(Commit):

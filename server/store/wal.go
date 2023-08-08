@@ -154,7 +154,7 @@ func (w *WAL) addEntry(node Node, operation string) (WalEntry, error) {
 }
 
 func (w *WAL) AddWALEntry(wal *[]byte) {
-	t := time.Now()
+
 	arr := append(*wal, byte('\n'))
 	w.lock.Lock()
 	// we probably can read the last one first
@@ -166,7 +166,7 @@ func (w *WAL) AddWALEntry(wal *[]byte) {
 	wal_buffer = append(wal_buffer, arr...)
 
 	w.lock.Unlock()
-	fmt.Println("Time elapsed to add entry:::::::", time.Since(t))
+
 }
 func (w *WAL) Schedule() bool {
 

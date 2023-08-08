@@ -14,7 +14,7 @@ import (
 type Persistance struct {
 	fs     *fileService
 	prefix string
-	mut    sync.Mutex
+	mut    *sync.Mutex
 	wg     sync.WaitGroup
 	nodes  []Node
 	logger *logger.Logger
@@ -33,7 +33,7 @@ const (
 func NewPersistance(prefix string, lg *logger.Logger) *Persistance {
 	fs := NewFileService()
 
-	return &Persistance{fs, prefix, sync.Mutex{}, sync.WaitGroup{}, []Node{}, lg}
+	return &Persistance{fs, prefix, &sync.Mutex{}, sync.WaitGroup{}, []Node{}, lg}
 }
 
 // we need to encode the data in a way that we can save it

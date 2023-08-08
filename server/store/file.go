@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"sync"
+	"time"
 )
 
 var (
@@ -29,7 +30,7 @@ func NewFileService() *fileService {
 
 // Write a file. Will create directory  if not present
 func (fsv *fileService) WriteFileLnWithDirectories(fp string, data []byte) error {
-
+	t := time.Now()
 	dir := filepath.Dir(fp)
 	mu := sync.Mutex{}
 	// Create directories recursively if they don't exist
@@ -44,9 +45,11 @@ func (fsv *fileService) WriteFileLnWithDirectories(fp string, data []byte) error
 		return err
 	}
 	defer file.Close()
+	fmt.Println("Pre lock time ", time.Now())
 	mu.Lock()
 	_, err = fmt.Fprintln(file, string(data))
 	mu.Unlock()
+	fmt.Println("Post lock function duration", time.Since(t))
 	return err
 
 }
