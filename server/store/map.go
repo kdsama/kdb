@@ -41,7 +41,7 @@ func (hm *HashMap) AddNode(node *Node) error {
 	n := node
 	hm.mut.Lock()
 	_, ok := hm.kv[n.Key]
-
+	fmt.Println("OK ??????")
 	if ok {
 		err := hm.Commit(n.Key, int(n.Version))
 		fmt.Println("ERR 1 ????", err)
@@ -122,10 +122,12 @@ func (hm *HashMap) Delete(key string) (*Node, error) {
 }
 
 func (hm *HashMap) Commit(key string, version int) error {
-	n := (*hm.kv[key])
-	n.Version++
-	return nil
+	// hm.mut.Lock()
 	// n := (*hm.kv[key])
+	// n.Version++
+	// n.CommitNode()
+	// hm.mut.Unlock()
+	return nil
 	// if n.Version > int8(version) {
 	// 	return err_OldVersion
 	// }

@@ -69,7 +69,7 @@ func (c *Client) BulkAdd(value string) {
 	for i := 0; i < 100; i++ {
 		time.Sleep(10 * time.Millisecond)
 
-		err := c.Add("key"+fmt.Sprint(rand.Int31n(100)), fmt.Sprint(rand.Int31n(100)))
+		err := c.Add("key"+fmt.Sprint(rand.Int31n(10)), fmt.Sprint(rand.Int31n(100)))
 		if err != nil {
 			fmt.Println(err)
 		}
