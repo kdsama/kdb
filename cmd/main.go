@@ -60,13 +60,13 @@ func main() {
 	s := grpc.NewServer()
 
 	opts := logger.ToOutput(os.Stdout)
-	logger := logger.New(0, opts)
+	logger := logger.New(logger.Info, opts)
 
 	cs := consensus.NewConsensusService(leader, name, filepath, logger)
 
 	go cs.Init()
 
-	kv := store.NewKVService("./data/kvservice/persist/", "node", "./data/kvservice/wal/", 1, 10, logger)
+	kv := store.NewKVService("./data/kvservice/persist/", "node", "./data/kvservice/wal/", 1, 100, logger)
 	clientService := client.New(kv, cs, logger)
 	if leader {
 

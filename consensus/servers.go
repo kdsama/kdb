@@ -73,7 +73,7 @@ type ConsensusService struct {
 	clientMux sync.Mutex
 	clients   map[string]*Client
 
-	wg sync.WaitGroup
+	wg map[string]*sync.WaitGroup
 }
 
 func NewConsensusService(leader bool, name string, filepath string, logger *logger.Logger) *ConsensusService {
@@ -86,7 +86,7 @@ func NewConsensusService(leader bool, name string, filepath string, logger *logg
 		ticker:    ticker,
 		clientMux: sync.Mutex{},
 		clients:   map[string]*Client{},
-		wg:        sync.WaitGroup{},
+		wg:        map[string]*sync.WaitGroup{},
 	}
 }
 
@@ -105,45 +105,51 @@ func (cs *ConsensusService) Schedule() {
 }
 
 func (cs *ConsensusService) SendTransaction(data []byte, TxnID string) error {
-
 	d := data
 
 	ctx := context.WithValue(context.Background(), "transaction-ID", TxnID)
-	count := 0
-	errCount := 0
-	quorum := (len(cs.clients) - 1) / 2
 
-	cs.wg.Add(len(cs.clients))
-	mu := sync.Mutex{}
+	var (
+		count    int
+		errCount int
+		quorum   = (len(cs.clients) - 1) / 2
+		wg       sync.WaitGroup
+		resultCh = make(chan error, len(cs.clients))
+	)
+
+	wg.Add(len(cs.clients))
 
 	for _, client := range cs.clients {
 		client := client
-		// we are not going to delete the client from multiple location
+
 		if client.name == cs.name || client.delete {
+			wg.Done()
 			continue
 		}
 
 		go func() {
+			defer wg.Done()
+
 			err := client.SendRecord(ctx, &d, Acknowledge)
-
-			mu.Lock()
-			if err != nil {
-				errCount++
-			} else {
-				count++
-			}
-			mu.Unlock()
-			cs.wg.Done()
+			resultCh <- err
 		}()
-
 	}
-	cs.wg.Wait()
-	fmt.Println("count v quorum v errorCount v clients ", count, quorum, errCount, len(cs.clients))
+
+	wg.Wait()
+	close(resultCh)
+
+	for err := range resultCh {
+		if err != nil {
+			errCount++
+		} else {
+			count++
+		}
+	}
+	fmt.Println("Quorum and count", quorum, count)
 	if count > quorum {
 		return cs.SendTransactionConfirmation(data, TxnID, Commit)
 	}
 	return errTransactionAborted
-
 }
 
 func (cs *ConsensusService) SendTransactionConfirmation(data []byte, TxnID string, state recordState) error {
@@ -151,37 +157,47 @@ func (cs *ConsensusService) SendTransactionConfirmation(data []byte, TxnID strin
 	d := data
 
 	ctx := context.WithValue(context.Background(), "transaction-ID", TxnID)
-	fmt.Println("Transaction", TxnID)
-	count := 0
-	errCount := 0
-	quorum := (len(cs.clients) - 1) / 2
-	cs.wg.Add(len(cs.clients))
-	mu := sync.Mutex{}
+
+	var (
+		count    int
+		errCount int
+		quorum   = (len(cs.clients) - 1) / 2
+		wg       sync.WaitGroup
+		resultCh = make(chan error, len(cs.clients))
+	)
+
+	wg.Add(len(cs.clients))
+
 	for _, client := range cs.clients {
 		client := client
-		// we are not going to delete the client from multiple location
+
 		if client.name == cs.name || client.delete {
+			wg.Done()
 			continue
 		}
 
 		go func() {
-			err := client.SendRecord(ctx, &d, Commit)
-			mu.Lock()
-			if err != nil {
-				errCount++
-			} else {
-				count++
-			}
-			mu.Unlock()
-			cs.wg.Done()
-		}()
+			defer wg.Done()
 
+			err := client.SendRecord(ctx, &d, Commit)
+			resultCh <- err
+		}()
 	}
-	cs.wg.Wait()
+
+	wg.Wait()
+	close(resultCh)
+
+	for err := range resultCh {
+		if err != nil {
+			errCount++
+		} else {
+			count++
+		}
+	}
+	fmt.Println("Quorum and count", quorum, count)
 	if count > quorum {
 		return nil
 	}
-
 	return errTransactionBroken
 }
 

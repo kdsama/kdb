@@ -37,13 +37,13 @@ func (hm *HashMap) Add(key string, value string) *Node {
 
 func (hm *HashMap) AddNode(node *Node) error {
 	n := node
+	hm.mut.Lock()
 	if _, ok := hm.kv[n.Key]; ok {
 		err := hm.Commit(n.Key, int(n.Version))
 		if err != nil {
 			return err
 		}
 	}
-	hm.mut.Lock()
 	hm.kv[n.Key] = n
 	n.Commit = Committed
 	hm.mut.Unlock()

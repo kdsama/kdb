@@ -29,6 +29,7 @@ func newBTree(degree int, lg *logger.Logger) *GoogleBTree {
 }
 
 func (bt *GoogleBTree) addKeyString(key string) bool {
+	// bt.logger.WARNf(key)
 	bt.tree.ReplaceOrInsert(Key(key))
 	return true
 }

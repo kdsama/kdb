@@ -3,7 +3,7 @@ new: down upnew
 
 
 build:
-	docker build -t kdb -f "$$(pwd)/deploys/Dockerfile.production" --no-cache .
+	docker build -t kdb -f "$$(pwd)/deploys/Dockerfile.production" .
 	
 stop:
 	docker-compose -f docker-compose.yml stop

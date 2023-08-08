@@ -60,20 +60,31 @@ func TestAddKeyString(t *testing.T) {
 }
 
 func BenchmarkAddKeyString(b *testing.B) {
-	degree := 4
+	degree := 10
 	btree := newBTree(degree, lg)
 	Sample_Keys := []string{"a", "aa", "a*a", "b", "bc", "bcd", "a", "aa", "a*a", "b", "bc", "bcd", "a", "a"}
-	for i := 0; i < b.N; i++ {
+	wg := sync.WaitGroup{}
+	wg.Add(200000)
+	for i := 0; i < 100000; i++ {
 		// Perform the operation to be benchmarked
-
+		i := i
 		// write operations are not safe for concurrent mutation by multiple go-routines
 		// so need to implement locks for these.
 		// probably rlock can be used .
-		btree.addKeyString(Sample_Keys[i%len(Sample_Keys)])
+
+		go func() {
+			btree.addKeyString(Sample_Keys[i%len(Sample_Keys)])
+			defer wg.Done()
+		}()
+		go func() {
+			btree.addKeyString(Sample_Keys[i%len(Sample_Keys)])
+			defer wg.Done()
+		}()
 
 		// Optional: Use the result to avoid compiler optimizations
 		// _ = result
 	}
+	wg.Wait()
 }
 
 func TestGetKey(t *testing.T) {
