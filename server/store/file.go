@@ -31,7 +31,7 @@ func NewFileService() *fileService {
 func (fsv *fileService) WriteFileLnWithDirectories(fp string, data []byte) error {
 
 	dir := filepath.Dir(fp)
-
+	mu := sync.Mutex{}
 	// Create directories recursively if they don't exist
 	err := os.MkdirAll(dir, 0755)
 	if err != nil {
@@ -44,9 +44,9 @@ func (fsv *fileService) WriteFileLnWithDirectories(fp string, data []byte) error
 		return err
 	}
 	defer file.Close()
-	lock.Lock()
+	mu.Lock()
 	_, err = fmt.Fprintln(file, string(data))
-	lock.Unlock()
+	mu.Unlock()
 	return err
 
 }

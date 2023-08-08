@@ -3,7 +3,9 @@ package store
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"sync"
+	"time"
 
 	"github.com/kdsama/kdb/logger"
 )
@@ -181,6 +183,7 @@ func (kvs *KVService) SerializeRecord(entry *WalEntry) ([]byte, error) {
 
 func (kvs *KVService) AcknowledgeRecord(data *[]byte) error {
 	// check if data is malformed or not
+	t := time.Now()
 
 	_, err := deserialize(*data)
 	if err != nil {
@@ -189,6 +192,7 @@ func (kvs *KVService) AcknowledgeRecord(data *[]byte) error {
 
 	// we dont have to deserialize data that is already deserialized
 	kvs.wal.AddWALEntry(data)
+	fmt.Println("Acknwoledge records-- Done :- ", time.Since(t))
 	return nil
 }
 
@@ -202,26 +206,50 @@ func (kvs *KVService) SetRecord(data *[]byte) error {
 	// the WAL transaction will also be saved without generating a new transactionID
 	// No checks for it for now
 	// as we are getting WAL logs we need to serialize it
-
+	t := time.Now()
 	walEntry, err := deserialize(*data)
 	if err != nil {
 		return err
 	}
+
+	if walEntry.Node == nil {
+		kvs.logger.Fatalf("Error caused by this walEntry %v", walEntry)
+	}
+
 	walEntry.Node.CommitNode()
-	go kvs.btree.addKeyString(walEntry.Node.Key)
-	go kvs.hm.AddNode(walEntry.Node)
+
+	err = kvs.hm.AddNode(walEntry.Node)
+	if err != nil && err != err_Upserted {
+		return err
+	}
+
+	if err == err_Upserted {
+		kvs.logger.Errorf("THe key already exists in the map ")
+	}
+	if err == nil {
+		kvs.logger.Errorf("We tryna insert the key for %v", walEntry.Node.Key)
+		// if key already exists no need to replace it with itself. Will help with performance.
+		go kvs.btree.addKeyString(walEntry.Node.Key)
+	}
 	// better if we send buffer itself here instead of serializing and deserializing again.
 	d, e := walEntry.serialize()
 	if e != nil {
 		return e
 	}
 	kvs.wal.AddWALEntry(&d)
+	// kvs.logger.Infof("Added Transaction %v", walEntry.TxnID)
 	arr, err := json.Marshal(walEntry.Node)
 	if err != nil {
 		kvs.logger.Fatalf("Some stupid error")
 	}
+	fmt.Println("Array now is", arr)
+	err = kvs.ps.Save(walEntry.Node.Key, &arr)
+	if err != nil {
+		kvs.logger.Errorf("%v", err)
+	}
 
-	return kvs.ps.Save(walEntry.Node.Key, &arr)
+	fmt.Println("Commit records-- Done :- ", time.Since(t))
+	return err
 }
 
 // how  multiple records will be shared ??

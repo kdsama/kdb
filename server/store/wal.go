@@ -130,7 +130,7 @@ func (w *WAL) IncrementCounter() int64 {
 // atomic incrementing the counter
 func (w *WAL) IncrementFileCounter() int64 {
 	atomic.AddInt64(&w.file_counter, 1)
-	fmt.Println("New file counter ", w.file_counter)
+
 	return w.file_counter
 }
 
@@ -154,11 +154,9 @@ func (w *WAL) addEntry(node Node, operation string) (WalEntry, error) {
 }
 
 func (w *WAL) AddWALEntry(wal *[]byte) {
-
+	t := time.Now()
 	arr := append(*wal, byte('\n'))
-
 	w.lock.Lock()
-
 	// we probably can read the last one first
 	// check its transactionID
 	// if it is bigger than current one
@@ -166,7 +164,9 @@ func (w *WAL) AddWALEntry(wal *[]byte) {
 	// but for now leaving it as is
 	w.latestEntry = arr
 	wal_buffer = append(wal_buffer, arr...)
+
 	w.lock.Unlock()
+	fmt.Println("Time elapsed to add entry:::::::", time.Since(t))
 }
 func (w *WAL) Schedule() bool {
 

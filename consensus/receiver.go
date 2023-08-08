@@ -21,6 +21,8 @@ package consensus
 
 import (
 	"context"
+	"fmt"
+	"time"
 
 	pb "github.com/kdsama/kdb/consensus/protodata"
 	"github.com/kdsama/kdb/server/store"
@@ -42,17 +44,20 @@ func (s *Receiver) Ack(ctx context.Context, in *pb.Hearbeat) (*pb.HearbeatRespon
 	return &pb.HearbeatResponse{Message: "Hello " + in.GetMessage()}, nil
 }
 
+var counter = 0
+
 // Record received, now commit/ acknowledge according to the type of data
 func (s *Receiver) SendRecord(ctx context.Context, in *pb.WalEntry) (*pb.WalResponse, error) {
+	counter++
 
 	switch in.Status {
 	case int32(Acknowledge):
 		// a function is required to just add a wal entry
-
+		fmt.Println(counter, "Receiving Acknowledge stuff at ", time.Now())
 		s.kv.AcknowledgeRecord(&in.Entry)
 
 	case int32(Commit):
-
+		fmt.Println(counter, "Receiving Commit stuff at ", time.Now())
 		s.kv.SetRecord(&in.Entry)
 	}
 

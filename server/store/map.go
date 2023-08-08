@@ -11,6 +11,7 @@ var (
 	err_NodeNotFound      = errors.New("node not found")
 	err_NoneNodeFound     = errors.New("none of the nodes are present")
 	err_SomeNodesNotFound = errors.New("some nodes not found")
+	err_Upserted          = errors.New("the node was already present in hashmap, so the information was added instead of being updated ")
 )
 
 type keyValue map[string]*Node
@@ -38,16 +39,20 @@ func (hm *HashMap) Add(key string, value string) *Node {
 func (hm *HashMap) AddNode(node *Node) error {
 	n := node
 	hm.mut.Lock()
-	if _, ok := hm.kv[n.Key]; ok {
+	_, ok := hm.kv[n.Key]
+	if ok {
 		err := hm.Commit(n.Key, int(n.Version))
 		if err != nil {
 			return err
 		}
 	}
+
 	hm.kv[n.Key] = n
 	n.Commit = Committed
 	hm.mut.Unlock()
-
+	if ok {
+		return err_Upserted
+	}
 	return nil
 }
 

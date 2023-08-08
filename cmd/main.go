@@ -66,7 +66,7 @@ func main() {
 
 	go cs.Init()
 
-	kv := store.NewKVService("./data/kvservice/persist/", "node", "./data/kvservice/wal/", 1, 100, logger)
+	kv := store.NewKVService("./data/kvservice/persist/", "node", "./data/kvservice/wal/", 1, 1000, logger)
 	clientService := client.New(kv, cs, logger)
 	if leader {
 

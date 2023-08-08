@@ -2,6 +2,7 @@ package consensus
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	pb "github.com/kdsama/kdb/consensus/protodata"
@@ -63,24 +64,30 @@ func (c *Client) Hearbeat() {
 
 	_, err := (*nc).Ack(ctx, &pb.Hearbeat{Message: "i"})
 	if err != nil {
-		c.logger.Errorf("Ouch, No heartbeat from %v\n", c.name, err)
+		c.logger.Fatalf("Ouch, No heartbeat from %v because of %v \n", c.name, err)
 		return
 	}
 	c.lastBeat = time.Now()
 	// c.ticker = *time.NewTicker(time.Duration(c.factor) * time.Second)
-	c.logger.Infof("Greeting: from %s ", c.name)
+	// c.logger.Infof("Greeting: from %s ", c.name)
 }
 
 func (c *Client) SendRecord(ctx context.Context, data *[]byte, state recordState) error {
 	// we should not send it to dead ones
-	ctx, cancel := context.WithTimeout(ctx, 500*time.Millisecond)
+	t := time.Now()
+
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+
 	defer cancel()
 	nc := c.con
-	r, err := (*nc).SendRecord(ctx, &pb.WalEntry{Entry: *data, Status: int32(state)})
+	fmt.Println("Send stuff at ", time.Now())
+	_, err := (*nc).SendRecord(ctx, &pb.WalEntry{Entry: *data, Status: int32(state)})
+	fmt.Println("Time elapsed for sending records  ::", time.Since(t))
 	if err != nil {
 		c.logger.Errorf("Ouch, Failed sending data to  %v\n", c.name, err)
 		return err
 	}
-	c.logger.Infof("data acknowledged by %v = %v", c.name, r)
+
+	// c.logger.Infof("data acknowledged by %v = %v", c.name, r)
 	return nil
 }

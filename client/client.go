@@ -56,20 +56,23 @@ func (c *Client) AutomateGet() error {
 func (c *Client) AutomateSet() error {
 	time.Sleep(20 * time.Second)
 
-	go c.BulkAdd("val")
+	c.BulkAdd("val")
 	// the below one is to check if
 	// we are getting another line in the persistance layer
-	c.BulkAdd("pre")
+	c.BulkAdd("preval")
 	return nil
 }
 
 func (c *Client) BulkAdd(value string) {
-	for i := 0; i < 10000; i++ {
+	for i := 0; i < 10; i++ {
 
 		i := i
-		time.Sleep(1 * time.Millisecond)
+		time.Sleep(10 * time.Millisecond)
 
-		c.Add("key"+fmt.Sprint(i), value)
+		err := c.Add("key"+fmt.Sprint(i), value)
+		if err != nil {
+			fmt.Println(err)
+		}
 
 	}
 }
