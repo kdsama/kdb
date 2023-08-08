@@ -3,9 +3,7 @@ package store
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"sync"
-	"time"
 
 	"github.com/kdsama/kdb/logger"
 )
@@ -205,28 +203,24 @@ func (kvs *KVService) SetRecord(data *[]byte) error {
 	// the WAL transaction will also be saved without generating a new transactionID
 	// No checks for it for now
 	// as we are getting WAL logs we need to serialize it
-	t := time.Now()
+
 	walEntry, err := deserialize(*data)
 	if err != nil {
 		return err
 	}
-	fmt.Println("Wal Entry is ", walEntry)
+
 	if walEntry.Node == nil {
 		kvs.logger.Fatalf("Error caused by this walEntry %v", walEntry)
 	}
 
 	walEntry.Node.CommitNode()
-	fmt.Println("Node has been committed ")
+
 	err = kvs.hm.AddNode(walEntry.Node)
 	if err != nil && err != err_Upserted {
 		return err
 	}
-	fmt.Println("Added now ")
-	if err == err_Upserted {
-		kvs.logger.Errorf("THe key already exists in the map ")
-	}
 	if err == nil {
-		kvs.logger.Errorf("We tryna insert the key for %v", walEntry.Node.Key)
+
 		// if key already exists no need to replace it with itself. Will help with performance.
 		go kvs.btree.addKeyString(walEntry.Node.Key)
 	}
@@ -241,13 +235,12 @@ func (kvs *KVService) SetRecord(data *[]byte) error {
 	if err != nil {
 		kvs.logger.Fatalf("Some stupid error")
 	}
-	fmt.Println("Array now is", arr)
+
 	err = kvs.ps.Save(walEntry.Node.Key, &arr)
 	if err != nil {
 		kvs.logger.Errorf("%v", err)
 	}
 
-	fmt.Println("Commit records-- Done :- ", time.Since(t))
 	return err
 }
 
