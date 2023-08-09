@@ -13,7 +13,6 @@ import (
 
 	pb "github.com/kdsama/kdb/consensus/protodata"
 	"github.com/kdsama/kdb/logger"
-	"github.com/kdsama/kdb/server/store"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -77,7 +76,7 @@ type ConsensusService struct {
 	wg map[string]*sync.WaitGroup
 }
 
-func NewConsensusService(leader bool, name string, filepath string, logger *logger.Logger, kv *store.KVService) *ConsensusService {
+func NewConsensusService(leader bool, name string, filepath string, logger *logger.Logger) *ConsensusService {
 	ticker := time.NewTicker(time.Duration(5) * time.Second)
 	return &ConsensusService{
 		leader:    leader,

@@ -14,7 +14,7 @@ var (
 type Node struct {
 	Key              string `json:"key"`
 	Value            string `json:"value"`
-	Version          int8   `json:"version"`
+	Version          uint32 `json:"version"`
 	PreviousVersions []Node
 	Deleted          bool        `json:"deleted"`
 	Timestamp        int64       `json:"timestamp"`

@@ -3,8 +3,8 @@ package store
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"sync"
+	"sync/atomic"
 
 	"github.com/kdsama/kdb/logger"
 )
@@ -136,8 +136,13 @@ func (kvs *KVService) Abort(we *WalEntry) error {
 func (kvs *KVService) Add(key string, value string) (WalEntry, error) {
 
 	// no adding until the commit is done.
-
+	n, err := kvs.hm.Get(key)
 	node := NewNode(key, value)
+	if err == nil {
+		atomic.AddUint32(&n.Version, 1)
+		node.Version = n.Version
+	}
+
 	// need to return the whole WAL log here instead of just transactionID
 	// same for all the other
 	return kvs.wal.addEntry(*node, ADD)
@@ -164,7 +169,7 @@ func (kvs *KVService) Delete(key string) (WalEntry, error) {
 	return kvs.wal.addEntry(*node, DELETE)
 }
 
-func (kvs *KVService) GetNode(key string) (Node, error) {
+func (kvs *KVService) GetNode(key string) (*Node, error) {
 	return kvs.hm.Get(key)
 }
 
@@ -215,7 +220,7 @@ func (kvs *KVService) SetRecord(data *[]byte) error {
 	}
 
 	node, err := kvs.hm.AddNode(walEntry.Node)
-	fmt.Println("In memory value is ", node)
+
 	walEntry.Node = node
 	if err != nil && err != err_Upserted {
 		return err

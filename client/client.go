@@ -25,6 +25,7 @@ func New(kv *store.KVService, cs *consensus.ConsensusService, logger *logger.Log
 }
 
 func (c *Client) Add(key, value string) error {
+
 	entry, err := c.kv.Add(key, value)
 	if err != nil {
 		c.logger.Errorf("%v", err)
@@ -41,11 +42,14 @@ func (c *Client) Add(key, value string) error {
 	}
 	err = c.cs.SendTransaction(dat, entry.TxnID)
 	if err != nil {
-		c.kv.Commit(&entry)
+		c.logger.Fatalf("%v", err)
 		return err
 	}
-
-	return nil
+	err = c.kv.SetRecord(&dat)
+	if err != nil {
+		c.logger.Fatalf("%v", err)
+	}
+	return c.cs.SendTransactionConfirmation(dat, entry.TxnID, consensus.Commit)
 
 }
 

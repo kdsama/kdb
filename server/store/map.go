@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"sync"
+	"sync/atomic"
 
 	"github.com/kdsama/kdb/logger"
 )
@@ -49,14 +50,14 @@ func (hm *HashMap) AddNode(node *Node) (*Node, error) {
 	return node, nil
 }
 
-func (hm *HashMap) Get(key string) (Node, error) {
+func (hm *HashMap) Get(key string) (*Node, error) {
 	hm.mut.RLock()
 	n, ok := hm.kv[key]
 	hm.mut.RUnlock()
 	if !ok || n.Deleted {
-		return Node{}, err_NodeNotFound
+		return &Node{}, err_NodeNotFound
 	}
-	return *n, nil
+	return n, nil
 }
 
 func (hm *HashMap) GetSeveral(keys []string) ([]Node, []string, error) {
@@ -88,6 +89,7 @@ func (hm *HashMap) Update(key string, value string) (bool, error) {
 	n, ok := hm.kv[key]
 	hm.mut.RUnlock()
 	if !ok {
+		atomic.AddUint32(&n.Version, uint32(1))
 		return false, err_NodeNotFound
 	}
 	_ = n.Update(value)
