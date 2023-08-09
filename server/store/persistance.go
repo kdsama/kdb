@@ -7,8 +7,27 @@ import (
 	"errors"
 	"log"
 	"sync"
+	"time"
 
 	"github.com/kdsama/kdb/logger"
+	"github.com/prometheus/client_golang/prometheus"
+)
+
+const (
+	COMPACTIONSIZE = 5
+
+	NUM_THREADS = 2
+)
+
+var (
+	err_NoDataFound = errors.New("No data present, make sure the file-directory is correct")
+)
+var (
+	persistanceRequestsTotal = prometheus.NewHistogramVec(prometheus.HistogramOpts{
+		Name:    "ps_file_requests",
+		Help:    "file requests :: persistance layer",
+		Buckets: []float64{0.0, 20.0, 40.0, 60.0, 80.0, 100.0, 160.0, 180.0, 200.0, 400.0, 800.0, 1600.0},
+	}, []string{"reqtype"})
 )
 
 type Persistance struct {
@@ -19,16 +38,6 @@ type Persistance struct {
 	nodes  []Node
 	logger *logger.Logger
 }
-
-var (
-	err_NoDataFound = errors.New("No data present, make sure the file-directory is correct")
-)
-
-const (
-	COMPACTIONSIZE = 5
-
-	NUM_THREADS = 2
-)
 
 func NewPersistance(prefix string, lg *logger.Logger) *Persistance {
 	fs := NewFileService()
@@ -59,10 +68,13 @@ func serializeNode(node Node) ([]byte, Node) {
 
 // There is no need for update . Update means we are saving a new byte array to the file
 func (p *Persistance) Save(key string, buffer *[]byte) error {
+	t := time.Now()
 	p.mut.Lock()
 
 	err := p.fs.WriteFileLnWithDirectories(p.prefix+key, *buffer)
 	p.mut.Unlock()
+
+	persistanceRequestsTotal.WithLabelValues("Save File").Observe(float64(time.Since(t)) / 1000)
 	return err
 }
 
@@ -91,6 +103,7 @@ func (p *Persistance) GetNode(dir string) (Node, error) {
 }
 
 func (p *Persistance) GetNodesInParallel(buffered_channel chan string) {
+	t := time.Now()
 	for file_dir := range buffered_channel {
 		n, err := p.GetNodeFromAbsolutePath(file_dir)
 		if err != nil {
@@ -103,8 +116,11 @@ func (p *Persistance) GetNodesInParallel(buffered_channel chan string) {
 	}
 
 	p.wg.Done()
+	persistanceRequestsTotal.WithLabelValues("Get Many").Observe(float64(time.Since(t)) / 1000)
 }
 func (p *Persistance) GetNodeFromAbsolutePath(dir string) (Node, error) {
+
+	t := time.Now()
 	var n Node
 	node_in_bytes, err := p.fs.ReadLatestFromFileInBytes(dir)
 	if err != nil {
@@ -115,7 +131,7 @@ func (p *Persistance) GetNodeFromAbsolutePath(dir string) (Node, error) {
 	if err := json.Unmarshal(node_in_bytes, &n); err != nil {
 		return Node{}, err
 	}
-
+	persistanceRequestsTotal.WithLabelValues("Get File").Observe(float64(time.Since(t)) / 1000)
 	return n, nil
 }
 
@@ -148,4 +164,8 @@ func (p *Persistance) GetALLNodes() {
 	close(buffered_channel)
 	p.wg.Wait()
 
+}
+
+func init() {
+	prometheus.MustRegister(persistanceRequestsTotal)
 }

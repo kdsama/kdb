@@ -14,10 +14,10 @@ import (
 var (
 	requestsTotal = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
-			Name: "http_requests_total",
+			Name: "ps_http_requests_total",
 			Help: "Total number of HTTP requests",
 		},
-		[]string{"method", "path"},
+		[]string{"reqtype"},
 	)
 )
 
@@ -39,7 +39,7 @@ func New(kv *store.KVService, cs *consensus.ConsensusService, logger *logger.Log
 }
 
 func (c *Client) Add(key, value string) error {
-	requestsTotal.WithLabelValues("Type", "Setter").Inc()
+	requestsTotal.WithLabelValues("Set Key").Inc()
 
 	entry, err := c.kv.Add(key, value)
 	if err != nil {
@@ -69,7 +69,7 @@ func (c *Client) Add(key, value string) error {
 }
 
 func (c *Client) Get(user string, key string) (string, error) {
-	requestsTotal.WithLabelValues("Type", "Getter").Inc()
+	requestsTotal.WithLabelValues("Get Key").Inc()
 	// here what we can do is
 	// set a client connection to a particular client for the current user for reading purposes
 	// so n users will have a random client attached to it to fetch the get requests
@@ -124,6 +124,5 @@ func (c *Client) BulkAdd(value string) {
 }
 
 func init() {
-	fmt.Println("Is this happening or not ???????")
 	prometheus.MustRegister(requestsTotal)
 }
