@@ -24,6 +24,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"net/http"
 	"os"
 
 	"github.com/kdsama/kdb/client"
@@ -31,6 +32,7 @@ import (
 	pb "github.com/kdsama/kdb/consensus/protodata"
 	"github.com/kdsama/kdb/logger"
 	"github.com/kdsama/kdb/server/store"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"google.golang.org/grpc"
 )
 
@@ -73,10 +75,22 @@ func main() {
 		go clientService.AutomateSet()
 		go clientService.AutomateGet()
 	}
-
+	go ServerHttp()
 	pb.RegisterConsensusServer(s, consensus.NewReciever(kv))
 	log.Printf("server listening at %v", lis.Addr())
 	if err := s.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %v", err)
 	}
+
+}
+func ping(w http.ResponseWriter, req *http.Request) {
+
+	fmt.Fprintf(w, "pong")
+}
+func ServerHttp() {
+	http.HandleFunc("/ping", ping)
+	http.Handle("/metrics", promhttp.Handler())
+
+	log.Fatal(http.ListenAndServe(":8080", nil))
+
 }

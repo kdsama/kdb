@@ -82,7 +82,7 @@ func (c *Client) SendRecord(ctx context.Context, data *[]byte, state recordState
 	_, err := (*nc).SendRecord(ctx, &pb.WalEntry{Entry: *data, Status: int32(state)})
 
 	if err != nil {
-		c.logger.Errorf("Ouch, Failed sending data to  %v\n", c.name, err)
+		// c.logger.Errorf("Ouch, Failed sending data to  %v\n", c.name, err)
 		return err
 	}
 
@@ -96,10 +96,9 @@ func (c *Client) GetRecord(ctx context.Context, key string) (string, error) {
 	nc := c.con
 	res, err := (*nc).Get(ctx, &pb.GetKey{Key: key})
 	if err != nil {
-		c.logger.Errorf("Ouch, Failed to Get  data to  %v\n", c.name, err)
+		c.logger.Errorf("Ouch, Failed to Get data to %s\n", c.name, err)
 		return "", err
 	}
 
-	c.logger.Infof("data acknowledged by %v = %v", c.name, res)
 	return res.Value, nil
 }

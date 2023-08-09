@@ -8,6 +8,17 @@ import (
 	"github.com/kdsama/kdb/consensus"
 	"github.com/kdsama/kdb/logger"
 	"github.com/kdsama/kdb/server/store"
+	"github.com/prometheus/client_golang/prometheus"
+)
+
+var (
+	requestsTotal = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "http_requests_total",
+			Help: "Total number of HTTP requests",
+		},
+		[]string{"method", "path"},
+	)
 )
 
 type Client struct {
@@ -18,6 +29,7 @@ type Client struct {
 }
 
 func New(kv *store.KVService, cs *consensus.ConsensusService, logger *logger.Logger) *Client {
+
 	return &Client{
 		kv:      kv,
 		cs:      cs,
@@ -27,6 +39,7 @@ func New(kv *store.KVService, cs *consensus.ConsensusService, logger *logger.Log
 }
 
 func (c *Client) Add(key, value string) error {
+	requestsTotal.WithLabelValues("Type", "Setter").Inc()
 
 	entry, err := c.kv.Add(key, value)
 	if err != nil {
@@ -56,6 +69,7 @@ func (c *Client) Add(key, value string) error {
 }
 
 func (c *Client) Get(user string, key string) (string, error) {
+	requestsTotal.WithLabelValues("Type", "Getter").Inc()
 	// here what we can do is
 	// set a client connection to a particular client for the current user for reading purposes
 	// so n users will have a random client attached to it to fetch the get requests
@@ -75,7 +89,7 @@ func (c *Client) Get(user string, key string) (string, error) {
 func (c *Client) AutomateGet() error {
 	time.Sleep(21 * time.Second)
 	for i := 0; i < 100000; i++ {
-		time.Sleep(10 * time.Millisecond)
+		time.Sleep(1 * time.Millisecond)
 
 		_, err := c.Get("user", "key"+fmt.Sprint(rand.Int31n(100)))
 		if err != nil {
@@ -107,4 +121,9 @@ func (c *Client) BulkAdd(value string) {
 		}
 
 	}
+}
+
+func init() {
+	fmt.Println("Is this happening or not ???????")
+	prometheus.MustRegister(requestsTotal)
 }

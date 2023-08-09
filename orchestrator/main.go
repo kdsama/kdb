@@ -14,6 +14,7 @@ import (
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/client"
+	"github.com/docker/go-connections/nat"
 )
 
 type dockercli struct {
@@ -92,6 +93,10 @@ func (dc *dockercli) addContainer() {
 	rand.Seed(time.Now().UnixNano())
 	randId := fmt.Sprintf("%v", rand.Int31n(100000))
 	name := "node" + randId
+	var exposedPorts nat.PortSet
+	portBindings := nat.PortMap{
+		"8080/tcp": []nat.PortBinding{{HostIP: "127.0.0.1", HostPort: "8080"}},
+	}
 
 	volume, _ := filepath.Abs(filepath.Dir("data/"))
 	serverInf, _ := filepath.Abs(filepath.Dir("serverInfo/"))
@@ -116,14 +121,17 @@ func (dc *dockercli) addContainer() {
 	// check if containers existed previously
 	arr := dc.listContainers()
 	if len(arr) == 0 {
-
+		exposedPorts = nat.PortSet{"8080/tcp": {}}
 		cmd = append(cmd, "leader")
 	}
 
 	resp, err := dc.ContainerCreate(context.Background(), &container.Config{
-		Image: dc.image,
-		Cmd:   cmd,
-	}, &container.HostConfig{Binds: []string{volume + ":/go/src/data", serverInf + ":/go/src/serverInfo"}}, &network.NetworkingConfig{EndpointsConfig: map[string]*network.EndpointSettings{NETWORK: {NetworkID: NETWORK}}}, nil, name)
+		Image:        dc.image,
+		Cmd:          cmd,
+		ExposedPorts: exposedPorts,
+	}, &container.HostConfig{PortBindings: portBindings,
+		Binds: []string{volume + ":/go/src/data", serverInf + ":/go/src/serverInfo"}},
+		&network.NetworkingConfig{EndpointsConfig: map[string]*network.EndpointSettings{NETWORK: {NetworkID: NETWORK}}}, nil, name)
 
 	if err != nil {
 		panic(err)

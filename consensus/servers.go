@@ -271,7 +271,7 @@ func (cs *ConsensusService) connectClients() {
 
 		conn := connect(addr)
 
-		nc := NewClient(addr, conn, 5, cs.logger)
+		nc := NewClient(addr, conn, 7, cs.logger)
 		cs.clients[nc.name] = nc
 		if cs.leader {
 			go nc.Schedule()
