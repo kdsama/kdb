@@ -61,3 +61,20 @@ func (s *Receiver) SendRecord(ctx context.Context, in *pb.WalEntry) (*pb.WalResp
 
 	return &pb.WalResponse{Message: "ok"}, nil
 }
+func (s *Receiver) Get(ctx context.Context, in *pb.GetKey) (*pb.GetResponse, error) {
+	counter++
+	val, err := s.kv.GetNode(in.Key)
+	if err != nil {
+		return &pb.GetResponse{Value: ""}, err
+	}
+	return &pb.GetResponse{Value: val.Value}, nil
+}
+
+// func (s *Receiver) GetSeveral(ctx context.Context, in *pb.GetKey) (*pb.GetSeveralKeys, error) {
+// 	counter++
+// 	val, err := s.kv.GetNode(in.Key)
+// 	if err != nil {
+// 		return &pb.GetResponse{Value: ""}, err
+// 	}
+// 	return &pb.GetResponse{Value: val.Value}, nil
+// }

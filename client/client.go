@@ -11,16 +11,18 @@ import (
 )
 
 type Client struct {
-	kv     *store.KVService
-	cs     *consensus.ConsensusService
-	logger *logger.Logger
+	kv      *store.KVService
+	cs      *consensus.ConsensusService
+	logger  *logger.Logger
+	userMap map[string]string
 }
 
 func New(kv *store.KVService, cs *consensus.ConsensusService, logger *logger.Logger) *Client {
 	return &Client{
-		kv:     kv,
-		cs:     cs,
-		logger: logger,
+		kv:      kv,
+		cs:      cs,
+		logger:  logger,
+		userMap: map[string]string{},
 	}
 }
 
@@ -53,18 +55,34 @@ func (c *Client) Add(key, value string) error {
 
 }
 
-func (c *Client) Get(cname string, key string) error {
+func (c *Client) Get(user string, key string) (string, error) {
 	// here what we can do is
 	// set a client connection to a particular client for the current user for reading purposes
 	// so n users will have a random client attached to it to fetch the get requests
 	// for now I can just ask the system to get me data through gcp ,
 	// so need protobuf here for get services
-	return c.cs.Get(cname, key)
-	return nil
+
+	if _, ok := c.userMap[user]; !ok {
+		n := c.cs.GetRandomConnectionName()
+		fmt.Println("Random connection is ", n)
+		c.userMap[user] = n
+	}
+
+	return c.cs.Get(c.userMap[user], key)
+
 }
 
 func (c *Client) AutomateGet() error {
+	time.Sleep(21 * time.Second)
+	for i := 0; i < 100000; i++ {
+		time.Sleep(10 * time.Millisecond)
 
+		_, err := c.Get("user", "key"+fmt.Sprint(rand.Int31n(100)))
+		if err != nil {
+			c.logger.Errorf("%v", err)
+		}
+
+	}
 	return nil
 }
 
@@ -80,10 +98,10 @@ func (c *Client) AutomateSet() error {
 
 func (c *Client) BulkAdd(value string) {
 	rand.Seed(time.Now().UnixNano())
-	for i := 0; i < 100; i++ {
+	for i := 0; i < 10000; i++ {
 		time.Sleep(10 * time.Millisecond)
 
-		err := c.Add("key"+fmt.Sprint(rand.Int31n(10)), fmt.Sprint(rand.Int31n(100)))
+		err := c.Add("key"+fmt.Sprint(rand.Int31n(100)), fmt.Sprint(rand.Int31n(10000)))
 		if err != nil {
 			fmt.Println(err)
 		}

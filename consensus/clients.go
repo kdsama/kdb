@@ -2,7 +2,6 @@ package consensus
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	pb "github.com/kdsama/kdb/consensus/protodata"
@@ -74,15 +73,14 @@ func (c *Client) Hearbeat() {
 
 func (c *Client) SendRecord(ctx context.Context, data *[]byte, state recordState) error {
 	// we should not send it to dead ones
-	t := time.Now()
 
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 300*time.Millisecond)
 
 	defer cancel()
 	nc := c.con
-	fmt.Println("Send stuff at ", time.Now())
+
 	_, err := (*nc).SendRecord(ctx, &pb.WalEntry{Entry: *data, Status: int32(state)})
-	fmt.Println("Time elapsed for sending records  ::", time.Since(t))
+
 	if err != nil {
 		c.logger.Errorf("Ouch, Failed sending data to  %v\n", c.name, err)
 		return err
@@ -90,4 +88,18 @@ func (c *Client) SendRecord(ctx context.Context, data *[]byte, state recordState
 
 	// c.logger.Infof("data acknowledged by %v = %v", c.name, r)
 	return nil
+}
+
+func (c *Client) GetRecord(ctx context.Context, key string) (string, error) {
+	ctx, cancel := context.WithTimeout(ctx, 300*time.Millisecond)
+	defer cancel()
+	nc := c.con
+	res, err := (*nc).Get(ctx, &pb.GetKey{Key: key})
+	if err != nil {
+		c.logger.Errorf("Ouch, Failed to Get  data to  %v\n", c.name, err)
+		return "", err
+	}
+
+	c.logger.Infof("data acknowledged by %v = %v", c.name, res)
+	return res.Value, nil
 }

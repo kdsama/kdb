@@ -7,6 +7,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"math/rand"
 	"os"
 	"sync"
 	"time"
@@ -70,10 +71,11 @@ type ConsensusService struct {
 	logger   *logger.Logger
 	ticker   *time.Ticker
 
-	clientMux sync.Mutex
+	clientMux *sync.Mutex
 	clients   map[string]*Client
 
-	wg map[string]*sync.WaitGroup
+	wg        map[string]*sync.WaitGroup
+	addresses []string
 }
 
 func NewConsensusService(leader bool, name string, filepath string, logger *logger.Logger) *ConsensusService {
@@ -84,9 +86,10 @@ func NewConsensusService(leader bool, name string, filepath string, logger *logg
 		filepath:  filepath,
 		logger:    logger,
 		ticker:    ticker,
-		clientMux: sync.Mutex{},
+		clientMux: &sync.Mutex{},
 		clients:   map[string]*Client{},
 		wg:        map[string]*sync.WaitGroup{},
+		addresses: []string{},
 	}
 }
 
@@ -104,13 +107,28 @@ func (cs *ConsensusService) Schedule() {
 	}
 }
 
-func (cs *ConsensusService) Get(cname string, key string) error {
-	_, ok := cs.clients[cname]
+func (cs *ConsensusService) GetRandomConnectionName() string {
+	rand.Seed(time.Now().Unix())
+	mut := sync.Mutex{}
+	ll := len(cs.addresses)
+
+	randomServer := cs.addresses[rand.Intn(ll)]
+
+	mut.Lock()
+	a := cs.clients[randomServer].name
+	mut.Unlock()
+
+	return a
+}
+
+func (cs *ConsensusService) Get(cname string, key string) (string, error) {
+	client, ok := cs.clients[cname]
 	if !ok {
-		return errors.New("client not found")
+		return "", errors.New("client not found")
 	}
-	// val.Get()
-	return nil
+	value, err := client.GetRecord(context.Background(), key)
+
+	return value, err
 }
 
 func (cs *ConsensusService) SendTransaction(data []byte, TxnID string) error {
@@ -205,7 +223,6 @@ func (cs *ConsensusService) SendTransactionConfirmation(data []byte, TxnID strin
 			count++
 		}
 	}
-	fmt.Println("Quorum and count", quorum, count)
 	if count > quorum {
 		return nil
 	}
@@ -221,7 +238,10 @@ func (cs *ConsensusService) connectClients() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
+	l := sync.Mutex{}
+	l.Lock()
+	cs.addresses = addresses
+	l.Unlock()
 	// The problem here is we need to setup a leader and do the connection afterwards
 	// so it will be better if I put everything in a maddr first
 	// and add new ones to the list by doing a cron call every n seconds
@@ -240,11 +260,11 @@ func (cs *ConsensusService) connectClients() {
 				delete(cs.clients, val.name)
 				cs.clientMux.Unlock()
 			} else {
+
 				continue
 			}
 
 		}
-
 		if addr == cs.name {
 			continue
 		}
