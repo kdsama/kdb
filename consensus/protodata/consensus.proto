@@ -26,6 +26,8 @@ service Consensus {
   // Sends a greeting
   rpc SendRecord (WalEntry) returns (WalResponse) {}
   rpc Ack(Hearbeat) returns (HearbeatResponse) {}
+  rpc Get(GetKey) returns (GetResponse) {}
+  rpc GetMany(GetSeveralKeys) returns (GetSeveralResponse) {}
 }
 
 // The request message containing the user's name.
@@ -38,6 +40,21 @@ message WalEntry {
 message WalResponse {
   string message = 1;
  
+}
+
+message GetKey {
+  string key = 1 ; 
+}
+message GetResponse { 
+  string value = 1; 
+}
+
+message GetSeveralKeys {
+  string key = 1 ;
+}
+
+message GetSeveralResponse {
+  repeated string value = 1 ;
 }
 
 

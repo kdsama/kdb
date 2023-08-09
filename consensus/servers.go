@@ -104,6 +104,15 @@ func (cs *ConsensusService) Schedule() {
 	}
 }
 
+func (cs *ConsensusService) Get(cname string, key string) error {
+	_, ok := cs.clients[cname]
+	if !ok {
+		return errors.New("client not found")
+	}
+	// val.Get()
+	return nil
+}
+
 func (cs *ConsensusService) SendTransaction(data []byte, TxnID string) error {
 	d := data
 

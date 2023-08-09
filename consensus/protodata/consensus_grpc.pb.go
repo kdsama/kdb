@@ -25,6 +25,8 @@ type ConsensusClient interface {
 	// Sends a greeting
 	SendRecord(ctx context.Context, in *WalEntry, opts ...grpc.CallOption) (*WalResponse, error)
 	Ack(ctx context.Context, in *Hearbeat, opts ...grpc.CallOption) (*HearbeatResponse, error)
+	Get(ctx context.Context, in *GetKey, opts ...grpc.CallOption) (*GetResponse, error)
+	GetMany(ctx context.Context, in *GetSeveralKeys, opts ...grpc.CallOption) (*GetSeveralResponse, error)
 }
 
 type consensusClient struct {
@@ -53,6 +55,24 @@ func (c *consensusClient) Ack(ctx context.Context, in *Hearbeat, opts ...grpc.Ca
 	return out, nil
 }
 
+func (c *consensusClient) Get(ctx context.Context, in *GetKey, opts ...grpc.CallOption) (*GetResponse, error) {
+	out := new(GetResponse)
+	err := c.cc.Invoke(ctx, "/consensus.Consensus/Get", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *consensusClient) GetMany(ctx context.Context, in *GetSeveralKeys, opts ...grpc.CallOption) (*GetSeveralResponse, error) {
+	out := new(GetSeveralResponse)
+	err := c.cc.Invoke(ctx, "/consensus.Consensus/GetMany", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ConsensusServer is the server API for Consensus service.
 // All implementations must embed UnimplementedConsensusServer
 // for forward compatibility
@@ -60,6 +80,8 @@ type ConsensusServer interface {
 	// Sends a greeting
 	SendRecord(context.Context, *WalEntry) (*WalResponse, error)
 	Ack(context.Context, *Hearbeat) (*HearbeatResponse, error)
+	Get(context.Context, *GetKey) (*GetResponse, error)
+	GetMany(context.Context, *GetSeveralKeys) (*GetSeveralResponse, error)
 	mustEmbedUnimplementedConsensusServer()
 }
 
@@ -72,6 +94,12 @@ func (UnimplementedConsensusServer) SendRecord(context.Context, *WalEntry) (*Wal
 }
 func (UnimplementedConsensusServer) Ack(context.Context, *Hearbeat) (*HearbeatResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Ack not implemented")
+}
+func (UnimplementedConsensusServer) Get(context.Context, *GetKey) (*GetResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Get not implemented")
+}
+func (UnimplementedConsensusServer) GetMany(context.Context, *GetSeveralKeys) (*GetSeveralResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetMany not implemented")
 }
 func (UnimplementedConsensusServer) mustEmbedUnimplementedConsensusServer() {}
 
@@ -122,6 +150,42 @@ func _Consensus_Ack_Handler(srv interface{}, ctx context.Context, dec func(inter
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Consensus_Get_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetKey)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ConsensusServer).Get(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/consensus.Consensus/Get",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ConsensusServer).Get(ctx, req.(*GetKey))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Consensus_GetMany_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetSeveralKeys)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ConsensusServer).GetMany(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/consensus.Consensus/GetMany",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ConsensusServer).GetMany(ctx, req.(*GetSeveralKeys))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Consensus_ServiceDesc is the grpc.ServiceDesc for Consensus service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -136,6 +200,14 @@ var Consensus_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Ack",
 			Handler:    _Consensus_Ack_Handler,
+		},
+		{
+			MethodName: "Get",
+			Handler:    _Consensus_Get_Handler,
+		},
+		{
+			MethodName: "GetMany",
+			Handler:    _Consensus_GetMany_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

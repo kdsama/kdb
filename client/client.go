@@ -53,11 +53,17 @@ func (c *Client) Add(key, value string) error {
 
 }
 
+func (c *Client) Get(cname string, key string) error {
+	// here what we can do is
+	// set a client connection to a particular client for the current user for reading purposes
+	// so n users will have a random client attached to it to fetch the get requests
+	// for now I can just ask the system to get me data through gcp ,
+	// so need protobuf here for get services
+	return c.cs.Get(cname, key)
+	return nil
+}
+
 func (c *Client) AutomateGet() error {
-	// this should be a bit different
-	// we should not getting data from a random client thats not us
-	// we should add delay to it as well probably
-	// and we should be doing bulk reads
 
 	return nil
 }
