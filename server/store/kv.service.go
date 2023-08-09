@@ -3,6 +3,7 @@ package store
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"sync"
 
 	"github.com/kdsama/kdb/logger"
@@ -98,7 +99,7 @@ func (kvs *KVService) Commit(we *WalEntry) error {
 	// if version is >
 	// return error
 	// else continue committing
-	err := kvs.hm.AddNode(we.Node)
+	_, err := kvs.hm.AddNode(we.Node)
 	if err != nil {
 		kvs.logger.Errorf(err.Error())
 		return err
@@ -213,22 +214,23 @@ func (kvs *KVService) SetRecord(data *[]byte) error {
 		kvs.logger.Fatalf("Error caused by this walEntry %v", walEntry)
 	}
 
-	walEntry.Node.CommitNode()
-
-	err = kvs.hm.AddNode(walEntry.Node)
+	node, err := kvs.hm.AddNode(walEntry.Node)
+	fmt.Println("In memory value is ", node)
+	walEntry.Node = node
 	if err != nil && err != err_Upserted {
 		return err
 	}
 	if err == nil {
 
 		// if key already exists no need to replace it with itself. Will help with performance.
-		go kvs.btree.addKeyString(walEntry.Node.Key)
+		go kvs.btree.addKeyString(node.Key)
 	}
 	// better if we send buffer itself here instead of serializing and deserializing again.
 	d, e := walEntry.serialize()
 	if e != nil {
 		return e
 	}
+
 	kvs.wal.AddWALEntry(&d)
 	// kvs.logger.Infof("Added Transaction %v", walEntry.TxnID)
 	arr, err := json.Marshal(walEntry.Node)

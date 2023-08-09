@@ -21,8 +21,6 @@ package consensus
 
 import (
 	"context"
-	"fmt"
-	"time"
 
 	pb "github.com/kdsama/kdb/consensus/protodata"
 	"github.com/kdsama/kdb/server/store"
@@ -57,7 +55,7 @@ func (s *Receiver) SendRecord(ctx context.Context, in *pb.WalEntry) (*pb.WalResp
 		s.kv.AcknowledgeRecord(&in.Entry)
 
 	case int32(Commit):
-		fmt.Println(counter, "Receiving Commit stuff at ", time.Now())
+
 		s.kv.SetRecord(&in.Entry)
 	}
 

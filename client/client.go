@@ -39,7 +39,11 @@ func (c *Client) Add(key, value string) error {
 		c.logger.Errorf("%v", err)
 		return err
 	}
-	c.cs.SendTransaction(dat, entry.TxnID)
+	err = c.cs.SendTransaction(dat, entry.TxnID)
+	if err != nil {
+		c.kv.Commit(&entry)
+		return err
+	}
 
 	return nil
 

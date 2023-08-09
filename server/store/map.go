@@ -37,29 +37,16 @@ func (hm *HashMap) Add(key string, value string) *Node {
 	return node
 }
 
-func (hm *HashMap) AddNode(node *Node) error {
-	n := node
-	hm.mut.Lock()
-	_, ok := hm.kv[n.Key]
-	fmt.Println("OK ??????")
-	if ok {
-		err := hm.Commit(n.Key, int(n.Version))
-		fmt.Println("ERR 1 ????", err)
-		if err != nil {
-			return err
-		}
-	}
+func (hm *HashMap) AddNode(node *Node) (*Node, error) {
 
-	hm.kv[n.Key] = n
-	fmt.Println("KEY NOW IS ????", n.Key, n, hm.kv[n.Key])
-	n.Commit = Committed
+	hm.mut.Lock()
+	_, ok := hm.kv[node.Key]
+	hm.kv[node.Key] = node
 	hm.mut.Unlock()
 	if ok {
-		fmt.Println("Is it okay ??", ok)
-		return err_Upserted
+		return node, err_Upserted
 	}
-	fmt.Println("NOt okay ???")
-	return nil
+	return node, nil
 }
 
 func (hm *HashMap) Get(key string) (Node, error) {
@@ -122,19 +109,9 @@ func (hm *HashMap) Delete(key string) (*Node, error) {
 }
 
 func (hm *HashMap) Commit(key string, version int) error {
-	// hm.mut.Lock()
-	// n := (*hm.kv[key])
-	// n.Version++
-	// n.CommitNode()
-	// hm.mut.Unlock()
-	return nil
-	// if n.Version > int8(version) {
-	// 	return err_OldVersion
-	// }
+	hm.kv[key].Version++
+	fmt.Println("Committed value : ", hm.kv[key])
 
-	// if commitLevel(n.Commit) == Committed {
-	// 	return err_AlreadyCommited
-	// }
-	// n.CommitNode()
-	// return nil
+	return nil
+
 }

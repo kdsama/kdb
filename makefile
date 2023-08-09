@@ -31,4 +31,10 @@ reload:
 	make build 
 	make add 
 	make add
-	make add	
+	make add
+
+restart:
+	make deleteAll
+	make add
+	make add
+	make add

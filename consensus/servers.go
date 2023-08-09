@@ -13,6 +13,7 @@ import (
 
 	pb "github.com/kdsama/kdb/consensus/protodata"
 	"github.com/kdsama/kdb/logger"
+	"github.com/kdsama/kdb/server/store"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -76,7 +77,7 @@ type ConsensusService struct {
 	wg map[string]*sync.WaitGroup
 }
 
-func NewConsensusService(leader bool, name string, filepath string, logger *logger.Logger) *ConsensusService {
+func NewConsensusService(leader bool, name string, filepath string, logger *logger.Logger, kv *store.KVService) *ConsensusService {
 	ticker := time.NewTicker(time.Duration(5) * time.Second)
 	return &ConsensusService{
 		leader:    leader,
@@ -146,9 +147,10 @@ func (cs *ConsensusService) SendTransaction(data []byte, TxnID string) error {
 			count++
 		}
 	}
-	fmt.Println("Quorum and count", quorum, count)
+
 	if count > quorum {
-		return cs.SendTransactionConfirmation(data, TxnID, Commit)
+
+		return nil
 	}
 	return errTransactionAborted
 }
