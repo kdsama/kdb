@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/kdsama/kdb/logger"
+	"github.com/prometheus/client_golang/prometheus"
 )
 
 /* Key: The key represents the unique identifier or name associated with the data being stored. It is used to retrieve or reference the data in the database.
@@ -58,7 +59,11 @@ type WAL struct {
 }
 
 var (
-	wal_buffer = []byte{}
+	wal_buffer     = []byte{}
+	walSizeMetrics = prometheus.NewGauge(prometheus.GaugeOpts{
+		Name: "ps_wal_size",
+		Help: "Shares the size of inmemory wal buffer in kb",
+	})
 )
 
 const (
@@ -183,7 +188,7 @@ func (w *WAL) Schedule() bool {
 func (w *WAL) BufferUpdate() {
 	w.lock.Lock()
 	len_buffer := len(wal_buffer)
-
+	walSizeMetrics.Add(float64(len_buffer))
 	// increment counter when the latest file size has exceeded the size we expect the file to be
 	size, err := w.fs.GetFileSize(w.getCurrentFileName())
 	if err != nil && w.file_counter != 0 {
@@ -243,4 +248,8 @@ func (w *WAL) GetCounterFromTransactionID(txn string) int64 {
 		return 0
 	}
 	return int64(counter)
+}
+
+func init() {
+	prometheus.MustRegister(walSizeMetrics)
 }

@@ -5,8 +5,11 @@ import (
 	"fmt"
 	"sync"
 	"sync/atomic"
+	"time"
+	"unsafe"
 
 	"github.com/kdsama/kdb/logger"
+	"github.com/prometheus/client_golang/prometheus"
 )
 
 var (
@@ -14,6 +17,13 @@ var (
 	err_NoneNodeFound     = errors.New("none of the nodes are present")
 	err_SomeNodesNotFound = errors.New("some nodes not found")
 	err_Upserted          = errors.New("the node was already present in hashmap, so the information was added instead of being updated ")
+)
+
+var (
+	requestsTotal = prometheus.NewGauge(prometheus.GaugeOpts{
+		Name: "ps_map_size",
+		Help: "Shares the size of inmemory map in kb",
+	})
 )
 
 type keyValue map[string]*Node
@@ -27,7 +37,10 @@ type HashMap struct {
 func NewHashMap(lg *logger.Logger) *HashMap {
 	kv := map[string]*Node{}
 	mut := sync.RWMutex{}
-	return &HashMap{kv, &mut, lg}
+
+	h := &HashMap{kv, &mut, lg}
+	go h.mapSize()
+	return h
 }
 func (hm *HashMap) Add(key string, value string) *Node {
 	node := NewNode(key, value)
@@ -116,4 +129,19 @@ func (hm *HashMap) Commit(key string, version int) error {
 
 	return nil
 
+}
+
+func (hm *HashMap) mapSize() {
+	for {
+		// Simulate temperature reading
+		// temperature := generateRandomTemperature()
+		// Update the Gauge value with the current temperature
+		requestsTotal.Set(float64(unsafe.Sizeof(hm.kv)))
+
+		time.Sleep(5 * time.Second)
+	}
+}
+
+func init() {
+	prometheus.MustRegister(requestsTotal)
 }

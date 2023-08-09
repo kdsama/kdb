@@ -87,11 +87,11 @@ func (c *Client) Get(user string, key string) (string, error) {
 }
 
 func (c *Client) AutomateGet() error {
-	time.Sleep(21 * time.Second)
+	time.Sleep(50 * time.Second)
 	for i := 0; i < 100000; i++ {
 		time.Sleep(1 * time.Millisecond)
 
-		_, err := c.Get("user", "key"+fmt.Sprint(rand.Int31n(100)))
+		_, err := c.Get("user", "key"+fmt.Sprint(rand.Int31n(10000)))
 		if err != nil {
 			c.logger.Errorf("%v", err)
 		}
@@ -113,9 +113,9 @@ func (c *Client) AutomateSet() error {
 func (c *Client) BulkAdd(value string) {
 	rand.Seed(time.Now().UnixNano())
 	for i := 0; i < 10000; i++ {
-		time.Sleep(10 * time.Millisecond)
+		time.Sleep(50 * time.Millisecond)
 
-		err := c.Add("key"+fmt.Sprint(rand.Int31n(100)), fmt.Sprint(rand.Int31n(10000)))
+		err := c.Add("key"+fmt.Sprint(rand.Int31n(10000)), fmt.Sprint(rand.Int31n(10000)))
 		if err != nil {
 			fmt.Println(err)
 		}
