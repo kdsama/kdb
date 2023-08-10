@@ -80,6 +80,9 @@ func (dc *dockercli) addContainer() {
 	rand.Seed(time.Now().UnixNano())
 	randId := fmt.Sprintf("%v", rand.Int31n(100000))
 	name := "node" + randId
+	rand.Seed(time.Now().UnixNano())
+	name2 := "node" + fmt.Sprintf("%v", rand.Int31n(100000))
+	fmt.Println(name, name2)
 	var exposedPorts nat.PortSet
 	portBindings := nat.PortMap{
 		"8080/tcp": []nat.PortBinding{{HostIP: "127.0.0.1", HostPort: "8080"}},
@@ -98,15 +101,20 @@ func (dc *dockercli) addContainer() {
 	// check if containers existed previously
 	arr := dc.listContainers()
 	if len(arr) == 0 {
+		fmt.Println("Yes it is zero ")
 		exposedPorts = nat.PortSet{"8080/tcp": {}}
-		_, err := dc.ContainerCreate(context.Background(), &container.Config{
+		resp, err := dc.ContainerCreate(context.Background(), &container.Config{
 			Image:        dc.image,
-			Cmd:          []string{"./bin/serveClient"},
+			Cmd:          []string{"./bin/serveClient", name2},
 			ExposedPorts: exposedPorts,
 		}, &container.HostConfig{PortBindings: portBindings}, // Binds: []string{volume + ":/go/src/data"}
-			&network.NetworkingConfig{EndpointsConfig: map[string]*network.EndpointSettings{NETWORK: {NetworkID: NETWORK}}}, nil, name)
+			&network.NetworkingConfig{EndpointsConfig: map[string]*network.EndpointSettings{NETWORK: {NetworkID: NETWORK}}}, nil, name2)
 
+		fmt.Println("Response ID is ", resp.ID)
 		if err != nil {
+			panic(err)
+		}
+		if err := dc.ContainerStart(context.Background(), resp.ID, types.ContainerStartOptions{}); err != nil {
 			panic(err)
 		}
 	}
@@ -115,7 +123,7 @@ func (dc *dockercli) addContainer() {
 		Image:        dc.image,
 		Cmd:          cmd,
 		ExposedPorts: exposedPorts,
-	}, &container.HostConfig{PortBindings: portBindings,
+	}, &container.HostConfig{
 		Binds: []string{volume + ":/go/src/data"}},
 		&network.NetworkingConfig{EndpointsConfig: map[string]*network.EndpointSettings{NETWORK: {NetworkID: NETWORK}}}, nil, name)
 
@@ -125,7 +133,9 @@ func (dc *dockercli) addContainer() {
 	if err := dc.ContainerStart(context.Background(), resp.ID, types.ContainerStartOptions{}); err != nil {
 		panic(err)
 	}
-	http.Get()
+	time.Sleep(5 * time.Second)
+	http.Get("http://localhost:8080/add-server?name=" + name)
+
 }
 
 func (dc *dockercli) delete(containerID string) {

@@ -1,6 +1,9 @@
 package clientdiscovery
 
-import "net/http"
+import (
+	"fmt"
+	"net/http"
+)
 
 // here all the handlers will come
 
@@ -10,11 +13,24 @@ type clientHandler struct {
 
 func NewClientHandler() *clientHandler {
 	return &clientHandler{
-		service: &service{},
+		service: NewService(),
 	}
 }
 
 func (ch *clientHandler) AddServer(w http.ResponseWriter, r *http.Request) {
+	val := r.URL.Query().Get("name")
+	fmt.Println("Name is ", val)
+	if val != "" {
+
+		err := ch.service.addServer(val)
+		if err != nil {
+			w.Write([]byte("Not OK"))
+			return
+		}
+		w.Write([]byte("OK"))
+		return
+	}
+	w.Write([]byte("Not OK"))
 
 }
 

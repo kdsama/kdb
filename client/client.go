@@ -29,7 +29,11 @@ type service struct {
 }
 
 func NewService() *service {
-	return &service{}
+	return &service{
+		clients:   map[string]*Nodes{},
+		leader:    "",
+		addresses: []string{},
+	}
 }
 
 func (s *service) addServer(addr string) error {
@@ -40,6 +44,7 @@ func (s *service) addServer(addr string) error {
 			return errors.New("cannot connect to the server")
 
 		}
+		fmt.Println("New client is ", client)
 		s.clients[addr] = &Nodes{
 			leader: false,
 			addr:   addr,
@@ -62,7 +67,7 @@ func (s *service) addServer(addr string) error {
 
 func connect(addr string) (*pb.ConsensusClient, error) {
 
-	conn, err := grpc.Dial(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.Dial(addr+":50051", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return nil, err
 	}
