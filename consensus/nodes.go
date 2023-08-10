@@ -8,7 +8,8 @@ import (
 	"github.com/kdsama/kdb/logger"
 )
 
-type Client struct {
+type Nodes struct {
+	leader   bool
 	name     string
 	con      *pb.ConsensusClient
 	ticker   time.Ticker
@@ -18,12 +19,12 @@ type Client struct {
 	delete   bool
 }
 
-func NewClient(name string, con *pb.ConsensusClient, factor int, logger *logger.Logger) *Client {
+func NewNodes(name string, con *pb.ConsensusClient, factor int, logger *logger.Logger) *Nodes {
 
 	t := time.Duration(factor) * time.Second
 	ticker := *time.NewTicker(t)
 
-	c := &Client{name, con, ticker, time.Now(), factor, logger, false}
+	c := &Nodes{false, name, con, ticker, time.Now(), factor, logger, false}
 
 	// go c.Schedule()
 	return c
@@ -31,7 +32,7 @@ func NewClient(name string, con *pb.ConsensusClient, factor int, logger *logger.
 
 // scheduling will be done only by the leader
 // so we cannot initiate it while creating a client object
-func (c *Client) Schedule() {
+func (c *Nodes) Schedule() {
 
 	for {
 		select {
@@ -43,7 +44,7 @@ func (c *Client) Schedule() {
 	}
 }
 
-func (c *Client) Hearbeat() {
+func (c *Nodes) Hearbeat() {
 
 	if time.Since(c.lastBeat) > time.Duration(10*c.factor)*time.Second {
 		c.logger.Errorf("Server %v is dead\n", c.name)
@@ -71,7 +72,7 @@ func (c *Client) Hearbeat() {
 	// c.logger.Infof("Greeting: from %s ", c.name)
 }
 
-func (c *Client) SendRecord(ctx context.Context, data *[]byte, state recordState) error {
+func (c *Nodes) SendRecord(ctx context.Context, data *[]byte, state recordState) error {
 	// we should not send it to dead ones
 
 	ctx, cancel := context.WithTimeout(ctx, 300*time.Millisecond)
@@ -90,7 +91,7 @@ func (c *Client) SendRecord(ctx context.Context, data *[]byte, state recordState
 	return nil
 }
 
-func (c *Client) GetRecord(ctx context.Context, key string) (string, error) {
+func (c *Nodes) GetRecord(ctx context.Context, key string) (string, error) {
 	ctx, cancel := context.WithTimeout(ctx, 300*time.Millisecond)
 	defer cancel()
 	nc := c.con

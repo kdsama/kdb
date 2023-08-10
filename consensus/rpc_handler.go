@@ -26,17 +26,17 @@ import (
 	"github.com/kdsama/kdb/server/store"
 )
 
-type Receiver struct {
+type Handler struct {
 	pb.UnimplementedConsensusServer
 	kv *store.KVService
 }
 
-func NewReciever(kv *store.KVService) *Receiver {
-	return &Receiver{kv: kv}
+func NewHandler(kv *store.KVService) *Handler {
+	return &Handler{kv: kv}
 }
 
 // Acknowledgement that the heartbeat has been received
-func (s *Receiver) Ack(ctx context.Context, in *pb.Hearbeat) (*pb.HearbeatResponse, error) {
+func (s *Handler) Ack(ctx context.Context, in *pb.Hearbeat) (*pb.HearbeatResponse, error) {
 
 	// log.Printf("Received: %v", in.GetMessage())
 	return &pb.HearbeatResponse{Message: "Hello " + in.GetMessage()}, nil
@@ -45,7 +45,7 @@ func (s *Receiver) Ack(ctx context.Context, in *pb.Hearbeat) (*pb.HearbeatRespon
 var counter = 0
 
 // Record received, now commit/ acknowledge according to the type of data
-func (s *Receiver) SendRecord(ctx context.Context, in *pb.WalEntry) (*pb.WalResponse, error) {
+func (s *Handler) SendRecord(ctx context.Context, in *pb.WalEntry) (*pb.WalResponse, error) {
 	counter++
 
 	switch in.Status {
@@ -61,7 +61,7 @@ func (s *Receiver) SendRecord(ctx context.Context, in *pb.WalEntry) (*pb.WalResp
 
 	return &pb.WalResponse{Message: "ok"}, nil
 }
-func (s *Receiver) Get(ctx context.Context, in *pb.GetKey) (*pb.GetResponse, error) {
+func (s *Handler) Get(ctx context.Context, in *pb.GetKey) (*pb.GetResponse, error) {
 	counter++
 	val, err := s.kv.GetNode(in.Key)
 	if err != nil {
@@ -70,7 +70,7 @@ func (s *Receiver) Get(ctx context.Context, in *pb.GetKey) (*pb.GetResponse, err
 	return &pb.GetResponse{Value: val.Value}, nil
 }
 
-// func (s *Receiver) GetSeveral(ctx context.Context, in *pb.GetKey) (*pb.GetSeveralKeys, error) {
+// func (s *Handler) GetSeveral(ctx context.Context, in *pb.GetKey) (*pb.GetSeveralKeys, error) {
 // 	counter++
 // 	val, err := s.kv.GetNode(in.Key)
 // 	if err != nil {

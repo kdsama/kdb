@@ -1,14 +1,12 @@
 package consensus
 
 import (
-	"bufio"
 	"context"
 	"errors"
 	"flag"
 	"fmt"
 	"log"
 	"math/rand"
-	"os"
 	"sync"
 	"time"
 
@@ -35,26 +33,6 @@ var (
 	errTransactionBroken  = errors.New("couldnot reach quorum after getting enough acknowledements from other nodes")
 )
 
-func ReadFromFile(filepath string) ([]string, error) {
-	t := []string{}
-	file, err := os.Open(filepath)
-	if err != nil {
-		return nil, err
-	}
-	defer file.Close()
-
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		t = append(t, scanner.Text())
-	}
-
-	if err := scanner.Err(); err != nil {
-		return nil, err
-	}
-
-	return t, nil
-}
-
 // basically we will connect to all the servers from the leader
 // send acknowledgement from the leader to the receivers
 // so send ACK should be just done by the leader
@@ -65,29 +43,27 @@ func ReadFromFile(filepath string) ([]string, error) {
 // Leader Election needs to be checked, how it is done.
 
 type ConsensusService struct {
-	leader   bool
-	name     string
-	filepath string
-	logger   *logger.Logger
-	ticker   *time.Ticker
+	leader bool
+	name   string
+	logger *logger.Logger
+	ticker *time.Ticker
 
 	clientMux *sync.Mutex
-	clients   map[string]*Client
+	clients   map[string]*Nodes
 
 	wg        map[string]*sync.WaitGroup
 	addresses []string
 }
 
-func NewConsensusService(leader bool, name string, filepath string, logger *logger.Logger) *ConsensusService {
+func NewConsensusService(name string, logger *logger.Logger) *ConsensusService {
 	ticker := time.NewTicker(time.Duration(5) * time.Second)
 	return &ConsensusService{
-		leader:    leader,
+		leader:    false,
 		name:      name,
-		filepath:  filepath,
 		logger:    logger,
 		ticker:    ticker,
 		clientMux: &sync.Mutex{},
-		clients:   map[string]*Client{},
+		clients:   map[string]*Nodes{},
 		wg:        map[string]*sync.WaitGroup{},
 		addresses: []string{},
 	}
@@ -97,6 +73,7 @@ func (cs *ConsensusService) Init() {
 
 	go cs.Schedule()
 }
+
 func (cs *ConsensusService) Schedule() {
 
 	for {
@@ -233,15 +210,8 @@ func (cs *ConsensusService) connectClients() {
 	// get the list of address from the servers.txt
 	// run the below function in different goroutines
 	// lets start with just
+	// now the other node information will be fetched from the client/discovery service
 
-	addresses, err := ReadFromFile(cs.filepath)
-	if err != nil {
-		log.Fatal(err)
-	}
-	l := sync.Mutex{}
-	l.Lock()
-	cs.addresses = addresses
-	l.Unlock()
 	// The problem here is we need to setup a leader and do the connection afterwards
 	// so it will be better if I put everything in a maddr first
 	// and add new ones to the list by doing a cron call every n seconds
@@ -250,7 +220,7 @@ func (cs *ConsensusService) connectClients() {
 	// and each of them should have the information about the leader as well
 	// need to sit and think this one through
 
-	for _, addr := range addresses {
+	for _, addr := range cs.addresses {
 		addr := addr
 		val, ok := cs.clients[addr]
 		if ok {
@@ -271,7 +241,7 @@ func (cs *ConsensusService) connectClients() {
 
 		conn := connect(addr)
 
-		nc := NewClient(addr, conn, 7, cs.logger)
+		nc := NewNodes(addr, conn, 7, cs.logger)
 		cs.clients[nc.name] = nc
 		if cs.leader {
 			go nc.Schedule()

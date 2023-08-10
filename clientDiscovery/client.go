@@ -1,4 +1,4 @@
-package client
+package clientdiscovery
 
 import (
 	"fmt"
@@ -21,16 +21,36 @@ var (
 	)
 )
 
-type Client struct {
+// all of this should be done in the consensus folder for now
+// no time to create another layer
+// we will call these functions using gRPC
+// that means The task of renaming files have started as well.
+// maybe I would still need to create another layer
+// it should not be inside the consensus but it should call the consensus
+// So a Receiver package that communicates with the ClientDiscovery
+// How the restructuring of the the server folder wil go ?
+// so there is a sender (leader) and there is receivers
+// each receiver receives stuff . I have named it ClientDiscovery
+// a better name would be a connection or a serverNodes
+// so selfNode will send data to other nodes
+// so we can rename ourself as selfNodes
+// and others as Nodes ?
+// selfNode is a leader or not ? can name it like that ?
+// Still need a better name for it
+// for the receiver file, it has rpc receiver functions
+// What should be its name ?
+// so it can be considered as functions for rpcHandlers ?
+
+type ClientDiscovery struct {
 	kv      *store.KVService
 	cs      *consensus.ConsensusService
 	logger  *logger.Logger
 	userMap map[string]string
 }
 
-func New(kv *store.KVService, cs *consensus.ConsensusService, logger *logger.Logger) *Client {
+func New(kv *store.KVService, cs *consensus.ConsensusService, logger *logger.Logger) *ClientDiscovery {
 
-	return &Client{
+	return &ClientDiscovery{
 		kv:      kv,
 		cs:      cs,
 		logger:  logger,
@@ -38,7 +58,7 @@ func New(kv *store.KVService, cs *consensus.ConsensusService, logger *logger.Log
 	}
 }
 
-func (c *Client) Add(key, value string) error {
+func (c *ClientDiscovery) Add(key, value string) error {
 	requestsTotal.WithLabelValues("Set Key").Inc()
 
 	entry, err := c.kv.Add(key, value)
@@ -68,11 +88,11 @@ func (c *Client) Add(key, value string) error {
 
 }
 
-func (c *Client) Get(user string, key string) (string, error) {
+func (c *ClientDiscovery) Get(user string, key string) (string, error) {
 	requestsTotal.WithLabelValues("Get Key").Inc()
 	// here what we can do is
-	// set a client connection to a particular client for the current user for reading purposes
-	// so n users will have a random client attached to it to fetch the get requests
+	// set a ClientDiscovery connection to a particular ClientDiscovery for the current user for reading purposes
+	// so n users will have a random ClientDiscovery attached to it to fetch the get requests
 	// for now I can just ask the system to get me data through gcp ,
 	// so need protobuf here for get services
 
@@ -87,7 +107,7 @@ func (c *Client) Get(user string, key string) (string, error) {
 
 }
 
-func (c *Client) AutomateGet() {
+func (c *ClientDiscovery) AutomateGet() {
 	time.Sleep(50 * time.Second)
 	for {
 		// time.Sleep(time.Duration(rand.Intn(100)) * time.Millisecond)
@@ -101,12 +121,12 @@ func (c *Client) AutomateGet() {
 
 }
 
-func (c *Client) AutomateSet() {
+func (c *ClientDiscovery) AutomateSet() {
 	time.Sleep(20 * time.Second)
 	c.BulkAdd("val")
 }
 
-func (c *Client) BulkAdd(value string) {
+func (c *ClientDiscovery) BulkAdd(value string) {
 	rand.Seed(time.Now().UnixNano())
 	for {
 		// time.Sleep(time.Duration(rand.Intn(100)) * time.Millisecond)

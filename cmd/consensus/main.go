@@ -27,7 +27,6 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/kdsama/kdb/client"
 	"github.com/kdsama/kdb/consensus"
 	pb "github.com/kdsama/kdb/consensus/protodata"
 	"github.com/kdsama/kdb/logger"
@@ -45,13 +44,6 @@ func main() {
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *port))
 	name := os.Args[1]
 
-	leader := false
-	filepath := "serverInfo/servers.txt"
-
-	if len(os.Args) > 2 {
-		fmt.Println("LEADER ")
-		leader = true
-	}
 	if name == "" {
 		log.Fatal("container name is required, exitting")
 	}
@@ -64,19 +56,15 @@ func main() {
 	opts := logger.ToOutput(os.Stdout)
 	logger := logger.New(logger.Info, opts)
 
-	cs := consensus.NewConsensusService(leader, name, filepath, logger)
+	cs := consensus.NewConsensusService(name, logger)
 
 	go cs.Init()
 
 	kv := store.NewKVService("./data/kvservice/persist/", "node", "./data/kvservice/wal/", 1, 1000, logger)
-	clientService := client.New(kv, cs, logger)
-	if leader {
 
-		go clientService.AutomateSet()
-		go clientService.AutomateGet()
-	}
 	go ServerHttp()
-	pb.RegisterConsensusServer(s, consensus.NewReciever(kv))
+	pb.RegisterConsensusServer(s, consensus.NewHandler(kv))
+
 	log.Printf("server listening at %v", lis.Addr())
 	if err := s.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %v", err)
