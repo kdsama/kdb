@@ -39,7 +39,7 @@ func TestLogger(t *testing.T) {
 			tw := &twriter{}
 			logger := New(tc.level, ToOutput(tw))
 			logger.Infof(inf)
-			logger.WARNf(wrn)
+			logger.Warnf(wrn)
 			logger.Errorf(errorm)
 			got := tw.contents
 			if tc.want != got {

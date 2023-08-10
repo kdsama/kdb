@@ -188,6 +188,7 @@ func (w *WAL) Schedule() bool {
 func (w *WAL) BufferUpdate() {
 	w.lock.Lock()
 	len_buffer := len(wal_buffer)
+	w.logger.Infof("Buffer size %d", len_buffer)
 	walSizeMetrics.Add(float64(len_buffer))
 	// increment counter when the latest file size has exceeded the size we expect the file to be
 	size, err := w.fs.GetFileSize(w.getCurrentFileName())

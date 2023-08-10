@@ -177,7 +177,7 @@ func (kvs *KVService) GetManyNodes(key string) ([]Node, error) {
 
 	keys := kvs.btree.getKeysFromPrefix(key)
 	nodes, missing, err := kvs.hm.GetSeveral(keys)
-	kvs.logger.WARNf("%v", missing)
+	kvs.logger.Warnf("%v", missing)
 	return nodes, err
 }
 
@@ -228,6 +228,7 @@ func (kvs *KVService) SetRecord(data *[]byte) error {
 	if err == nil {
 
 		// if key already exists no need to replace it with itself. Will help with performance.
+
 		go kvs.btree.addKeyString(node.Key)
 	}
 	// better if we send buffer itself here instead of serializing and deserializing again.

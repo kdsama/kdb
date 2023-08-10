@@ -2,6 +2,7 @@ package store
 
 import (
 	"strings"
+	"sync"
 
 	"github.com/google/btree"
 	"github.com/kdsama/kdb/logger"
@@ -21,16 +22,20 @@ type BTree interface {
 type GoogleBTree struct {
 	tree   *btree.BTree
 	logger *logger.Logger
+	mut    *sync.RWMutex
 }
 
 func newBTree(degree int, lg *logger.Logger) *GoogleBTree {
 	t := btree.New(degree)
-	return &GoogleBTree{t, lg}
+	return &GoogleBTree{t, lg, &sync.RWMutex{}}
 }
 
 func (bt *GoogleBTree) addKeyString(key string) bool {
-	// bt.logger.WARNf(key)
+
+	// concurrent mutations is not safe
+	bt.mut.Lock()
 	bt.tree.ReplaceOrInsert(Key(key))
+	bt.mut.Unlock()
 	return true
 }
 

@@ -50,7 +50,7 @@ func (c *Client) Hearbeat() {
 		// the server is not responsive
 		// changing the ticker timing
 		// remove it from the client map
-		c.logger.WARNf("%v is dead as no hearbeat received for last 10 requests", c.name)
+		c.logger.Warnf("%v is dead as no hearbeat received for last 10 requests", c.name)
 
 		// this is us informing the service to delete this
 		c.delete = true

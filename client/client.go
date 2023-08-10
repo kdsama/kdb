@@ -77,6 +77,7 @@ func (c *Client) Get(user string, key string) (string, error) {
 	// so need protobuf here for get services
 
 	if _, ok := c.userMap[user]; !ok {
+
 		n := c.cs.GetRandomConnectionName()
 		fmt.Println("Random connection is ", n)
 		c.userMap[user] = n
@@ -86,35 +87,32 @@ func (c *Client) Get(user string, key string) (string, error) {
 
 }
 
-func (c *Client) AutomateGet() error {
+func (c *Client) AutomateGet() {
 	time.Sleep(50 * time.Second)
-	for i := 0; i < 100000; i++ {
-		time.Sleep(1 * time.Millisecond)
-
-		_, err := c.Get("user", "key"+fmt.Sprint(rand.Int31n(10000)))
+	for {
+		// time.Sleep(time.Duration(rand.Intn(100)) * time.Millisecond)
+		time.Sleep(10 * time.Millisecond)
+		_, err := c.Get("user"+fmt.Sprint(rand.Int31n(100)), "key"+fmt.Sprint(rand.Int31n(10000)))
 		if err != nil {
 			c.logger.Errorf("%v", err)
 		}
 
 	}
-	return nil
+
 }
 
-func (c *Client) AutomateSet() error {
+func (c *Client) AutomateSet() {
 	time.Sleep(20 * time.Second)
 
-	go c.BulkAdd("val")
-	// the below one is to check if
-	// we are getting another line in the persistance layer
-	go c.BulkAdd("preval")
-	return nil
+	c.BulkAdd("val")
+
 }
 
 func (c *Client) BulkAdd(value string) {
 	rand.Seed(time.Now().UnixNano())
-	for i := 0; i < 10000; i++ {
-		time.Sleep(50 * time.Millisecond)
-
+	for {
+		// time.Sleep(time.Duration(rand.Intn(100)) * time.Millisecond)
+		time.Sleep(10 * time.Millisecond)
 		err := c.Add("key"+fmt.Sprint(rand.Int31n(10000)), fmt.Sprint(rand.Int31n(10000)))
 		if err != nil {
 			fmt.Println(err)

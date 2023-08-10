@@ -34,7 +34,7 @@ func (lg *Logger) Infof(format string, args ...any) {
 	lg.logf(format, args...)
 }
 
-func (lg *Logger) WARNf(format string, args ...any) {
+func (lg *Logger) Warnf(format string, args ...any) {
 	format += "\n"
 	if lg.threshold > Warn {
 		return
@@ -43,7 +43,7 @@ func (lg *Logger) WARNf(format string, args ...any) {
 	if lg.date {
 		prefix += TemplateSeparator + time.Now().String()
 	}
-	lg.logf(format, args...)
+	lg.logf(prefix+format, args...)
 }
 
 func (lg *Logger) Errorf(format string, args ...any) {
@@ -55,7 +55,7 @@ func (lg *Logger) Errorf(format string, args ...any) {
 	if lg.date {
 		prefix += TemplateSeparator + time.Now().String()
 	}
-	lg.logf(format, args...)
+	lg.logf(prefix+format, args...)
 }
 
 func (lg *Logger) Fatalf(format string, args ...any) {
@@ -66,7 +66,7 @@ func (lg *Logger) Fatalf(format string, args ...any) {
 	if lg.date {
 		prefix += TemplateSeparator + time.Now().String()
 	}
-	lg.logf(format, args...)
+	lg.logf(prefix+format, args...)
 	os.Exit(1)
 }
 

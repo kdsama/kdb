@@ -113,12 +113,12 @@ func (cs *ConsensusService) GetRandomConnectionName() string {
 	ll := len(cs.addresses)
 
 	randomServer := cs.addresses[rand.Intn(ll)]
-
 	mut.Lock()
-	a := cs.clients[randomServer].name
-	mut.Unlock()
+	if randomServer == cs.name {
+		return cs.GetRandomConnectionName()
+	}
+	return randomServer
 
-	return a
 }
 
 func (cs *ConsensusService) Get(cname string, key string) (string, error) {
