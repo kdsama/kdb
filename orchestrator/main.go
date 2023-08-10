@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
@@ -73,22 +74,8 @@ func (dc *dockercli) addContainer() {
 		}
 	}
 	if count == 0 {
-		_, err = dc.NetworkCreate(context.Background(), NETWORK, types.NetworkCreate{})
+		dc.NetworkCreate(context.Background(), NETWORK, types.NetworkCreate{})
 	}
-
-	if err != nil {
-		// means there is none existing as of now
-		// we need to clean the servers.txt file
-		os.Truncate(filepath.Dir("serverInfo")+"/servers.txt", int64(0))
-	}
-	// Check number of containers that already exist for the particular image
-	// if its the first, somehow we also need to mention that its a leader
-	// we actually shouldn't care much about the name, as long as it is unique
-
-	// give it volume, create a folder first inside data folder
-	// bind it to the network-bridge
-
-	// give it a name
 
 	rand.Seed(time.Now().UnixNano())
 	randId := fmt.Sprintf("%v", rand.Int31n(100000))
@@ -99,30 +86,29 @@ func (dc *dockercli) addContainer() {
 	}
 
 	volume, _ := filepath.Abs(filepath.Dir("data/"))
-	serverInf, _ := filepath.Abs(filepath.Dir("serverInfo/"))
+
 	volume += "/" + "data" + randId
 	err1 := os.Mkdir(volume, 0755)
 	if err1 != nil {
 		log.Fatal(err1)
 	}
 
-	file, err := os.OpenFile(filepath.Dir("serverInfo/")+"/servers.txt", os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0644)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer file.Close()
 	// write to server info file
-	fmt.Fprintln(file, name)
-	if err != nil {
-		fmt.Println()
-		log.Fatal(err)
-	}
-	cmd := []string{"./serve", name}
+	cmd := []string{"./bin/serve", name}
 	// check if containers existed previously
 	arr := dc.listContainers()
 	if len(arr) == 0 {
 		exposedPorts = nat.PortSet{"8080/tcp": {}}
-		cmd = append(cmd, "leader")
+		_, err := dc.ContainerCreate(context.Background(), &container.Config{
+			Image:        dc.image,
+			Cmd:          []string{"./bin/serveClient"},
+			ExposedPorts: exposedPorts,
+		}, &container.HostConfig{PortBindings: portBindings}, // Binds: []string{volume + ":/go/src/data"}
+			&network.NetworkingConfig{EndpointsConfig: map[string]*network.EndpointSettings{NETWORK: {NetworkID: NETWORK}}}, nil, name)
+
+		if err != nil {
+			panic(err)
+		}
 	}
 
 	resp, err := dc.ContainerCreate(context.Background(), &container.Config{
@@ -130,7 +116,7 @@ func (dc *dockercli) addContainer() {
 		Cmd:          cmd,
 		ExposedPorts: exposedPorts,
 	}, &container.HostConfig{PortBindings: portBindings,
-		Binds: []string{volume + ":/go/src/data", serverInf + ":/go/src/serverInfo"}},
+		Binds: []string{volume + ":/go/src/data"}},
 		&network.NetworkingConfig{EndpointsConfig: map[string]*network.EndpointSettings{NETWORK: {NetworkID: NETWORK}}}, nil, name)
 
 	if err != nil {
@@ -139,7 +125,7 @@ func (dc *dockercli) addContainer() {
 	if err := dc.ContainerStart(context.Background(), resp.ID, types.ContainerStartOptions{}); err != nil {
 		panic(err)
 	}
-
+	http.Get()
 }
 
 func (dc *dockercli) delete(containerID string) {
