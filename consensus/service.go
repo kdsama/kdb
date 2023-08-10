@@ -3,9 +3,6 @@ package consensus
 import (
 	"context"
 	"errors"
-	"flag"
-	"fmt"
-	"log"
 	"math/rand"
 	"sync"
 	"time"
@@ -39,17 +36,28 @@ var (
 // on those connections, if leader, we send acknowlgements
 // Leader Election needs to be checked, how it is done.
 
-type ConsensusService struct {
-	leader bool
-	name   string
-	logger *logger.Logger
-	ticker *time.Ticker
+type stateLevel int32
 
+// redundancy in state if I have a leader field as well
+// its better to remove the leader field, and move this to configuration as well
+// we will do this later though
+const (
+	Initializing stateLevel = iota
+	Follower
+	Candidate
+	Leader
+)
+
+type ConsensusService struct {
+	leader    bool
+	name      string
+	logger    *logger.Logger
+	ticker    *time.Ticker
 	clientMux *sync.Mutex
 	clients   map[string]*Nodes
-
 	wg        map[string]*sync.WaitGroup
 	addresses []string
+	state     stateLevel
 }
 
 func NewConsensusService(name string, logger *logger.Logger) *ConsensusService {
@@ -63,12 +71,12 @@ func NewConsensusService(name string, logger *logger.Logger) *ConsensusService {
 		clients:   map[string]*Nodes{},
 		wg:        map[string]*sync.WaitGroup{},
 		addresses: []string{},
+		state:     Initializing,
 	}
 }
 
 func (cs *ConsensusService) Init() {
-
-	go cs.Schedule()
+	cs.state = Follower
 }
 
 func (cs *ConsensusService) Schedule() {
@@ -141,7 +149,6 @@ func (cs *ConsensusService) SendTransaction(data []byte, TxnID string) error {
 
 	for err := range resultCh {
 		if err != nil {
-			fmt.Println("???????????????????????????????????????????????")
 			errCount++
 		} else {
 			count++
@@ -203,6 +210,27 @@ func (cs *ConsensusService) SendTransactionConfirmation(data []byte, TxnID strin
 	return errTransactionBroken
 }
 
+func (cs *ConsensusService) Broadcast(addr, leader string) error {
+	// add the node if it doesnot exist already
+	if _, ok := cs.clients[addr]; !ok {
+		client, err := connect(addr)
+		if err != nil {
+			return err
+		}
+		// if leader and ticker not running , run it
+		cs.clients[addr] = NewNodes(addr, client, 5, cs.logger)
+		if addr == cs.name && addr == leader {
+			cs.leader = true
+			cs.state = Leader
+		} else if addr == cs.name {
+			cs.state = Follower
+		} else {
+			cs.addresses = append(cs.addresses, addr)
+		}
+	}
+	return nil
+}
+
 func (cs *ConsensusService) connectClients() {
 	// get the list of address from the servers.txt
 	// run the below function in different goroutines
@@ -236,7 +264,10 @@ func (cs *ConsensusService) connectClients() {
 			continue
 		}
 
-		conn := connect(addr)
+		conn, err := connect(addr)
+		if err != nil {
+			cs.logger.Errorf("%v", err)
+		}
 
 		nc := NewNodes(addr, conn, 7, cs.logger)
 		cs.clients[nc.name] = nc
@@ -247,16 +278,15 @@ func (cs *ConsensusService) connectClients() {
 	}
 
 }
-func connect(addr string) *pb.ConsensusClient {
-	flag.Parse()
-	addr += addressPort
+func connect(addr string) (*pb.ConsensusClient, error) {
+
 	conn, err := grpc.Dial(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		log.Fatalf("did not connect: %v", err)
+		return nil, err
 	}
 
 	// defer conn.Close()
 	c := pb.NewConsensusClient(conn)
 
-	return &c
+	return &c, nil
 }
