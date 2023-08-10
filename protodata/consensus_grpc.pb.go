@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.2.0
 // - protoc             v3.6.1
-// source: consensus/protodata/consensus.proto
+// source: protodata/consensus.proto
 
 package protodata
 
@@ -27,6 +27,7 @@ type ConsensusClient interface {
 	Ack(ctx context.Context, in *Hearbeat, opts ...grpc.CallOption) (*HearbeatResponse, error)
 	Get(ctx context.Context, in *GetKey, opts ...grpc.CallOption) (*GetResponse, error)
 	GetMany(ctx context.Context, in *GetSeveralKeys, opts ...grpc.CallOption) (*GetSeveralResponse, error)
+	Broadcast(ctx context.Context, in *BroadcastNode, opts ...grpc.CallOption) (*BroadcastNodeResponse, error)
 }
 
 type consensusClient struct {
@@ -73,6 +74,15 @@ func (c *consensusClient) GetMany(ctx context.Context, in *GetSeveralKeys, opts 
 	return out, nil
 }
 
+func (c *consensusClient) Broadcast(ctx context.Context, in *BroadcastNode, opts ...grpc.CallOption) (*BroadcastNodeResponse, error) {
+	out := new(BroadcastNodeResponse)
+	err := c.cc.Invoke(ctx, "/consensus.Consensus/Broadcast", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ConsensusServer is the server API for Consensus service.
 // All implementations must embed UnimplementedConsensusServer
 // for forward compatibility
@@ -82,6 +92,7 @@ type ConsensusServer interface {
 	Ack(context.Context, *Hearbeat) (*HearbeatResponse, error)
 	Get(context.Context, *GetKey) (*GetResponse, error)
 	GetMany(context.Context, *GetSeveralKeys) (*GetSeveralResponse, error)
+	Broadcast(context.Context, *BroadcastNode) (*BroadcastNodeResponse, error)
 	mustEmbedUnimplementedConsensusServer()
 }
 
@@ -100,6 +111,9 @@ func (UnimplementedConsensusServer) Get(context.Context, *GetKey) (*GetResponse,
 }
 func (UnimplementedConsensusServer) GetMany(context.Context, *GetSeveralKeys) (*GetSeveralResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetMany not implemented")
+}
+func (UnimplementedConsensusServer) Broadcast(context.Context, *BroadcastNode) (*BroadcastNodeResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Broadcast not implemented")
 }
 func (UnimplementedConsensusServer) mustEmbedUnimplementedConsensusServer() {}
 
@@ -186,6 +200,24 @@ func _Consensus_GetMany_Handler(srv interface{}, ctx context.Context, dec func(i
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Consensus_Broadcast_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BroadcastNode)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ConsensusServer).Broadcast(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/consensus.Consensus/Broadcast",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ConsensusServer).Broadcast(ctx, req.(*BroadcastNode))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Consensus_ServiceDesc is the grpc.ServiceDesc for Consensus service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -209,7 +241,11 @@ var Consensus_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "GetMany",
 			Handler:    _Consensus_GetMany_Handler,
 		},
+		{
+			MethodName: "Broadcast",
+			Handler:    _Consensus_Broadcast_Handler,
+		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "consensus/protodata/consensus.proto",
+	Metadata: "protodata/consensus.proto",
 }

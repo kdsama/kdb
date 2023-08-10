@@ -16,7 +16,7 @@
 // versions:
 // 	protoc-gen-go v1.28.1
 // 	protoc        v3.6.1
-// source: consensus/protodata/consensus.proto
+// source: protodata/consensus.proto
 
 package protodata
 
@@ -47,7 +47,7 @@ type WalEntry struct {
 func (x *WalEntry) Reset() {
 	*x = WalEntry{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_consensus_protodata_consensus_proto_msgTypes[0]
+		mi := &file_protodata_consensus_proto_msgTypes[0]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -60,7 +60,7 @@ func (x *WalEntry) String() string {
 func (*WalEntry) ProtoMessage() {}
 
 func (x *WalEntry) ProtoReflect() protoreflect.Message {
-	mi := &file_consensus_protodata_consensus_proto_msgTypes[0]
+	mi := &file_protodata_consensus_proto_msgTypes[0]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -73,7 +73,7 @@ func (x *WalEntry) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WalEntry.ProtoReflect.Descriptor instead.
 func (*WalEntry) Descriptor() ([]byte, []int) {
-	return file_consensus_protodata_consensus_proto_rawDescGZIP(), []int{0}
+	return file_protodata_consensus_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *WalEntry) GetEntry() []byte {
@@ -102,7 +102,7 @@ type WalResponse struct {
 func (x *WalResponse) Reset() {
 	*x = WalResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_consensus_protodata_consensus_proto_msgTypes[1]
+		mi := &file_protodata_consensus_proto_msgTypes[1]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -115,7 +115,7 @@ func (x *WalResponse) String() string {
 func (*WalResponse) ProtoMessage() {}
 
 func (x *WalResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_consensus_protodata_consensus_proto_msgTypes[1]
+	mi := &file_protodata_consensus_proto_msgTypes[1]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -128,7 +128,7 @@ func (x *WalResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WalResponse.ProtoReflect.Descriptor instead.
 func (*WalResponse) Descriptor() ([]byte, []int) {
-	return file_consensus_protodata_consensus_proto_rawDescGZIP(), []int{1}
+	return file_protodata_consensus_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *WalResponse) GetMessage() string {
@@ -149,7 +149,7 @@ type GetKey struct {
 func (x *GetKey) Reset() {
 	*x = GetKey{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_consensus_protodata_consensus_proto_msgTypes[2]
+		mi := &file_protodata_consensus_proto_msgTypes[2]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -162,7 +162,7 @@ func (x *GetKey) String() string {
 func (*GetKey) ProtoMessage() {}
 
 func (x *GetKey) ProtoReflect() protoreflect.Message {
-	mi := &file_consensus_protodata_consensus_proto_msgTypes[2]
+	mi := &file_protodata_consensus_proto_msgTypes[2]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -175,7 +175,7 @@ func (x *GetKey) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetKey.ProtoReflect.Descriptor instead.
 func (*GetKey) Descriptor() ([]byte, []int) {
-	return file_consensus_protodata_consensus_proto_rawDescGZIP(), []int{2}
+	return file_protodata_consensus_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *GetKey) GetKey() string {
@@ -196,7 +196,7 @@ type GetResponse struct {
 func (x *GetResponse) Reset() {
 	*x = GetResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_consensus_protodata_consensus_proto_msgTypes[3]
+		mi := &file_protodata_consensus_proto_msgTypes[3]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -209,7 +209,7 @@ func (x *GetResponse) String() string {
 func (*GetResponse) ProtoMessage() {}
 
 func (x *GetResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_consensus_protodata_consensus_proto_msgTypes[3]
+	mi := &file_protodata_consensus_proto_msgTypes[3]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -222,7 +222,7 @@ func (x *GetResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetResponse.ProtoReflect.Descriptor instead.
 func (*GetResponse) Descriptor() ([]byte, []int) {
-	return file_consensus_protodata_consensus_proto_rawDescGZIP(), []int{3}
+	return file_protodata_consensus_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *GetResponse) GetValue() string {
@@ -243,7 +243,7 @@ type GetSeveralKeys struct {
 func (x *GetSeveralKeys) Reset() {
 	*x = GetSeveralKeys{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_consensus_protodata_consensus_proto_msgTypes[4]
+		mi := &file_protodata_consensus_proto_msgTypes[4]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -256,7 +256,7 @@ func (x *GetSeveralKeys) String() string {
 func (*GetSeveralKeys) ProtoMessage() {}
 
 func (x *GetSeveralKeys) ProtoReflect() protoreflect.Message {
-	mi := &file_consensus_protodata_consensus_proto_msgTypes[4]
+	mi := &file_protodata_consensus_proto_msgTypes[4]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -269,7 +269,7 @@ func (x *GetSeveralKeys) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetSeveralKeys.ProtoReflect.Descriptor instead.
 func (*GetSeveralKeys) Descriptor() ([]byte, []int) {
-	return file_consensus_protodata_consensus_proto_rawDescGZIP(), []int{4}
+	return file_protodata_consensus_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *GetSeveralKeys) GetKey() string {
@@ -290,7 +290,7 @@ type GetSeveralResponse struct {
 func (x *GetSeveralResponse) Reset() {
 	*x = GetSeveralResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_consensus_protodata_consensus_proto_msgTypes[5]
+		mi := &file_protodata_consensus_proto_msgTypes[5]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -303,7 +303,7 @@ func (x *GetSeveralResponse) String() string {
 func (*GetSeveralResponse) ProtoMessage() {}
 
 func (x *GetSeveralResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_consensus_protodata_consensus_proto_msgTypes[5]
+	mi := &file_protodata_consensus_proto_msgTypes[5]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -316,7 +316,7 @@ func (x *GetSeveralResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetSeveralResponse.ProtoReflect.Descriptor instead.
 func (*GetSeveralResponse) Descriptor() ([]byte, []int) {
-	return file_consensus_protodata_consensus_proto_rawDescGZIP(), []int{5}
+	return file_protodata_consensus_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *GetSeveralResponse) GetValue() []string {
@@ -337,7 +337,7 @@ type Hearbeat struct {
 func (x *Hearbeat) Reset() {
 	*x = Hearbeat{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_consensus_protodata_consensus_proto_msgTypes[6]
+		mi := &file_protodata_consensus_proto_msgTypes[6]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -350,7 +350,7 @@ func (x *Hearbeat) String() string {
 func (*Hearbeat) ProtoMessage() {}
 
 func (x *Hearbeat) ProtoReflect() protoreflect.Message {
-	mi := &file_consensus_protodata_consensus_proto_msgTypes[6]
+	mi := &file_protodata_consensus_proto_msgTypes[6]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -363,7 +363,7 @@ func (x *Hearbeat) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Hearbeat.ProtoReflect.Descriptor instead.
 func (*Hearbeat) Descriptor() ([]byte, []int) {
-	return file_consensus_protodata_consensus_proto_rawDescGZIP(), []int{6}
+	return file_protodata_consensus_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *Hearbeat) GetMessage() string {
@@ -384,7 +384,7 @@ type HearbeatResponse struct {
 func (x *HearbeatResponse) Reset() {
 	*x = HearbeatResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_consensus_protodata_consensus_proto_msgTypes[7]
+		mi := &file_protodata_consensus_proto_msgTypes[7]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -397,7 +397,7 @@ func (x *HearbeatResponse) String() string {
 func (*HearbeatResponse) ProtoMessage() {}
 
 func (x *HearbeatResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_consensus_protodata_consensus_proto_msgTypes[7]
+	mi := &file_protodata_consensus_proto_msgTypes[7]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -410,7 +410,7 @@ func (x *HearbeatResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use HearbeatResponse.ProtoReflect.Descriptor instead.
 func (*HearbeatResponse) Descriptor() ([]byte, []int) {
-	return file_consensus_protodata_consensus_proto_rawDescGZIP(), []int{7}
+	return file_protodata_consensus_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *HearbeatResponse) GetMessage() string {
@@ -420,100 +420,277 @@ func (x *HearbeatResponse) GetMessage() string {
 	return ""
 }
 
-var File_consensus_protodata_consensus_proto protoreflect.FileDescriptor
+type BroadcastNode struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
 
-var file_consensus_protodata_consensus_proto_rawDesc = []byte{
-	0x0a, 0x23, 0x63, 0x6f, 0x6e, 0x73, 0x65, 0x6e, 0x73, 0x75, 0x73, 0x2f, 0x70, 0x72, 0x6f, 0x74,
-	0x6f, 0x64, 0x61, 0x74, 0x61, 0x2f, 0x63, 0x6f, 0x6e, 0x73, 0x65, 0x6e, 0x73, 0x75, 0x73, 0x2e,
-	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x12, 0x09, 0x63, 0x6f, 0x6e, 0x73, 0x65, 0x6e, 0x73, 0x75, 0x73,
-	0x22, 0x38, 0x0a, 0x08, 0x57, 0x61, 0x6c, 0x45, 0x6e, 0x74, 0x72, 0x79, 0x12, 0x14, 0x0a, 0x05,
-	0x65, 0x6e, 0x74, 0x72, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0c, 0x52, 0x05, 0x65, 0x6e, 0x74,
-	0x72, 0x79, 0x12, 0x16, 0x0a, 0x06, 0x73, 0x74, 0x61, 0x74, 0x75, 0x73, 0x18, 0x02, 0x20, 0x01,
-	0x28, 0x05, 0x52, 0x06, 0x73, 0x74, 0x61, 0x74, 0x75, 0x73, 0x22, 0x27, 0x0a, 0x0b, 0x57, 0x61,
-	0x6c, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x18, 0x0a, 0x07, 0x6d, 0x65, 0x73,
-	0x73, 0x61, 0x67, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x6d, 0x65, 0x73, 0x73,
-	0x61, 0x67, 0x65, 0x22, 0x1a, 0x0a, 0x06, 0x47, 0x65, 0x74, 0x4b, 0x65, 0x79, 0x12, 0x10, 0x0a,
-	0x03, 0x6b, 0x65, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x6b, 0x65, 0x79, 0x22,
-	0x23, 0x0a, 0x0b, 0x47, 0x65, 0x74, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x14,
-	0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x76,
-	0x61, 0x6c, 0x75, 0x65, 0x22, 0x22, 0x0a, 0x0e, 0x47, 0x65, 0x74, 0x53, 0x65, 0x76, 0x65, 0x72,
-	0x61, 0x6c, 0x4b, 0x65, 0x79, 0x73, 0x12, 0x10, 0x0a, 0x03, 0x6b, 0x65, 0x79, 0x18, 0x01, 0x20,
-	0x01, 0x28, 0x09, 0x52, 0x03, 0x6b, 0x65, 0x79, 0x22, 0x2a, 0x0a, 0x12, 0x47, 0x65, 0x74, 0x53,
-	0x65, 0x76, 0x65, 0x72, 0x61, 0x6c, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x14,
-	0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x01, 0x20, 0x03, 0x28, 0x09, 0x52, 0x05, 0x76,
-	0x61, 0x6c, 0x75, 0x65, 0x22, 0x24, 0x0a, 0x08, 0x48, 0x65, 0x61, 0x72, 0x62, 0x65, 0x61, 0x74,
-	0x12, 0x18, 0x0a, 0x07, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28,
-	0x09, 0x52, 0x07, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x22, 0x2c, 0x0a, 0x10, 0x48, 0x65,
-	0x61, 0x72, 0x62, 0x65, 0x61, 0x74, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x18,
-	0x0a, 0x07, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52,
-	0x07, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x32, 0xfe, 0x01, 0x0a, 0x09, 0x43, 0x6f, 0x6e,
-	0x73, 0x65, 0x6e, 0x73, 0x75, 0x73, 0x12, 0x3b, 0x0a, 0x0a, 0x53, 0x65, 0x6e, 0x64, 0x52, 0x65,
-	0x63, 0x6f, 0x72, 0x64, 0x12, 0x13, 0x2e, 0x63, 0x6f, 0x6e, 0x73, 0x65, 0x6e, 0x73, 0x75, 0x73,
-	0x2e, 0x57, 0x61, 0x6c, 0x45, 0x6e, 0x74, 0x72, 0x79, 0x1a, 0x16, 0x2e, 0x63, 0x6f, 0x6e, 0x73,
-	0x65, 0x6e, 0x73, 0x75, 0x73, 0x2e, 0x57, 0x61, 0x6c, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
-	0x65, 0x22, 0x00, 0x12, 0x39, 0x0a, 0x03, 0x41, 0x63, 0x6b, 0x12, 0x13, 0x2e, 0x63, 0x6f, 0x6e,
-	0x73, 0x65, 0x6e, 0x73, 0x75, 0x73, 0x2e, 0x48, 0x65, 0x61, 0x72, 0x62, 0x65, 0x61, 0x74, 0x1a,
-	0x1b, 0x2e, 0x63, 0x6f, 0x6e, 0x73, 0x65, 0x6e, 0x73, 0x75, 0x73, 0x2e, 0x48, 0x65, 0x61, 0x72,
-	0x62, 0x65, 0x61, 0x74, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x32,
-	0x0a, 0x03, 0x47, 0x65, 0x74, 0x12, 0x11, 0x2e, 0x63, 0x6f, 0x6e, 0x73, 0x65, 0x6e, 0x73, 0x75,
-	0x73, 0x2e, 0x47, 0x65, 0x74, 0x4b, 0x65, 0x79, 0x1a, 0x16, 0x2e, 0x63, 0x6f, 0x6e, 0x73, 0x65,
-	0x6e, 0x73, 0x75, 0x73, 0x2e, 0x47, 0x65, 0x74, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65,
-	0x22, 0x00, 0x12, 0x45, 0x0a, 0x07, 0x47, 0x65, 0x74, 0x4d, 0x61, 0x6e, 0x79, 0x12, 0x19, 0x2e,
-	0x63, 0x6f, 0x6e, 0x73, 0x65, 0x6e, 0x73, 0x75, 0x73, 0x2e, 0x47, 0x65, 0x74, 0x53, 0x65, 0x76,
-	0x65, 0x72, 0x61, 0x6c, 0x4b, 0x65, 0x79, 0x73, 0x1a, 0x1d, 0x2e, 0x63, 0x6f, 0x6e, 0x73, 0x65,
-	0x6e, 0x73, 0x75, 0x73, 0x2e, 0x47, 0x65, 0x74, 0x53, 0x65, 0x76, 0x65, 0x72, 0x61, 0x6c, 0x52,
-	0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x42, 0x24, 0x5a, 0x22, 0x67, 0x69, 0x74,
-	0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x6b, 0x64, 0x62, 0x2f, 0x63, 0x6f, 0x6e, 0x73,
-	0x65, 0x6e, 0x73, 0x75, 0x73, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x64, 0x61, 0x74, 0x61, 0x62,
-	0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	Addr   string `protobuf:"bytes,1,opt,name=addr,proto3" json:"addr,omitempty"`
+	Leader string `protobuf:"bytes,2,opt,name=leader,proto3" json:"leader,omitempty"`
+}
+
+func (x *BroadcastNode) Reset() {
+	*x = BroadcastNode{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_protodata_consensus_proto_msgTypes[8]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *BroadcastNode) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BroadcastNode) ProtoMessage() {}
+
+func (x *BroadcastNode) ProtoReflect() protoreflect.Message {
+	mi := &file_protodata_consensus_proto_msgTypes[8]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BroadcastNode.ProtoReflect.Descriptor instead.
+func (*BroadcastNode) Descriptor() ([]byte, []int) {
+	return file_protodata_consensus_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *BroadcastNode) GetAddr() string {
+	if x != nil {
+		return x.Addr
+	}
+	return ""
+}
+
+func (x *BroadcastNode) GetLeader() string {
+	if x != nil {
+		return x.Leader
+	}
+	return ""
+}
+
+type BroadcastNodeResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Message string `protobuf:"bytes,1,opt,name=message,proto3" json:"message,omitempty"`
+}
+
+func (x *BroadcastNodeResponse) Reset() {
+	*x = BroadcastNodeResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_protodata_consensus_proto_msgTypes[9]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *BroadcastNodeResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BroadcastNodeResponse) ProtoMessage() {}
+
+func (x *BroadcastNodeResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_protodata_consensus_proto_msgTypes[9]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BroadcastNodeResponse.ProtoReflect.Descriptor instead.
+func (*BroadcastNodeResponse) Descriptor() ([]byte, []int) {
+	return file_protodata_consensus_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *BroadcastNodeResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+type BroadcastAllNodes struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Addr   []string `protobuf:"bytes,1,rep,name=addr,proto3" json:"addr,omitempty"`
+	Leader string   `protobuf:"bytes,2,opt,name=leader,proto3" json:"leader,omitempty"`
+}
+
+func (x *BroadcastAllNodes) Reset() {
+	*x = BroadcastAllNodes{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_protodata_consensus_proto_msgTypes[10]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *BroadcastAllNodes) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BroadcastAllNodes) ProtoMessage() {}
+
+func (x *BroadcastAllNodes) ProtoReflect() protoreflect.Message {
+	mi := &file_protodata_consensus_proto_msgTypes[10]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BroadcastAllNodes.ProtoReflect.Descriptor instead.
+func (*BroadcastAllNodes) Descriptor() ([]byte, []int) {
+	return file_protodata_consensus_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *BroadcastAllNodes) GetAddr() []string {
+	if x != nil {
+		return x.Addr
+	}
+	return nil
+}
+
+func (x *BroadcastAllNodes) GetLeader() string {
+	if x != nil {
+		return x.Leader
+	}
+	return ""
+}
+
+var File_protodata_consensus_proto protoreflect.FileDescriptor
+
+var file_protodata_consensus_proto_rawDesc = []byte{
+	0x0a, 0x19, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x64, 0x61, 0x74, 0x61, 0x2f, 0x63, 0x6f, 0x6e, 0x73,
+	0x65, 0x6e, 0x73, 0x75, 0x73, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x12, 0x09, 0x63, 0x6f, 0x6e,
+	0x73, 0x65, 0x6e, 0x73, 0x75, 0x73, 0x22, 0x38, 0x0a, 0x08, 0x57, 0x61, 0x6c, 0x45, 0x6e, 0x74,
+	0x72, 0x79, 0x12, 0x14, 0x0a, 0x05, 0x65, 0x6e, 0x74, 0x72, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28,
+	0x0c, 0x52, 0x05, 0x65, 0x6e, 0x74, 0x72, 0x79, 0x12, 0x16, 0x0a, 0x06, 0x73, 0x74, 0x61, 0x74,
+	0x75, 0x73, 0x18, 0x02, 0x20, 0x01, 0x28, 0x05, 0x52, 0x06, 0x73, 0x74, 0x61, 0x74, 0x75, 0x73,
+	0x22, 0x27, 0x0a, 0x0b, 0x57, 0x61, 0x6c, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12,
+	0x18, 0x0a, 0x07, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09,
+	0x52, 0x07, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x22, 0x1a, 0x0a, 0x06, 0x47, 0x65, 0x74,
+	0x4b, 0x65, 0x79, 0x12, 0x10, 0x0a, 0x03, 0x6b, 0x65, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09,
+	0x52, 0x03, 0x6b, 0x65, 0x79, 0x22, 0x23, 0x0a, 0x0b, 0x47, 0x65, 0x74, 0x52, 0x65, 0x73, 0x70,
+	0x6f, 0x6e, 0x73, 0x65, 0x12, 0x14, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x01, 0x20,
+	0x01, 0x28, 0x09, 0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x22, 0x22, 0x0a, 0x0e, 0x47, 0x65,
+	0x74, 0x53, 0x65, 0x76, 0x65, 0x72, 0x61, 0x6c, 0x4b, 0x65, 0x79, 0x73, 0x12, 0x10, 0x0a, 0x03,
+	0x6b, 0x65, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x6b, 0x65, 0x79, 0x22, 0x2a,
+	0x0a, 0x12, 0x47, 0x65, 0x74, 0x53, 0x65, 0x76, 0x65, 0x72, 0x61, 0x6c, 0x52, 0x65, 0x73, 0x70,
+	0x6f, 0x6e, 0x73, 0x65, 0x12, 0x14, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x01, 0x20,
+	0x03, 0x28, 0x09, 0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x22, 0x24, 0x0a, 0x08, 0x48, 0x65,
+	0x61, 0x72, 0x62, 0x65, 0x61, 0x74, 0x12, 0x18, 0x0a, 0x07, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67,
+	0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65,
+	0x22, 0x2c, 0x0a, 0x10, 0x48, 0x65, 0x61, 0x72, 0x62, 0x65, 0x61, 0x74, 0x52, 0x65, 0x73, 0x70,
+	0x6f, 0x6e, 0x73, 0x65, 0x12, 0x18, 0x0a, 0x07, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x18,
+	0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x22, 0x3b,
+	0x0a, 0x0d, 0x42, 0x72, 0x6f, 0x61, 0x64, 0x63, 0x61, 0x73, 0x74, 0x4e, 0x6f, 0x64, 0x65, 0x12,
+	0x12, 0x0a, 0x04, 0x61, 0x64, 0x64, 0x72, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x61,
+	0x64, 0x64, 0x72, 0x12, 0x16, 0x0a, 0x06, 0x6c, 0x65, 0x61, 0x64, 0x65, 0x72, 0x18, 0x02, 0x20,
+	0x01, 0x28, 0x09, 0x52, 0x06, 0x6c, 0x65, 0x61, 0x64, 0x65, 0x72, 0x22, 0x31, 0x0a, 0x15, 0x42,
+	0x72, 0x6f, 0x61, 0x64, 0x63, 0x61, 0x73, 0x74, 0x4e, 0x6f, 0x64, 0x65, 0x52, 0x65, 0x73, 0x70,
+	0x6f, 0x6e, 0x73, 0x65, 0x12, 0x18, 0x0a, 0x07, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x18,
+	0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x22, 0x3f,
+	0x0a, 0x11, 0x42, 0x72, 0x6f, 0x61, 0x64, 0x63, 0x61, 0x73, 0x74, 0x41, 0x6c, 0x6c, 0x4e, 0x6f,
+	0x64, 0x65, 0x73, 0x12, 0x12, 0x0a, 0x04, 0x61, 0x64, 0x64, 0x72, 0x18, 0x01, 0x20, 0x03, 0x28,
+	0x09, 0x52, 0x04, 0x61, 0x64, 0x64, 0x72, 0x12, 0x16, 0x0a, 0x06, 0x6c, 0x65, 0x61, 0x64, 0x65,
+	0x72, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x6c, 0x65, 0x61, 0x64, 0x65, 0x72, 0x32,
+	0xc9, 0x02, 0x0a, 0x09, 0x43, 0x6f, 0x6e, 0x73, 0x65, 0x6e, 0x73, 0x75, 0x73, 0x12, 0x3b, 0x0a,
+	0x0a, 0x53, 0x65, 0x6e, 0x64, 0x52, 0x65, 0x63, 0x6f, 0x72, 0x64, 0x12, 0x13, 0x2e, 0x63, 0x6f,
+	0x6e, 0x73, 0x65, 0x6e, 0x73, 0x75, 0x73, 0x2e, 0x57, 0x61, 0x6c, 0x45, 0x6e, 0x74, 0x72, 0x79,
+	0x1a, 0x16, 0x2e, 0x63, 0x6f, 0x6e, 0x73, 0x65, 0x6e, 0x73, 0x75, 0x73, 0x2e, 0x57, 0x61, 0x6c,
+	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x39, 0x0a, 0x03, 0x41, 0x63,
+	0x6b, 0x12, 0x13, 0x2e, 0x63, 0x6f, 0x6e, 0x73, 0x65, 0x6e, 0x73, 0x75, 0x73, 0x2e, 0x48, 0x65,
+	0x61, 0x72, 0x62, 0x65, 0x61, 0x74, 0x1a, 0x1b, 0x2e, 0x63, 0x6f, 0x6e, 0x73, 0x65, 0x6e, 0x73,
+	0x75, 0x73, 0x2e, 0x48, 0x65, 0x61, 0x72, 0x62, 0x65, 0x61, 0x74, 0x52, 0x65, 0x73, 0x70, 0x6f,
+	0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x32, 0x0a, 0x03, 0x47, 0x65, 0x74, 0x12, 0x11, 0x2e, 0x63,
+	0x6f, 0x6e, 0x73, 0x65, 0x6e, 0x73, 0x75, 0x73, 0x2e, 0x47, 0x65, 0x74, 0x4b, 0x65, 0x79, 0x1a,
+	0x16, 0x2e, 0x63, 0x6f, 0x6e, 0x73, 0x65, 0x6e, 0x73, 0x75, 0x73, 0x2e, 0x47, 0x65, 0x74, 0x52,
+	0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x45, 0x0a, 0x07, 0x47, 0x65, 0x74,
+	0x4d, 0x61, 0x6e, 0x79, 0x12, 0x19, 0x2e, 0x63, 0x6f, 0x6e, 0x73, 0x65, 0x6e, 0x73, 0x75, 0x73,
+	0x2e, 0x47, 0x65, 0x74, 0x53, 0x65, 0x76, 0x65, 0x72, 0x61, 0x6c, 0x4b, 0x65, 0x79, 0x73, 0x1a,
+	0x1d, 0x2e, 0x63, 0x6f, 0x6e, 0x73, 0x65, 0x6e, 0x73, 0x75, 0x73, 0x2e, 0x47, 0x65, 0x74, 0x53,
+	0x65, 0x76, 0x65, 0x72, 0x61, 0x6c, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00,
+	0x12, 0x49, 0x0a, 0x09, 0x42, 0x72, 0x6f, 0x61, 0x64, 0x63, 0x61, 0x73, 0x74, 0x12, 0x18, 0x2e,
+	0x63, 0x6f, 0x6e, 0x73, 0x65, 0x6e, 0x73, 0x75, 0x73, 0x2e, 0x42, 0x72, 0x6f, 0x61, 0x64, 0x63,
+	0x61, 0x73, 0x74, 0x4e, 0x6f, 0x64, 0x65, 0x1a, 0x20, 0x2e, 0x63, 0x6f, 0x6e, 0x73, 0x65, 0x6e,
+	0x73, 0x75, 0x73, 0x2e, 0x42, 0x72, 0x6f, 0x61, 0x64, 0x63, 0x61, 0x73, 0x74, 0x4e, 0x6f, 0x64,
+	0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x42, 0x24, 0x5a, 0x22, 0x67,
+	0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x6b, 0x64, 0x62, 0x2f, 0x63, 0x6f,
+	0x6e, 0x73, 0x65, 0x6e, 0x73, 0x75, 0x73, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x64, 0x61, 0x74,
+	0x61, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
-	file_consensus_protodata_consensus_proto_rawDescOnce sync.Once
-	file_consensus_protodata_consensus_proto_rawDescData = file_consensus_protodata_consensus_proto_rawDesc
+	file_protodata_consensus_proto_rawDescOnce sync.Once
+	file_protodata_consensus_proto_rawDescData = file_protodata_consensus_proto_rawDesc
 )
 
-func file_consensus_protodata_consensus_proto_rawDescGZIP() []byte {
-	file_consensus_protodata_consensus_proto_rawDescOnce.Do(func() {
-		file_consensus_protodata_consensus_proto_rawDescData = protoimpl.X.CompressGZIP(file_consensus_protodata_consensus_proto_rawDescData)
+func file_protodata_consensus_proto_rawDescGZIP() []byte {
+	file_protodata_consensus_proto_rawDescOnce.Do(func() {
+		file_protodata_consensus_proto_rawDescData = protoimpl.X.CompressGZIP(file_protodata_consensus_proto_rawDescData)
 	})
-	return file_consensus_protodata_consensus_proto_rawDescData
+	return file_protodata_consensus_proto_rawDescData
 }
 
-var file_consensus_protodata_consensus_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
-var file_consensus_protodata_consensus_proto_goTypes = []interface{}{
-	(*WalEntry)(nil),           // 0: consensus.WalEntry
-	(*WalResponse)(nil),        // 1: consensus.WalResponse
-	(*GetKey)(nil),             // 2: consensus.GetKey
-	(*GetResponse)(nil),        // 3: consensus.GetResponse
-	(*GetSeveralKeys)(nil),     // 4: consensus.GetSeveralKeys
-	(*GetSeveralResponse)(nil), // 5: consensus.GetSeveralResponse
-	(*Hearbeat)(nil),           // 6: consensus.Hearbeat
-	(*HearbeatResponse)(nil),   // 7: consensus.HearbeatResponse
+var file_protodata_consensus_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
+var file_protodata_consensus_proto_goTypes = []interface{}{
+	(*WalEntry)(nil),              // 0: consensus.WalEntry
+	(*WalResponse)(nil),           // 1: consensus.WalResponse
+	(*GetKey)(nil),                // 2: consensus.GetKey
+	(*GetResponse)(nil),           // 3: consensus.GetResponse
+	(*GetSeveralKeys)(nil),        // 4: consensus.GetSeveralKeys
+	(*GetSeveralResponse)(nil),    // 5: consensus.GetSeveralResponse
+	(*Hearbeat)(nil),              // 6: consensus.Hearbeat
+	(*HearbeatResponse)(nil),      // 7: consensus.HearbeatResponse
+	(*BroadcastNode)(nil),         // 8: consensus.BroadcastNode
+	(*BroadcastNodeResponse)(nil), // 9: consensus.BroadcastNodeResponse
+	(*BroadcastAllNodes)(nil),     // 10: consensus.BroadcastAllNodes
 }
-var file_consensus_protodata_consensus_proto_depIdxs = []int32{
+var file_protodata_consensus_proto_depIdxs = []int32{
 	0, // 0: consensus.Consensus.SendRecord:input_type -> consensus.WalEntry
 	6, // 1: consensus.Consensus.Ack:input_type -> consensus.Hearbeat
 	2, // 2: consensus.Consensus.Get:input_type -> consensus.GetKey
 	4, // 3: consensus.Consensus.GetMany:input_type -> consensus.GetSeveralKeys
-	1, // 4: consensus.Consensus.SendRecord:output_type -> consensus.WalResponse
-	7, // 5: consensus.Consensus.Ack:output_type -> consensus.HearbeatResponse
-	3, // 6: consensus.Consensus.Get:output_type -> consensus.GetResponse
-	5, // 7: consensus.Consensus.GetMany:output_type -> consensus.GetSeveralResponse
-	4, // [4:8] is the sub-list for method output_type
-	0, // [0:4] is the sub-list for method input_type
+	8, // 4: consensus.Consensus.Broadcast:input_type -> consensus.BroadcastNode
+	1, // 5: consensus.Consensus.SendRecord:output_type -> consensus.WalResponse
+	7, // 6: consensus.Consensus.Ack:output_type -> consensus.HearbeatResponse
+	3, // 7: consensus.Consensus.Get:output_type -> consensus.GetResponse
+	5, // 8: consensus.Consensus.GetMany:output_type -> consensus.GetSeveralResponse
+	9, // 9: consensus.Consensus.Broadcast:output_type -> consensus.BroadcastNodeResponse
+	5, // [5:10] is the sub-list for method output_type
+	0, // [0:5] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
 	0, // [0:0] is the sub-list for extension extendee
 	0, // [0:0] is the sub-list for field type_name
 }
 
-func init() { file_consensus_protodata_consensus_proto_init() }
-func file_consensus_protodata_consensus_proto_init() {
-	if File_consensus_protodata_consensus_proto != nil {
+func init() { file_protodata_consensus_proto_init() }
+func file_protodata_consensus_proto_init() {
+	if File_protodata_consensus_proto != nil {
 		return
 	}
 	if !protoimpl.UnsafeEnabled {
-		file_consensus_protodata_consensus_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
+		file_protodata_consensus_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*WalEntry); i {
 			case 0:
 				return &v.state
@@ -525,7 +702,7 @@ func file_consensus_protodata_consensus_proto_init() {
 				return nil
 			}
 		}
-		file_consensus_protodata_consensus_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
+		file_protodata_consensus_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*WalResponse); i {
 			case 0:
 				return &v.state
@@ -537,7 +714,7 @@ func file_consensus_protodata_consensus_proto_init() {
 				return nil
 			}
 		}
-		file_consensus_protodata_consensus_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
+		file_protodata_consensus_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GetKey); i {
 			case 0:
 				return &v.state
@@ -549,7 +726,7 @@ func file_consensus_protodata_consensus_proto_init() {
 				return nil
 			}
 		}
-		file_consensus_protodata_consensus_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
+		file_protodata_consensus_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GetResponse); i {
 			case 0:
 				return &v.state
@@ -561,7 +738,7 @@ func file_consensus_protodata_consensus_proto_init() {
 				return nil
 			}
 		}
-		file_consensus_protodata_consensus_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
+		file_protodata_consensus_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GetSeveralKeys); i {
 			case 0:
 				return &v.state
@@ -573,7 +750,7 @@ func file_consensus_protodata_consensus_proto_init() {
 				return nil
 			}
 		}
-		file_consensus_protodata_consensus_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
+		file_protodata_consensus_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GetSeveralResponse); i {
 			case 0:
 				return &v.state
@@ -585,7 +762,7 @@ func file_consensus_protodata_consensus_proto_init() {
 				return nil
 			}
 		}
-		file_consensus_protodata_consensus_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
+		file_protodata_consensus_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*Hearbeat); i {
 			case 0:
 				return &v.state
@@ -597,8 +774,44 @@ func file_consensus_protodata_consensus_proto_init() {
 				return nil
 			}
 		}
-		file_consensus_protodata_consensus_proto_msgTypes[7].Exporter = func(v interface{}, i int) interface{} {
+		file_protodata_consensus_proto_msgTypes[7].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*HearbeatResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_protodata_consensus_proto_msgTypes[8].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*BroadcastNode); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_protodata_consensus_proto_msgTypes[9].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*BroadcastNodeResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_protodata_consensus_proto_msgTypes[10].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*BroadcastAllNodes); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -614,18 +827,18 @@ func file_consensus_protodata_consensus_proto_init() {
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: file_consensus_protodata_consensus_proto_rawDesc,
+			RawDescriptor: file_protodata_consensus_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   8,
+			NumMessages:   11,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
-		GoTypes:           file_consensus_protodata_consensus_proto_goTypes,
-		DependencyIndexes: file_consensus_protodata_consensus_proto_depIdxs,
-		MessageInfos:      file_consensus_protodata_consensus_proto_msgTypes,
+		GoTypes:           file_protodata_consensus_proto_goTypes,
+		DependencyIndexes: file_protodata_consensus_proto_depIdxs,
+		MessageInfos:      file_protodata_consensus_proto_msgTypes,
 	}.Build()
-	File_consensus_protodata_consensus_proto = out.File
-	file_consensus_protodata_consensus_proto_rawDesc = nil
-	file_consensus_protodata_consensus_proto_goTypes = nil
-	file_consensus_protodata_consensus_proto_depIdxs = nil
+	File_protodata_consensus_proto = out.File
+	file_protodata_consensus_proto_rawDesc = nil
+	file_protodata_consensus_proto_goTypes = nil
+	file_protodata_consensus_proto_depIdxs = nil
 }

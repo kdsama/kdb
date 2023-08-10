@@ -1,9 +1,7 @@
-package clientdiscovery
+package server
 
 import (
 	"fmt"
-	"math/rand"
-	"time"
 
 	"github.com/kdsama/kdb/consensus"
 	"github.com/kdsama/kdb/logger"
@@ -27,10 +25,10 @@ var (
 // that means The task of renaming files have started as well.
 // maybe I would still need to create another layer
 // it should not be inside the consensus but it should call the consensus
-// So a Receiver package that communicates with the ClientDiscovery
+// So a Receiver package that communicates with the Server
 // How the restructuring of the the server folder wil go ?
 // so there is a sender (leader) and there is receivers
-// each receiver receives stuff . I have named it ClientDiscovery
+// each receiver receives stuff . I have named it Server
 // a better name would be a connection or a serverNodes
 // so selfNode will send data to other nodes
 // so we can rename ourself as selfNodes
@@ -41,16 +39,16 @@ var (
 // What should be its name ?
 // so it can be considered as functions for rpcHandlers ?
 
-type ClientDiscovery struct {
+type Server struct {
 	kv      *store.KVService
 	cs      *consensus.ConsensusService
 	logger  *logger.Logger
 	userMap map[string]string
 }
 
-func New(kv *store.KVService, cs *consensus.ConsensusService, logger *logger.Logger) *ClientDiscovery {
+func New(kv *store.KVService, cs *consensus.ConsensusService, logger *logger.Logger) *Server {
 
-	return &ClientDiscovery{
+	return &Server{
 		kv:      kv,
 		cs:      cs,
 		logger:  logger,
@@ -58,85 +56,53 @@ func New(kv *store.KVService, cs *consensus.ConsensusService, logger *logger.Log
 	}
 }
 
-func (c *ClientDiscovery) Add(key, value string) error {
+func (s *Server) Add(key, value string) error {
 	requestsTotal.WithLabelValues("Set Key").Inc()
 
-	entry, err := c.kv.Add(key, value)
+	entry, err := s.kv.Add(key, value)
 	if err != nil {
-		c.logger.Errorf("%v", err)
+		s.logger.Errorf("%v", err)
 		return err
 	}
 
 	// when we get the entry we should send the entry to the consensus service
 	// should we implement spinning locks for this ?
 	// what will be the criteria for that ?
-	dat, err := c.kv.SerializeRecord(&entry)
+	dat, err := s.kv.SerializeRecord(&entry)
 	if err != nil {
-		c.logger.Errorf("%v", err)
+		s.logger.Errorf("%v", err)
 		return err
 	}
-	err = c.cs.SendTransaction(dat, entry.TxnID)
+	err = s.cs.SendTransaction(dat, entry.TxnID)
 	if err != nil {
-		c.logger.Fatalf("%v", err)
+		s.logger.Fatalf("%v", err)
 		return err
 	}
-	err = c.kv.SetRecord(&dat)
+	err = s.kv.SetRecord(&dat)
 	if err != nil {
-		c.logger.Fatalf("%v", err)
+		s.logger.Fatalf("%v", err)
 	}
-	return c.cs.SendTransactionConfirmation(dat, entry.TxnID, consensus.Commit)
+	return s.cs.SendTransactionConfirmation(dat, entry.TxnID, consensus.Commit)
 
 }
 
-func (c *ClientDiscovery) Get(user string, key string) (string, error) {
+func (s *Server) Get(user string, key string) (string, error) {
 	requestsTotal.WithLabelValues("Get Key").Inc()
 	// here what we can do is
-	// set a ClientDiscovery connection to a particular ClientDiscovery for the current user for reading purposes
-	// so n users will have a random ClientDiscovery attached to it to fetch the get requests
+	// set a Server connection to a particular Server for the current user for reading purposes
+	// so n users will have a random Server attached to it to fetch the get requests
 	// for now I can just ask the system to get me data through gcp ,
 	// so need protobuf here for get services
 
-	if _, ok := c.userMap[user]; !ok {
+	if _, ok := s.userMap[user]; !ok {
 
-		n := c.cs.GetRandomConnectionName()
+		n := s.cs.GetRandomConnectionName()
 		fmt.Println("Random connection is ", n)
-		c.userMap[user] = n
+		s.userMap[user] = n
 	}
 
-	return c.cs.Get(c.userMap[user], key)
+	return s.cs.Get(s.userMap[user], key)
 
-}
-
-func (c *ClientDiscovery) AutomateGet() {
-	time.Sleep(50 * time.Second)
-	for {
-		// time.Sleep(time.Duration(rand.Intn(100)) * time.Millisecond)
-		time.Sleep(10 * time.Millisecond)
-		_, err := c.Get("user"+fmt.Sprint(rand.Int31n(100)), "key"+fmt.Sprint(rand.Int31n(10000)))
-		if err != nil {
-			c.logger.Errorf("%v", err)
-		}
-
-	}
-
-}
-
-func (c *ClientDiscovery) AutomateSet() {
-	time.Sleep(20 * time.Second)
-	c.BulkAdd("val")
-}
-
-func (c *ClientDiscovery) BulkAdd(value string) {
-	rand.Seed(time.Now().UnixNano())
-	for {
-		// time.Sleep(time.Duration(rand.Intn(100)) * time.Millisecond)
-		time.Sleep(10 * time.Millisecond)
-		err := c.Add("key"+fmt.Sprint(rand.Int31n(10000)), fmt.Sprint(rand.Int31n(10000)))
-		if err != nil {
-			fmt.Println(err)
-		}
-
-	}
 }
 
 func init() {

@@ -28,6 +28,7 @@ service Consensus {
   rpc Ack(Hearbeat) returns (HearbeatResponse) {}
   rpc Get(GetKey) returns (GetResponse) {}
   rpc GetMany(GetSeveralKeys) returns (GetSeveralResponse) {}
+  rpc Broadcast(BroadcastNode) returns (BroadcastNodeResponse) {}
 }
 
 // The request message containing the user's name.
@@ -64,4 +65,17 @@ message Hearbeat {
 
 message HearbeatResponse {
   string message = 1 ;
+}
+
+message BroadcastNode {
+  string addr = 1 ; 
+  string leader = 2 ; 
+}
+message BroadcastNodeResponse {
+  string message = 1 ; 
+}
+
+message BroadcastAllNodes {
+  repeated string addr = 1 ; 
+  string leader = 2 ; 
 }

@@ -42,11 +42,8 @@ func (s *Handler) Ack(ctx context.Context, in *pb.Hearbeat) (*pb.HearbeatRespons
 	return &pb.HearbeatResponse{Message: "Hello " + in.GetMessage()}, nil
 }
 
-var counter = 0
-
 // Record received, now commit/ acknowledge according to the type of data
 func (s *Handler) SendRecord(ctx context.Context, in *pb.WalEntry) (*pb.WalResponse, error) {
-	counter++
 
 	switch in.Status {
 	case int32(Acknowledge):
@@ -62,12 +59,19 @@ func (s *Handler) SendRecord(ctx context.Context, in *pb.WalEntry) (*pb.WalRespo
 	return &pb.WalResponse{Message: "ok"}, nil
 }
 func (s *Handler) Get(ctx context.Context, in *pb.GetKey) (*pb.GetResponse, error) {
-	counter++
+
 	val, err := s.kv.GetNode(in.Key)
 	if err != nil {
 		return &pb.GetResponse{Value: ""}, err
 	}
 	return &pb.GetResponse{Value: val.Value}, nil
+}
+
+func (s *Handler) Broadcast(ctx context.Context, in *pb.BroadcastNode) (*pb.BroadcastNodeResponse, error) {
+
+	// ADD NODE TO EXISTING NODES
+
+	return &pb.BroadcastNodeResponse{Message: "Ok"}, nil
 }
 
 // func (s *Handler) GetSeveral(ctx context.Context, in *pb.GetKey) (*pb.GetSeveralKeys, error) {

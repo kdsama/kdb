@@ -5,7 +5,7 @@ import (
 	"log"
 	"net/http"
 
-	clientdiscovery "github.com/kdsama/kdb/clientDiscovery"
+	cd "github.com/kdsama/kdb/client"
 )
 
 var (
@@ -26,7 +26,7 @@ func main() {
 	// for now I will just use the one in consensus
 	// add more methods the consensus one <- consensus is to be used for connect to a client for Reading purposes.
 	// we would already be connected to all the clients, just that redirection will be a bit different
-	clh := clientdiscovery.NewClientHandler()
+	clh := cd.NewClientHandler()
 	http.HandleFunc("/add-server", clh.AddServer)
 	http.HandleFunc("/get", clh.Get)
 	http.HandleFunc("/set", clh.Set)
