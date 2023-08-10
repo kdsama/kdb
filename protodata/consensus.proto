@@ -27,6 +27,7 @@ service Consensus {
   rpc SendRecord (WalEntry) returns (WalResponse) {}
   rpc Ack(Hearbeat) returns (HearbeatResponse) {}
   rpc Get(GetKey) returns (GetResponse) {}
+  rpc Set(SetKey) returns (SetKeyResponse) {}
   rpc GetMany(GetSeveralKeys) returns (GetSeveralResponse) {}
   rpc Broadcast(BroadcastNode) returns (BroadcastNodeResponse) {}
 }
@@ -42,6 +43,16 @@ message WalResponse {
   string message = 1;
  
 }
+
+message SetKey {
+  string key = 1 ;
+  string value = 2 ; 
+}
+
+message SetKeyResponse {
+  string message = 1; 
+}
+
 
 message GetKey {
   string key = 1 ; 

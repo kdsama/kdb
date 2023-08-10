@@ -35,11 +35,19 @@ func (ch *clientHandler) AddServer(w http.ResponseWriter, r *http.Request) {
 }
 
 func (ch *clientHandler) Get(w http.ResponseWriter, r *http.Request) {
-
+	// key := r.URL.Query().Get("key")
+	// err := ch.service.get(key, val)
 }
 
 func (ch *clientHandler) Set(w http.ResponseWriter, r *http.Request) {
-
+	// to be done only to the leader
+	key := r.URL.Query().Get("key")
+	val := r.URL.Query().Get("value")
+	err := ch.service.set(key, val)
+	if err != nil {
+		w.Write([]byte(err.Error()))
+	}
+	w.Write([]byte("OK"))
 }
 func (ch *clientHandler) AutomateGet(w http.ResponseWriter, r *http.Request) {
 

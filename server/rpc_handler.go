@@ -66,6 +66,14 @@ func (s *Handler) Get(ctx context.Context, in *pb.GetKey) (*pb.GetResponse, erro
 	}
 	return &pb.GetResponse{Value: val}, nil
 }
+func (s *Handler) Set(ctx context.Context, in *pb.SetKey) (*pb.SetKeyResponse, error) {
+
+	err := s.server.Add(in.Key, in.Value)
+	if err != nil {
+		return &pb.SetKeyResponse{Message: ""}, err
+	}
+	return &pb.SetKeyResponse{Message: "OK"}, nil
+}
 
 func (s *Handler) Broadcast(ctx context.Context, in *pb.BroadcastNode) (*pb.BroadcastNodeResponse, error) {
 

@@ -3,6 +3,7 @@ package consensus
 import (
 	"context"
 	"errors"
+	"fmt"
 	"sync"
 	"time"
 
@@ -125,6 +126,7 @@ func (cs *ConsensusService) SendTransaction(data []byte, TxnID string) error {
 			defer wg.Done()
 
 			err := client.SendRecord(ctx, &d, config.Acknowledge)
+			fmt.Println("Err::::", err)
 			resultCh <- err
 		}()
 	}
@@ -269,7 +271,7 @@ func (cs *ConsensusService) connectClients() {
 
 }
 func connect(addr string) (*pb.ConsensusClient, error) {
-
+	addr += addressPort
 	conn, err := grpc.Dial(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return nil, err
