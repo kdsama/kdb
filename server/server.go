@@ -1,6 +1,8 @@
 package server
 
 import (
+	"fmt"
+
 	"github.com/kdsama/kdb/config"
 	"github.com/kdsama/kdb/consensus"
 	"github.com/kdsama/kdb/logger"
@@ -42,7 +44,7 @@ type Server struct {
 	kv      *store.KVService
 	cs      *consensus.ConsensusService
 	logger  *logger.Logger
-	userMap map[string]string
+	userMap *map[string]string
 }
 
 func New(kv *store.KVService, cs *consensus.ConsensusService, logger *logger.Logger) *Server {
@@ -51,7 +53,7 @@ func New(kv *store.KVService, cs *consensus.ConsensusService, logger *logger.Log
 		kv:      kv,
 		cs:      cs,
 		logger:  logger,
-		userMap: map[string]string{},
+		userMap: &map[string]string{},
 	}
 }
 
@@ -112,6 +114,10 @@ func (s *Server) AcknowledgeRecord(data *[]byte) error {
 
 func (s *Server) SetRecord(data *[]byte) error {
 	return s.kv.SetRecord(data)
+}
+func (s *Server) Broadcast(addr, leader string) error {
+	fmt.Println("CS is ", s.cs)
+	return s.cs.Broadcast(addr, leader)
 }
 
 func init() {

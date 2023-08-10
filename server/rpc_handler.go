@@ -32,7 +32,7 @@ type Handler struct {
 }
 
 func NewHandler(server *Server) *Handler {
-	return &Handler{}
+	return &Handler{server: server}
 }
 
 // Acknowledgement that the heartbeat has been received
@@ -70,7 +70,7 @@ func (s *Handler) Get(ctx context.Context, in *pb.GetKey) (*pb.GetResponse, erro
 func (s *Handler) Broadcast(ctx context.Context, in *pb.BroadcastNode) (*pb.BroadcastNodeResponse, error) {
 
 	// ADD NODE TO EXISTING NODES
-
+	s.server.Broadcast(in.Addr, in.Leader)
 	return &pb.BroadcastNodeResponse{Message: "Ok"}, nil
 }
 

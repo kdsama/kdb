@@ -197,19 +197,24 @@ func (cs *ConsensusService) SendTransactionConfirmation(data []byte, TxnID strin
 
 func (cs *ConsensusService) Broadcast(addr, leader string) error {
 	// add the node if it doesnot exist already
+	cs.logger.Infof("%s v %v", addr, leader)
 	if _, ok := cs.clients[addr]; !ok {
+
 		client, err := connect(addr)
 		if err != nil {
 			return err
 		}
 		// if leader and ticker not running , run it
 		cs.clients[addr] = NewNodes(addr, client, 5, cs.logger)
-		if addr == cs.name && addr == leader {
+		if addr == leader {
+			cs.logger.Infof("I am true leader")
 			cs.leader = true
 			cs.state = Leader
 		} else if addr == cs.name {
+			cs.logger.Infof("I am a puny follower")
 			cs.state = Follower
 		} else {
+			cs.logger.Infof("Atleast I am not in Initializing state now !")
 			cs.addresses = append(cs.addresses, addr)
 		}
 	}
