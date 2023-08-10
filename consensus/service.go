@@ -3,7 +3,6 @@ package consensus
 import (
 	"context"
 	"errors"
-	"math/rand"
 	"sync"
 	"time"
 
@@ -87,20 +86,6 @@ func (cs *ConsensusService) Schedule() {
 			cs.connectClients()
 		}
 	}
-}
-
-func (cs *ConsensusService) GetRandomConnectionName() string {
-	rand.Seed(time.Now().Unix())
-	mut := sync.Mutex{}
-	ll := len(cs.addresses)
-
-	randomServer := cs.addresses[rand.Intn(ll)]
-	mut.Lock()
-	if randomServer == cs.name {
-		return cs.GetRandomConnectionName()
-	}
-	return randomServer
-
 }
 
 func (cs *ConsensusService) Get(cname string, key string) (string, error) {

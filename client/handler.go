@@ -5,10 +5,13 @@ import "net/http"
 // here all the handlers will come
 
 type clientHandler struct {
+	service *service
 }
 
 func NewClientHandler() *clientHandler {
-	return &clientHandler{}
+	return &clientHandler{
+		service: &service{},
+	}
 }
 
 func (ch *clientHandler) AddServer(w http.ResponseWriter, r *http.Request) {
