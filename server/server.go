@@ -1,8 +1,7 @@
 package server
 
 import (
-	"fmt"
-
+	"github.com/kdsama/kdb/config"
 	"github.com/kdsama/kdb/consensus"
 	"github.com/kdsama/kdb/logger"
 	"github.com/kdsama/kdb/store"
@@ -82,27 +81,37 @@ func (s *Server) Add(key, value string) error {
 	if err != nil {
 		s.logger.Fatalf("%v", err)
 	}
-	return s.cs.SendTransactionConfirmation(dat, entry.TxnID, consensus.Commit)
+	return s.cs.SendTransactionConfirmation(dat, entry.TxnID, config.Commit)
 
 }
 
-func (s *Server) Get(user string, key string) (string, error) {
+func (s *Server) Get(key string) (string, error) {
 	requestsTotal.WithLabelValues("Get Key").Inc()
-	// here what we can do is
-	// set a Server connection to a particular Server for the current user for reading purposes
-	// so n users will have a random Server attached to it to fetch the get requests
-	// for now I can just ask the system to get me data through gcp ,
-	// so need protobuf here for get services
+	// 	Now that we are at the server
+	// we dont need to do the connection work
+	// We just need to return what kv revturns here
+	// we just need to modify the data a littlebit
+	// the entry point to server will still be consensus
+	// but the consensus package wont have access to the kv service , it has to go through server
+	// but if server is entry point to consensus
+	// how is server doing the manipulation ?
+	// so its the handler thats present in the consensus that we are interested in
+	// hence I strongly believe that the rpc handler should move to the server  folder
 
-	if _, ok := s.userMap[user]; !ok {
-
-		n := s.cs.GetRandomConnectionName()
-		fmt.Println("Random connection is ", n)
-		s.userMap[user] = n
+	node, err := s.kv.GetNode(key)
+	if err != nil {
+		return "", err
 	}
+	return node.Value, nil
 
-	return s.cs.Get(s.userMap[user], key)
+}
 
+func (s *Server) AcknowledgeRecord(data *[]byte) error {
+	return s.kv.AcknowledgeRecord(data)
+}
+
+func (s *Server) SetRecord(data *[]byte) error {
+	return s.kv.SetRecord(data)
 }
 
 func init() {

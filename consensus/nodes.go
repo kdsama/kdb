@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/kdsama/kdb/config"
 	"github.com/kdsama/kdb/logger"
 	pb "github.com/kdsama/kdb/protodata"
 )
@@ -72,7 +73,7 @@ func (c *Nodes) Hearbeat() {
 	// c.logger.Infof("Greeting: from %s ", c.name)
 }
 
-func (c *Nodes) SendRecord(ctx context.Context, data *[]byte, state recordState) error {
+func (c *Nodes) SendRecord(ctx context.Context, data *[]byte, state config.RecordState) error {
 	// we should not send it to dead ones
 
 	ctx, cancel := context.WithTimeout(ctx, 300*time.Millisecond)

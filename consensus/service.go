@@ -10,6 +10,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/kdsama/kdb/config"
 	"github.com/kdsama/kdb/logger"
 	pb "github.com/kdsama/kdb/protodata"
 	"google.golang.org/grpc"
@@ -19,13 +20,9 @@ import (
 // here I need to implement the acknowledgement first
 // I need a maddr of grpc connections as well
 // create a maddr of all the connections for all the servers
-type recordState int32
 
 const (
-	addressPort             = ":50051"
-	Acknowledge recordState = iota
-	Commit
-	Abort
+	addressPort = ":50051"
 )
 
 var (
@@ -134,7 +131,7 @@ func (cs *ConsensusService) SendTransaction(data []byte, TxnID string) error {
 		go func() {
 			defer wg.Done()
 
-			err := client.SendRecord(ctx, &d, Acknowledge)
+			err := client.SendRecord(ctx, &d, config.Acknowledge)
 			resultCh <- err
 		}()
 	}
@@ -158,7 +155,7 @@ func (cs *ConsensusService) SendTransaction(data []byte, TxnID string) error {
 	return errTransactionAborted
 }
 
-func (cs *ConsensusService) SendTransactionConfirmation(data []byte, TxnID string, state recordState) error {
+func (cs *ConsensusService) SendTransactionConfirmation(data []byte, TxnID string, state config.RecordState) error {
 
 	d := data
 
@@ -185,7 +182,7 @@ func (cs *ConsensusService) SendTransactionConfirmation(data []byte, TxnID strin
 		go func() {
 			defer wg.Done()
 
-			err := client.SendRecord(ctx, &d, Commit)
+			err := client.SendRecord(ctx, &d, config.Commit)
 			resultCh <- err
 		}()
 	}

@@ -30,6 +30,7 @@ import (
 	"github.com/kdsama/kdb/consensus"
 	"github.com/kdsama/kdb/logger"
 	pb "github.com/kdsama/kdb/protodata"
+	"github.com/kdsama/kdb/server"
 	"github.com/kdsama/kdb/store"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"google.golang.org/grpc"
@@ -61,9 +62,10 @@ func main() {
 	go cs.Init()
 
 	kv := store.NewKVService("./data/kvservice/persist/", "node", "./data/kvservice/wal/", 1, 1000, logger)
-
+	// need to get naming better here
+	SR := server.New(kv, cs, logger)
 	go ServerHttp()
-	pb.RegisterConsensusServer(s, consensus.NewHandler(kv))
+	pb.RegisterConsensusServer(s, server.NewHandler(SR))
 
 	log.Printf("server listening at %v", lis.Addr())
 	if err := s.Serve(lis); err != nil {

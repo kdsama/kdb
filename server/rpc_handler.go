@@ -17,22 +17,22 @@
  */
 
 // Package main implements a client for Greeter service.
-package consensus
+package server
 
 import (
 	"context"
 
+	"github.com/kdsama/kdb/config"
 	pb "github.com/kdsama/kdb/protodata"
-	"github.com/kdsama/kdb/store"
 )
 
 type Handler struct {
 	pb.UnimplementedConsensusServer
-	kv *store.KVService
+	server *Server
 }
 
-func NewHandler(kv *store.KVService) *Handler {
-	return &Handler{kv: kv}
+func NewHandler(server *Server) *Handler {
+	return &Handler{}
 }
 
 // Acknowledgement that the heartbeat has been received
@@ -46,25 +46,25 @@ func (s *Handler) Ack(ctx context.Context, in *pb.Hearbeat) (*pb.HearbeatRespons
 func (s *Handler) SendRecord(ctx context.Context, in *pb.WalEntry) (*pb.WalResponse, error) {
 
 	switch in.Status {
-	case int32(Acknowledge):
+	case int32(config.Acknowledge):
 		// a function is required to just add a wal entry
 
-		s.kv.AcknowledgeRecord(&in.Entry)
+		s.server.AcknowledgeRecord(&in.Entry)
 
-	case int32(Commit):
+	case int32(config.Commit):
 
-		s.kv.SetRecord(&in.Entry)
+		s.server.SetRecord(&in.Entry)
 	}
 
 	return &pb.WalResponse{Message: "ok"}, nil
 }
 func (s *Handler) Get(ctx context.Context, in *pb.GetKey) (*pb.GetResponse, error) {
 
-	val, err := s.kv.GetNode(in.Key)
+	val, err := s.server.Get(in.Key)
 	if err != nil {
 		return &pb.GetResponse{Value: ""}, err
 	}
-	return &pb.GetResponse{Value: val.Value}, nil
+	return &pb.GetResponse{Value: val}, nil
 }
 
 func (s *Handler) Broadcast(ctx context.Context, in *pb.BroadcastNode) (*pb.BroadcastNodeResponse, error) {
