@@ -28,9 +28,9 @@ import (
 	"os"
 
 	"github.com/kdsama/kdb/consensus"
-	pb "github.com/kdsama/kdb/consensus/protodata"
 	"github.com/kdsama/kdb/logger"
-	"github.com/kdsama/kdb/server/store"
+	pb "github.com/kdsama/kdb/protodata"
+	"github.com/kdsama/kdb/store"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"google.golang.org/grpc"
 )

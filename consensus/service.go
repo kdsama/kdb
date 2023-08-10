@@ -1,17 +1,19 @@
 package consensus
 
 import (
+	"bufio"
 	"context"
 	"errors"
 	"flag"
 	"fmt"
 	"log"
 	"math/rand"
+	"os"
 	"sync"
 	"time"
 
-	pb "github.com/kdsama/kdb/consensus/protodata"
 	"github.com/kdsama/kdb/logger"
+	pb "github.com/kdsama/kdb/protodata"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -32,6 +34,26 @@ var (
 	errTransactionAborted = errors.New("the transaction was aborted, this can happen if enough acknowledgement arenot received")
 	errTransactionBroken  = errors.New("couldnot reach quorum after getting enough acknowledements from other nodes")
 )
+
+func ReadFromFile(filepath string) ([]string, error) {
+	t := []string{}
+	file, err := os.Open(filepath)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		t = append(t, scanner.Text())
+	}
+
+	if err := scanner.Err(); err != nil {
+		return nil, err
+	}
+
+	return t, nil
+}
 
 // basically we will connect to all the servers from the leader
 // send acknowledgement from the leader to the receivers

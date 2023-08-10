@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
-	pb "github.com/kdsama/kdb/consensus/protodata"
 	"github.com/kdsama/kdb/logger"
+	pb "github.com/kdsama/kdb/protodata"
 )
 
 type Nodes struct {

@@ -7,7 +7,7 @@ import (
 
 	"github.com/kdsama/kdb/consensus"
 	"github.com/kdsama/kdb/logger"
-	"github.com/kdsama/kdb/server/store"
+	"github.com/kdsama/kdb/store"
 	"github.com/prometheus/client_golang/prometheus"
 )
 
