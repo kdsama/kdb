@@ -3,10 +3,18 @@ package store
 import (
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/google/btree"
 	"github.com/kdsama/kdb/logger"
+	"github.com/prometheus/client_golang/prometheus"
 )
+
+var btreeLatency = prometheus.NewHistogramVec(prometheus.HistogramOpts{
+	Name:    "ps_btree_requests",
+	Help:    "btree inserts :: btree layer",
+	Buckets: []float64{0.0, 20.0, 40.0, 60.0, 80.0, 100.0, 160.0, 180.0, 200.0, 400.0, 800.0, 1600.0},
+}, []string{"reqtype"})
 
 type Key string
 
@@ -31,11 +39,12 @@ func newBTree(degree int, lg *logger.Logger) *GoogleBTree {
 }
 
 func (bt *GoogleBTree) addKeyString(key string) bool {
-
+	t := time.Now()
 	// concurrent mutations is not safe
 	bt.mut.Lock()
 	bt.tree.ReplaceOrInsert(Key(key))
 	bt.mut.Unlock()
+	btreeLatency.WithLabelValues("put (ms)").Observe(float64(time.Since(t)) / 1000)
 	return true
 }
 
@@ -57,4 +66,8 @@ func (bt *GoogleBTree) getKeyString(key string) (string, bool) {
 		return string(val.(Key)), true
 	}
 	return "", false
+}
+
+func init() {
+	prometheus.MustRegister(btreeLatency)
 }

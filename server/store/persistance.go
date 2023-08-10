@@ -74,7 +74,7 @@ func (p *Persistance) Save(key string, buffer *[]byte) error {
 	err := p.fs.WriteFileLnWithDirectories(p.prefix+key, *buffer)
 	p.mut.Unlock()
 
-	persistanceRequestsTotal.WithLabelValues("Save File").Observe(float64(time.Since(t)) / 1000)
+	persistanceRequestsTotal.WithLabelValues("Save File (ms)").Observe(float64(time.Since(t)) / 1000)
 	return err
 }
 
@@ -131,7 +131,7 @@ func (p *Persistance) GetNodeFromAbsolutePath(dir string) (Node, error) {
 	if err := json.Unmarshal(node_in_bytes, &n); err != nil {
 		return Node{}, err
 	}
-	persistanceRequestsTotal.WithLabelValues("Get File").Observe(float64(time.Since(t)) / 1000)
+	persistanceRequestsTotal.WithLabelValues("Get File (ms)").Observe(float64(time.Since(t)) / 1000)
 	return n, nil
 }
 

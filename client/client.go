@@ -103,9 +103,7 @@ func (c *Client) AutomateGet() {
 
 func (c *Client) AutomateSet() {
 	time.Sleep(20 * time.Second)
-
 	c.BulkAdd("val")
-
 }
 
 func (c *Client) BulkAdd(value string) {
