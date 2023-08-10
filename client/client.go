@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math/rand"
 	"sync"
 	"time"
 
@@ -114,4 +115,35 @@ func (s *service) set(key, val string) error {
 		return err
 	}
 	return nil
+}
+
+func (s *service) get(key string) (string, error) {
+	cl := s.leader
+	fmt.Println("Random client we are taking is ", cl)
+	n := *s.clients[cl].con
+	ctx, cancel := context.WithTimeout(context.Background(), 300*time.Millisecond)
+	defer cancel()
+	val, err := n.Get(ctx, &pb.GetKey{Key: key})
+	if err != nil {
+		return "", err
+	}
+	return val.Value, nil
+}
+
+func (s *service) getRandom(key string) (string, error) {
+	cl := s.getRandomClient()
+	fmt.Println("Random client we are taking is ", cl)
+	n := *s.clients[cl].con
+	ctx, cancel := context.WithTimeout(context.Background(), 300*time.Millisecond)
+	defer cancel()
+	val, err := n.Get(ctx, &pb.GetKey{Key: key})
+	if err != nil {
+		return "", err
+	}
+	return val.Value, nil
+}
+
+func (s *service) getRandomClient() string {
+	rand.Seed(time.Now().Unix())
+	return s.addresses[rand.Intn(len(s.addresses))]
 }

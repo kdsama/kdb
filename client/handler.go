@@ -35,8 +35,23 @@ func (ch *clientHandler) AddServer(w http.ResponseWriter, r *http.Request) {
 }
 
 func (ch *clientHandler) Get(w http.ResponseWriter, r *http.Request) {
-	// key := r.URL.Query().Get("key")
-	// err := ch.service.get(key, val)
+	key := r.URL.Query().Get("key")
+	val, err := ch.service.get(key)
+	if err != nil {
+		w.Write([]byte("Not OK"))
+		return
+	}
+	w.Write([]byte(fmt.Sprintf("Key :: %s, value :: %s ::", key, val)))
+}
+
+func (ch *clientHandler) GetRandom(w http.ResponseWriter, r *http.Request) {
+	key := r.URL.Query().Get("key")
+	val, err := ch.service.getRandom(key)
+	if err != nil {
+		w.Write([]byte("Not OK"))
+		return
+	}
+	w.Write([]byte(fmt.Sprintf("Key :: %s, value :: %s ::", key, val)))
 }
 
 func (ch *clientHandler) Set(w http.ResponseWriter, r *http.Request) {

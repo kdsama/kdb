@@ -28,7 +28,10 @@ func main() {
 	// we would already be connected to all the clients, just that redirection will be a bit different
 	clh := cd.NewClientHandler()
 	http.HandleFunc("/add-server", clh.AddServer)
+	// to get data from leader
 	http.HandleFunc("/get", clh.Get)
+	// To get data from random spawn server
+	http.HandleFunc("/get-random", clh.Get)
 	http.HandleFunc("/set", clh.Set)
 	http.HandleFunc("/automate-get", clh.AutomateGet)
 	http.HandleFunc("/automate-set", clh.AutomateSet)
