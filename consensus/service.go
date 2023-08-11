@@ -208,14 +208,12 @@ func (cs *ConsensusService) Broadcast(addr, leader string) error {
 		// if leader and ticker not running , run it
 		cs.clients[addr] = NewNodes(addr, client, 5, cs.logger)
 		if addr == leader {
-			cs.logger.Infof("I am true leader")
 			cs.leader = true
 			cs.state = Leader
+			go cs.Schedule()
 		} else if addr == cs.name {
-			cs.logger.Infof("I am a puny follower")
 			cs.state = Follower
 		} else {
-			cs.logger.Infof("Atleast I am not in Initializing state now !")
 			cs.addresses = append(cs.addresses, addr)
 		}
 	}
@@ -263,7 +261,7 @@ func (cs *ConsensusService) connectClients() {
 		nc := NewNodes(addr, conn, 7, cs.logger)
 		cs.clients[nc.name] = nc
 		if cs.leader {
-			go nc.Schedule()
+			go cs.Schedule()
 		}
 
 	}

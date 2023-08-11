@@ -70,7 +70,7 @@ func (c *Nodes) Hearbeat() {
 	}
 	c.lastBeat = time.Now()
 	// c.ticker = *time.NewTicker(time.Duration(c.factor) * time.Second)
-	// c.logger.Infof("Greeting: from %s ", c.name)
+	c.logger.Infof("Greeting: from %s ", c.name)
 }
 
 func (c *Nodes) SendRecord(ctx context.Context, data *[]byte, state config.RecordState) error {
