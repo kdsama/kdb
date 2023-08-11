@@ -172,9 +172,9 @@ func (s *service) automateSet(duration, requests, sleep string) (int, error) {
 		for i := 0; i < rp; i++ {
 			time.Sleep(time.Duration(sp) * time.Microsecond)
 
-			rand.Seed(time.Now().Unix())
 			go func() {
-				err := s.set("key"+fmt.Sprint(rand.Intn(10000)), "val"+fmt.Sprint(rand.Intn(10000)))
+				rand.Seed(time.Now().UnixNano())
+				err := s.set("key"+fmt.Sprint(rand.Intn(100)), "val"+fmt.Sprint(rand.Intn(10000)))
 				if err != nil {
 
 					errCount++
@@ -218,8 +218,9 @@ func (s *service) automateGet(duration, requests, sleep string) (int, error) {
 
 			time.Sleep(time.Duration(sp) * time.Microsecond)
 
-			rand.Seed(time.Now().Unix())
 			go func() {
+
+				rand.Seed(time.Now().UnixNano())
 				s.get("key" + fmt.Sprint(rand.Intn(10000)))
 
 			}()

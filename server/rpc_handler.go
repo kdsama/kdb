@@ -90,6 +90,7 @@ func (s *Handler) Get(ctx context.Context, in *pb.GetKey) (*pb.GetResponse, erro
 }
 func (s *Handler) Set(ctx context.Context, in *pb.SetKey) (*pb.SetKeyResponse, error) {
 	t := time.Now()
+	s.server.logger.Infof("Key %v and value %v", in.Key, in.Value)
 	err := s.server.Add(in.Key, in.Value)
 	if err != nil {
 		return &pb.SetKeyResponse{Message: ""}, err
