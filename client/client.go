@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"math/rand"
+	"strconv"
 	"sync"
 	"time"
 
@@ -28,6 +29,12 @@ type service struct {
 	leader    string
 	addresses []string
 }
+
+var (
+	curr     = 0
+	count    = 0
+	errCount = 0
+)
 
 func NewService() *service {
 	return &service{
@@ -107,6 +114,7 @@ func (s *service) broadcast(addr string) error {
 }
 
 func (s *service) set(key, val string) error {
+	requestsTotal.WithLabelValues("Set").Inc()
 	n := *s.clients[s.leader].con
 	ctx, cancel := context.WithTimeout(context.Background(), 300*time.Millisecond)
 	defer cancel()
@@ -115,6 +123,50 @@ func (s *service) set(key, val string) error {
 		return err
 	}
 	return nil
+}
+
+func (s *service) automateSet(duration, requests, sleep string) (int, error) {
+	rp, sp := 10000, 10
+
+	if curr != 0 {
+		return -1, errors.New("A request is still getting completed")
+	}
+	rand.Seed(time.Now().Unix())
+	curr = rand.Intn(100000)
+	if requests != "" {
+		rb, err := strconv.Atoi(requests)
+		if err == nil {
+			rp = rb
+		}
+	}
+	if sleep != "" {
+		sb, err := strconv.Atoi(sleep)
+		if err == nil {
+			sp = sb
+		}
+	}
+
+	go func() {
+
+		for i := 0; i < rp; i++ {
+
+			time.Sleep(time.Duration(sp) * time.Millisecond)
+			n := *s.clients[s.leader].con
+			ctx, cancel := context.WithTimeout(context.Background(), 300*time.Millisecond)
+			defer cancel()
+			rand.Seed(time.Now().Unix())
+			_, err := n.Set(ctx, &pb.SetKey{Key: "key" + fmt.Sprint(rand.Intn(10000)), Value: "val" + fmt.Sprint(rand.Intn(10000))})
+			if err != nil {
+				errCount++
+			} else {
+				count++
+			}
+		}
+
+		curr = 0
+	}()
+
+	return curr, nil
 }
 
 func (s *service) get(key string) (string, error) {

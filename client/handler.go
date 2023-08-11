@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -88,7 +89,7 @@ func (ch *clientHandler) GetRandom(w http.ResponseWriter, r *http.Request) {
 func (ch *clientHandler) Set(w http.ResponseWriter, r *http.Request) {
 	// to be done only to the leader
 	t := time.Now()
-	requestsTotal.WithLabelValues("Set").Inc()
+
 	key := r.URL.Query().Get("key")
 	val := r.URL.Query().Get("value")
 	err := ch.service.set(key, val)
@@ -102,11 +103,33 @@ func (ch *clientHandler) Set(w http.ResponseWriter, r *http.Request) {
 
 }
 func (ch *clientHandler) AutomateGet(w http.ResponseWriter, r *http.Request) {
+	//duration := r.URL.Query().Get("duration")
+	// tr := r.URL.Query().Get("requests")
 
 }
 
 func (ch *clientHandler) AutomateSet(w http.ResponseWriter, r *http.Request) {
+	duration := r.URL.Query().Get("duration")
+	tr := r.URL.Query().Get("requests")
+	sleep := r.URL.Query().Get("sleep")
+	// we need to send data as well
+	val, err := ch.service.automateSet(duration, tr, sleep)
+	if err != nil {
+		w.Write([]byte(err.Error()))
+	} else {
+		w.Write([]byte(fmt.Sprint(val)))
+	}
+}
 
+func (ch *clientHandler) RequestStatus(w http.ResponseWriter, r *http.Request) {
+	rr := r.URL.Query().Get("r")
+	d, _ := strconv.Atoi(rr)
+
+	if d != curr {
+		w.Write([]byte("Invalid request "))
+	} else {
+		w.Write([]byte(fmt.Sprintf("errCount ::%d and successCount ::%d", errCount, count)))
+	}
 }
 
 func init() {
