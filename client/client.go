@@ -49,6 +49,7 @@ type service struct {
 
 var (
 	curr     = 0
+	mcurr    = 0
 	count    = 0
 	errCount = 0
 )
@@ -132,7 +133,7 @@ func (s *service) broadcast(addr string) error {
 
 func (s *service) set(key, val string) error {
 	t := time.Now()
-	fmt.Println("Why are we not setting anything here ??? ")
+
 	requestsTotal.WithLabelValues("Set").Inc()
 	n := *s.clients[s.leader].con
 	ctx, cancel := context.WithTimeout(context.Background(), 300*time.Millisecond)
@@ -169,7 +170,6 @@ func (s *service) automateSet(duration, requests, sleep string) (int, error) {
 	go func() {
 
 		for i := 0; i < rp; i++ {
-			fmt.Println("woah")
 			time.Sleep(time.Duration(sp) * time.Microsecond)
 
 			rand.Seed(time.Now().Unix())
@@ -191,16 +191,61 @@ func (s *service) automateSet(duration, requests, sleep string) (int, error) {
 	return curr, nil
 }
 
+func (s *service) automateGet(duration, requests, sleep string) (int, error) {
+	rp, sp := 100000, 50
+
+	if mcurr != 0 {
+		return -1, errors.New("A request is still getting completed")
+	}
+	rand.Seed(time.Now().Unix())
+	mcurr = rand.Intn(100000)
+	if requests != "" {
+		rb, err := strconv.Atoi(requests)
+		if err == nil {
+			rp = rb
+		}
+	}
+	if sleep != "" {
+		sb, err := strconv.Atoi(sleep)
+		if err == nil {
+			sp = sb
+		}
+	}
+
+	go func() {
+
+		for i := 0; i < rp; i++ {
+
+			time.Sleep(time.Duration(sp) * time.Microsecond)
+
+			rand.Seed(time.Now().Unix())
+			go func() {
+				s.get("key" + fmt.Sprint(rand.Intn(10000)))
+
+			}()
+		}
+
+		mcurr = 0
+	}()
+
+	return curr, nil
+}
+
 func (s *service) get(key string) (string, error) {
+	t := time.Now()
+
+	requestsTotal.WithLabelValues("Get").Inc()
 	cl := s.leader
 
 	n := *s.clients[cl].con
 	ctx, cancel := context.WithTimeout(context.Background(), 300*time.Millisecond)
 	defer cancel()
 	val, err := n.Get(ctx, &pb.GetKey{Key: key})
+	requestLatency.WithLabelValues("Get").Observe(float64(time.Since(t)) / 1000_000)
 	if err != nil {
 		return "", err
 	}
+
 	return val.Value, nil
 }
 

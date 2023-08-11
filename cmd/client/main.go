@@ -36,7 +36,6 @@ func main() {
 	http.HandleFunc("/set", clh.Set)
 	http.HandleFunc("/automate-get", clh.AutomateGet)
 	http.HandleFunc("/automate-set", clh.AutomateSet)
-	http.HandleFunc("/req-count", clh.RequestStatus)
 	http.Handle("/metrics", promhttp.Handler())
 	log.Fatal(http.ListenAndServe(":8080", nil))
 

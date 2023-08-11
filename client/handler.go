@@ -3,7 +3,6 @@ package clientdiscovery
 import (
 	"fmt"
 	"net/http"
-	"strconv"
 	"time"
 )
 
@@ -86,6 +85,16 @@ func (ch *clientHandler) Set(w http.ResponseWriter, r *http.Request) {
 func (ch *clientHandler) AutomateGet(w http.ResponseWriter, r *http.Request) {
 	//duration := r.URL.Query().Get("duration")
 	// tr := r.URL.Query().Get("requests")
+	duration := r.URL.Query().Get("duration")
+	tr := r.URL.Query().Get("requests")
+	sleep := r.URL.Query().Get("sleep")
+	// we need to send data as well
+	val, err := ch.service.automateGet(duration, tr, sleep)
+	if err != nil {
+		w.Write([]byte(err.Error()))
+	} else {
+		w.Write([]byte(fmt.Sprint(val)))
+	}
 
 }
 
@@ -99,16 +108,5 @@ func (ch *clientHandler) AutomateSet(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(err.Error()))
 	} else {
 		w.Write([]byte(fmt.Sprint(val)))
-	}
-}
-
-func (ch *clientHandler) RequestStatus(w http.ResponseWriter, r *http.Request) {
-	rr := r.URL.Query().Get("r")
-	d, _ := strconv.Atoi(rr)
-
-	if d != curr {
-		w.Write([]byte("Invalid request "))
-	} else {
-		w.Write([]byte(fmt.Sprintf("errCount ::%d and successCount ::%d", errCount, count)))
 	}
 }
