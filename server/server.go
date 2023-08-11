@@ -7,17 +7,6 @@ import (
 	"github.com/kdsama/kdb/consensus"
 	"github.com/kdsama/kdb/logger"
 	"github.com/kdsama/kdb/store"
-	"github.com/prometheus/client_golang/prometheus"
-)
-
-var (
-	requestsTotal = prometheus.NewCounterVec(
-		prometheus.CounterOpts{
-			Name: "ps_http_requests_total",
-			Help: "Total number of HTTP requests",
-		},
-		[]string{"reqtype"},
-	)
 )
 
 // all of this should be done in the consensus folder for now
@@ -118,8 +107,4 @@ func (s *Server) SetRecord(data *[]byte) error {
 func (s *Server) Broadcast(addr, leader string) error {
 	fmt.Println("CS is ", s.cs)
 	return s.cs.Broadcast(addr, leader)
-}
-
-func init() {
-	prometheus.MustRegister(requestsTotal)
 }

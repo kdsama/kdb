@@ -119,7 +119,7 @@ func (s *service) set(key, val string) error {
 
 func (s *service) get(key string) (string, error) {
 	cl := s.leader
-	fmt.Println("Random client we are taking is ", cl)
+
 	n := *s.clients[cl].con
 	ctx, cancel := context.WithTimeout(context.Background(), 300*time.Millisecond)
 	defer cancel()
@@ -132,7 +132,7 @@ func (s *service) get(key string) (string, error) {
 
 func (s *service) getRandom(key string) (string, error) {
 	cl := s.getRandomClient()
-	fmt.Println("Random client we are taking is ", cl)
+	fmt.Println("Random client we are taking is  <><><><><><>", cl)
 	n := *s.clients[cl].con
 	ctx, cancel := context.WithTimeout(context.Background(), 300*time.Millisecond)
 	defer cancel()

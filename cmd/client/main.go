@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	cd "github.com/kdsama/kdb/client"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 var (
@@ -31,11 +32,11 @@ func main() {
 	// to get data from leader
 	http.HandleFunc("/get", clh.Get)
 	// To get data from random spawn server
-	http.HandleFunc("/get-random", clh.Get)
+	http.HandleFunc("/get-random", clh.GetRandom)
 	http.HandleFunc("/set", clh.Set)
 	http.HandleFunc("/automate-get", clh.AutomateGet)
 	http.HandleFunc("/automate-set", clh.AutomateSet)
-
+	http.Handle("/metrics", promhttp.Handler())
 	log.Fatal(http.ListenAndServe(":8080", nil))
 
 }

@@ -21,15 +21,33 @@ package server
 
 import (
 	"context"
+	"os"
+	"time"
 
 	"github.com/kdsama/kdb/config"
 	pb "github.com/kdsama/kdb/protodata"
+	"github.com/prometheus/client_golang/prometheus"
 )
 
 type Handler struct {
 	pb.UnimplementedConsensusServer
 	server *Server
 }
+
+var (
+	requestsTotal = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: os.Args[1] + "_ps_http_requests_total",
+			Help: "Total number of HTTP requests",
+		},
+		[]string{"reqtype"},
+	)
+	requestLatency = prometheus.NewHistogramVec(prometheus.HistogramOpts{
+		Name:    os.Args[1] + "_ps_request_latency",
+		Help:    "btree inserts :: btree layer",
+		Buckets: []float64{0.0, 20.0, 40.0, 60.0, 80.0, 100.0, 160.0, 180.0, 200.0, 400.0, 800.0, 1600.0},
+	}, []string{"reqtype"})
+)
 
 func NewHandler(server *Server) *Handler {
 	return &Handler{server: server}
@@ -48,37 +66,44 @@ func (s *Handler) SendRecord(ctx context.Context, in *pb.WalEntry) (*pb.WalRespo
 	switch in.Status {
 	case int32(config.Acknowledge):
 		// a function is required to just add a wal entry
-
+		t := time.Now()
 		s.server.AcknowledgeRecord(&in.Entry)
+		requestLatency.WithLabelValues("Acknowledge").Observe(float64(time.Since(t)) / 1000)
 
 	case int32(config.Commit):
-
+		t := time.Now()
 		s.server.SetRecord(&in.Entry)
+		requestLatency.WithLabelValues("Commit").Observe(float64(time.Since(t)) / 1000)
 	}
 
 	return &pb.WalResponse{Message: "ok"}, nil
+
 }
 func (s *Handler) Get(ctx context.Context, in *pb.GetKey) (*pb.GetResponse, error) {
-
+	t := time.Now()
 	val, err := s.server.Get(in.Key)
 	if err != nil {
 		return &pb.GetResponse{Value: ""}, err
 	}
+	requestLatency.WithLabelValues("Get").Observe(float64(time.Since(t)) / 1000)
 	return &pb.GetResponse{Value: val}, nil
 }
 func (s *Handler) Set(ctx context.Context, in *pb.SetKey) (*pb.SetKeyResponse, error) {
-
+	t := time.Now()
 	err := s.server.Add(in.Key, in.Value)
 	if err != nil {
 		return &pb.SetKeyResponse{Message: ""}, err
 	}
+	requestLatency.WithLabelValues("Set").Observe(float64(time.Since(t)) / 1000)
 	return &pb.SetKeyResponse{Message: "OK"}, nil
 }
 
 func (s *Handler) Broadcast(ctx context.Context, in *pb.BroadcastNode) (*pb.BroadcastNodeResponse, error) {
 
 	// ADD NODE TO EXISTING NODES
+	t := time.Now()
 	s.server.Broadcast(in.Addr, in.Leader)
+	requestLatency.WithLabelValues("Set").Observe(float64(time.Since(t)) / 1000)
 	return &pb.BroadcastNodeResponse{Message: "Ok"}, nil
 }
 
@@ -90,3 +115,7 @@ func (s *Handler) Broadcast(ctx context.Context, in *pb.BroadcastNode) (*pb.Broa
 // 	}
 // 	return &pb.GetResponse{Value: val.Value}, nil
 // }
+
+func init() {
+	prometheus.MustRegister(requestsTotal, requestLatency)
+}
