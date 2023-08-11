@@ -3,7 +3,6 @@ package consensus
 import (
 	"context"
 	"errors"
-	"fmt"
 	"sync"
 	"time"
 
@@ -126,7 +125,7 @@ func (cs *ConsensusService) SendTransaction(data []byte, TxnID string) error {
 			defer wg.Done()
 
 			err := client.SendRecord(ctx, &d, config.Acknowledge)
-			fmt.Println("Err::::", err)
+
 			resultCh <- err
 		}()
 	}

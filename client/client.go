@@ -5,13 +5,30 @@ import (
 	"errors"
 	"fmt"
 	"math/rand"
+	"os"
 	"strconv"
 	"sync"
 	"time"
 
 	pb "github.com/kdsama/kdb/protodata"
+	"github.com/prometheus/client_golang/prometheus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+)
+
+var (
+	requestsTotal = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: os.Args[1] + "_client_http_requests_total",
+			Help: "Total number of requests of different type",
+		},
+		[]string{"reqtype"},
+	)
+	requestLatency = prometheus.NewHistogramVec(prometheus.HistogramOpts{
+		Name:    os.Args[1] + "_client_request_latency",
+		Help:    "requests latency in milliseconds, checked in the service layer, not handler",
+		Buckets: []float64{0.0, 2.0, 4.0, 6.0, 8.0, 10.0, 20.0, 40.0, 60.0, 80.0, 100.0, 160.0, 180.0, 200.0, 400.0, 800.0, 1000.0, 2000.0},
+	}, []string{"reqtype"})
 )
 
 // we need to have connections to the servers present here
@@ -114,11 +131,14 @@ func (s *service) broadcast(addr string) error {
 }
 
 func (s *service) set(key, val string) error {
+	t := time.Now()
+	fmt.Println("Why are we not setting anything here ??? ")
 	requestsTotal.WithLabelValues("Set").Inc()
 	n := *s.clients[s.leader].con
 	ctx, cancel := context.WithTimeout(context.Background(), 300*time.Millisecond)
 	defer cancel()
 	_, err := n.Set(ctx, &pb.SetKey{Key: key, Value: val})
+	requestLatency.WithLabelValues("Set").Observe(float64(time.Since(t)) / 1000_000)
 	if err != nil {
 		return err
 	}
@@ -126,7 +146,7 @@ func (s *service) set(key, val string) error {
 }
 
 func (s *service) automateSet(duration, requests, sleep string) (int, error) {
-	rp, sp := 10000, 10
+	rp, sp := 100000, 500
 
 	if curr != 0 {
 		return -1, errors.New("A request is still getting completed")
@@ -149,18 +169,20 @@ func (s *service) automateSet(duration, requests, sleep string) (int, error) {
 	go func() {
 
 		for i := 0; i < rp; i++ {
+			fmt.Println("woah")
+			time.Sleep(time.Duration(sp) * time.Microsecond)
 
-			time.Sleep(time.Duration(sp) * time.Millisecond)
-			n := *s.clients[s.leader].con
-			ctx, cancel := context.WithTimeout(context.Background(), 300*time.Millisecond)
-			defer cancel()
 			rand.Seed(time.Now().Unix())
-			_, err := n.Set(ctx, &pb.SetKey{Key: "key" + fmt.Sprint(rand.Intn(10000)), Value: "val" + fmt.Sprint(rand.Intn(10000))})
-			if err != nil {
-				errCount++
-			} else {
-				count++
-			}
+			go func() {
+				err := s.set("key"+fmt.Sprint(rand.Intn(10000)), "val"+fmt.Sprint(rand.Intn(10000)))
+				if err != nil {
+
+					errCount++
+				} else {
+
+					count++
+				}
+			}()
 		}
 
 		curr = 0
@@ -198,4 +220,8 @@ func (s *service) getRandom(key string) (string, error) {
 func (s *service) getRandomClient() string {
 	rand.Seed(time.Now().Unix())
 	return s.addresses[rand.Intn(len(s.addresses))]
+}
+
+func init() {
+	prometheus.MustRegister(requestsTotal, requestLatency)
 }

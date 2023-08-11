@@ -3,28 +3,11 @@ package clientdiscovery
 import (
 	"fmt"
 	"net/http"
-	"os"
 	"strconv"
 	"time"
-
-	"github.com/prometheus/client_golang/prometheus"
 )
 
 // here all the handlers will come
-var (
-	requestsTotal = prometheus.NewCounterVec(
-		prometheus.CounterOpts{
-			Name: os.Args[1] + "_client_http_requests_total",
-			Help: "Total number of HTTP requests",
-		},
-		[]string{"reqtype"},
-	)
-	requestLatency = prometheus.NewHistogramVec(prometheus.HistogramOpts{
-		Name:    os.Args[1] + "_client_request_latency",
-		Help:    "btree inserts :: btree layer",
-		Buckets: []float64{0.0, 20.0, 40.0, 60.0, 80.0, 100.0, 160.0, 180.0, 200.0, 400.0, 800.0, 1600.0},
-	}, []string{"reqtype"})
-)
 
 type clientHandler struct {
 	service *service
@@ -40,7 +23,7 @@ func (ch *clientHandler) AddServer(w http.ResponseWriter, r *http.Request) {
 	t := time.Now()
 	requestsTotal.WithLabelValues("AddServer").Inc()
 	val := r.URL.Query().Get("name")
-	fmt.Println("Name is ", val)
+
 	if val != "" {
 
 		err := ch.service.addServer(val)
@@ -88,7 +71,6 @@ func (ch *clientHandler) GetRandom(w http.ResponseWriter, r *http.Request) {
 
 func (ch *clientHandler) Set(w http.ResponseWriter, r *http.Request) {
 	// to be done only to the leader
-	t := time.Now()
 
 	key := r.URL.Query().Get("key")
 	val := r.URL.Query().Get("value")
@@ -99,7 +81,6 @@ func (ch *clientHandler) Set(w http.ResponseWriter, r *http.Request) {
 
 		w.Write([]byte("OK"))
 	}
-	requestLatency.WithLabelValues("Set").Observe(float64(time.Since(t)) / 1000)
 
 }
 func (ch *clientHandler) AutomateGet(w http.ResponseWriter, r *http.Request) {
@@ -130,8 +111,4 @@ func (ch *clientHandler) RequestStatus(w http.ResponseWriter, r *http.Request) {
 	} else {
 		w.Write([]byte(fmt.Sprintf("errCount ::%d and successCount ::%d", errCount, count)))
 	}
-}
-
-func init() {
-	prometheus.MustRegister(requestsTotal, requestLatency)
 }
