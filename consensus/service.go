@@ -206,7 +206,8 @@ func (cs *ConsensusService) SendTransactionConfirmation(data []byte, TxnID strin
 
 func (cs *ConsensusService) Broadcast(addresses []string, leader string) error {
 	// add the node if it doesnot exist already
-
+	cs.logger.Infof("So my state is ", cs.state)
+	cs.logger.Infof("The received addresses are ", addresses)
 	for _, addr := range addresses {
 		if _, ok := cs.clients[addr]; !ok {
 
@@ -218,10 +219,10 @@ func (cs *ConsensusService) Broadcast(addresses []string, leader string) error {
 			cs.addresses = append(cs.addresses, addr)
 		}
 	}
-	if cs.name == leader {
-		cs.state = Leader
+	if cs.name != leader {
+		cs.state = Follower
 	}
-	cs.state = Follower
+	cs.logger.Infof("Our current leader is %s", cs.currLeader)
 
 	if len(addresses) == 1 {
 		// means I am the daddy caddy
