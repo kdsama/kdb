@@ -1,8 +1,6 @@
 package server
 
 import (
-	"fmt"
-
 	"github.com/kdsama/kdb/config"
 	"github.com/kdsama/kdb/consensus"
 	"github.com/kdsama/kdb/logger"
@@ -109,6 +107,10 @@ func (s *Server) SetRecord(data *[]byte) error {
 	return s.kv.SetRecord(data)
 }
 func (s *Server) Broadcast(addr, leader string) error {
-	fmt.Println("CS is ", s.cs)
+
 	return s.cs.Broadcast(addr, leader)
+}
+
+func (s *Server) Vote(term int, leader string) (string, bool) {
+	return s.cs.Vote(term, leader)
 }

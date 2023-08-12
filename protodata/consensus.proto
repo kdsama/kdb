@@ -30,6 +30,7 @@ service Consensus {
   rpc Set(SetKey) returns (SetKeyResponse) {}
   rpc GetMany(GetSeveralKeys) returns (GetSeveralResponse) {}
   rpc Broadcast(BroadcastNode) returns (BroadcastNodeResponse) {}
+  rpc Vote(VoteNode) returns (VoteNodeResponse) {} 
 }
 
 // The request message containing the user's name.
@@ -86,7 +87,11 @@ message BroadcastNodeResponse {
   string message = 1 ; 
 }
 
-message BroadcastAllNodes {
-  repeated string addr = 1 ; 
-  string leader = 2 ; 
+message VoteNode {
+  string leader = 1 ; 
+  int32 Term = 2 ; 
+}
+message VoteNodeResponse {
+  string leader = 1; 
+  bool status = 2 ; 
 }

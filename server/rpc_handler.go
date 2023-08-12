@@ -109,6 +109,15 @@ func (s *Handler) Broadcast(ctx context.Context, in *pb.BroadcastNode) (*pb.Broa
 	return &pb.BroadcastNodeResponse{Message: "Ok"}, nil
 }
 
+func (s *Handler) Vote(ctx context.Context, in *pb.VoteNode) (*pb.VoteNodeResponse, error) {
+
+	// ADD NODE TO EXISTING NODES
+	t := time.Now()
+	leader, status := s.server.Vote(int(in.Term), in.Leader)
+	requestLatency.WithLabelValues("Vote_For_Leader").Observe(float64(time.Since(t)) / 1000)
+	return &pb.VoteNodeResponse{Leader: leader, Status: status}, nil
+}
+
 // func (s *Handler) GetSeveral(ctx context.Context, in *pb.GetKey) (*pb.GetSeveralKeys, error) {
 // 	counter++
 // 	val, err := s.kv.GetNode(in.Key)

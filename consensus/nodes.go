@@ -11,7 +11,6 @@ import (
 )
 
 type Nodes struct {
-	leader    bool
 	name      string
 	con       *pb.ConsensusClient
 	ticker    time.Ticker
@@ -27,33 +26,8 @@ func NewNodes(name string, con *pb.ConsensusClient, factor int, logger *logger.L
 	t := time.Duration(factor) * time.Second
 	ticker := *time.NewTicker(t)
 
-	c := &Nodes{false, name, con, ticker, time.Now(), factor, logger, false, 0}
-
-	go c.Schedule()
+	c := &Nodes{name, con, ticker, time.Now(), factor, logger, false, 0}
 	return c
-}
-
-// scheduling will be done only by the leader
-// so we cannot initiate it while creating a client object
-func (c *Nodes) Schedule() {
-
-	for {
-		select {
-		case <-c.ticker.C:
-			{
-				c.HearbeatCheck()
-			}
-		}
-	}
-}
-
-func (c *Nodes) HearbeatCheck() {
-	if !c.leader {
-	}
-
-	// if time.Since(c.lastBeat) > 3*time.Duration(c.factor)*time.Second {
-	// 	// c.logger.Errorf("The leader is dead I shall ask other nodes about it, but this layer has no idea about other nodes, so Need to remove ticker from here")
-	// }
 }
 
 func (c *Nodes) Hearbeat() error {

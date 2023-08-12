@@ -29,6 +29,7 @@ type ConsensusClient interface {
 	Set(ctx context.Context, in *SetKey, opts ...grpc.CallOption) (*SetKeyResponse, error)
 	GetMany(ctx context.Context, in *GetSeveralKeys, opts ...grpc.CallOption) (*GetSeveralResponse, error)
 	Broadcast(ctx context.Context, in *BroadcastNode, opts ...grpc.CallOption) (*BroadcastNodeResponse, error)
+	Vote(ctx context.Context, in *VoteNode, opts ...grpc.CallOption) (*VoteNodeResponse, error)
 }
 
 type consensusClient struct {
@@ -93,6 +94,15 @@ func (c *consensusClient) Broadcast(ctx context.Context, in *BroadcastNode, opts
 	return out, nil
 }
 
+func (c *consensusClient) Vote(ctx context.Context, in *VoteNode, opts ...grpc.CallOption) (*VoteNodeResponse, error) {
+	out := new(VoteNodeResponse)
+	err := c.cc.Invoke(ctx, "/consensus.Consensus/Vote", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ConsensusServer is the server API for Consensus service.
 // All implementations must embed UnimplementedConsensusServer
 // for forward compatibility
@@ -104,6 +114,7 @@ type ConsensusServer interface {
 	Set(context.Context, *SetKey) (*SetKeyResponse, error)
 	GetMany(context.Context, *GetSeveralKeys) (*GetSeveralResponse, error)
 	Broadcast(context.Context, *BroadcastNode) (*BroadcastNodeResponse, error)
+	Vote(context.Context, *VoteNode) (*VoteNodeResponse, error)
 	mustEmbedUnimplementedConsensusServer()
 }
 
@@ -128,6 +139,9 @@ func (UnimplementedConsensusServer) GetMany(context.Context, *GetSeveralKeys) (*
 }
 func (UnimplementedConsensusServer) Broadcast(context.Context, *BroadcastNode) (*BroadcastNodeResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Broadcast not implemented")
+}
+func (UnimplementedConsensusServer) Vote(context.Context, *VoteNode) (*VoteNodeResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Vote not implemented")
 }
 func (UnimplementedConsensusServer) mustEmbedUnimplementedConsensusServer() {}
 
@@ -250,6 +264,24 @@ func _Consensus_Broadcast_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Consensus_Vote_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(VoteNode)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ConsensusServer).Vote(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/consensus.Consensus/Vote",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ConsensusServer).Vote(ctx, req.(*VoteNode))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Consensus_ServiceDesc is the grpc.ServiceDesc for Consensus service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -280,6 +312,10 @@ var Consensus_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Broadcast",
 			Handler:    _Consensus_Broadcast_Handler,
+		},
+		{
+			MethodName: "Vote",
+			Handler:    _Consensus_Vote_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

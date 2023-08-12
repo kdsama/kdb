@@ -3,7 +3,6 @@ package consensus
 import (
 	"context"
 	"errors"
-	"fmt"
 	"sync"
 	"time"
 
@@ -46,18 +45,20 @@ const (
 )
 
 type ConsensusService struct {
-	leader    bool
-	name      string
-	logger    *logger.Logger
-	ticker    *time.Ticker
-	recTicker *time.Ticker
-	clientMux *sync.Mutex
-	clients   map[string]*Nodes
-	wg        map[string]*sync.WaitGroup
-	addresses []string
-	state     stateLevel
-	active    int // active nodes
-	lastBeat  time.Time
+	leader     bool
+	currLeader string
+	name       string
+	logger     *logger.Logger
+	ticker     *time.Ticker
+	recTicker  *time.Ticker
+	clientMux  *sync.Mutex
+	clients    map[string]*Nodes
+	wg         map[string]*sync.WaitGroup
+	addresses  []string
+	state      stateLevel
+	active     int // active nodes
+	lastBeat   time.Time
+	term       int
 }
 
 func NewConsensusService(name string, logger *logger.Logger) *ConsensusService {
@@ -228,6 +229,10 @@ func (cs *ConsensusService) Broadcast(addr, leader string) error {
 		cs.addresses = append(cs.addresses, addr)
 
 	}
-	fmt.Println("All addresses are", cs.clients)
+	if len(cs.addresses) == 1 {
+		// means I am the daddy caddy
+		//  I am gonna become the leader. At
+		cs.electMeAndBroadcast()
+	}
 	return nil
 }

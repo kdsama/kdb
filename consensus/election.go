@@ -1,5 +1,7 @@
 package consensus
 
+import "fmt"
+
 // now we have to talk about election
 
 // so a node will wait for a certain amount of time
@@ -33,3 +35,47 @@ package consensus
 // if others have election term size thats less. we just vote for the guy
 // if the election term size is the same + vote has been casted (leader value is different) we send back false, else we just send true
 // first we need to make sure we connect all servers with each other.
+
+func (cs *ConsensusService) electMeAndBroadcast() {
+	cs.term++
+	cs.askForVote()
+}
+
+func (cs *ConsensusService) askForVote() {
+	// we give ourselves vote first
+	voteCount := 1
+	for key, _ := range cs.clients {
+		//cs.Votefor Me()
+		fmt.Println("key ", key)
+	}
+	if voteCount > len(cs.clients)/2 {
+		// I am the new leader now
+		// stop my receiver ticker for heartbeat
+		// my ticker for heartbeat is already
+		cs.leader = true
+		cs.recTicker.Stop()
+	} else {
+		// now there are two cases here
+		// where somebody else have gotten a lot of votes
+		// or somebody else has gotten equal votes as you
+		// how to figure this out ??
+		// lets say we also return the leader in case they are not voting for you .
+		// if the count is same as yours , we increase the election term value and do another vote
+		// else we make the received value as the new leader
+		// need new messages for rpc
+	}
+
+}
+
+func (cs *ConsensusService) Vote(term int, leader string) (string, bool) {
+	if term > cs.term {
+		// we are not persisting the information that who is the leader as of now
+		// maybe we will put it on the node side
+		// but that means we dont instantly have that information
+		// so need to make changes about that
+		cs.term = term
+		cs.currLeader = leader
+		return cs.currLeader, true
+	}
+	return cs.currLeader, false
+}
