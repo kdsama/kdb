@@ -31,7 +31,7 @@ func (lg *Logger) Infof(format string, args ...any) {
 	if lg.date {
 		prefix += TemplateSeparator + time.Now().String()
 	}
-	lg.logf(format, args...)
+	lg.logf(prefix+format, args...)
 }
 
 func (lg *Logger) Warnf(format string, args ...any) {

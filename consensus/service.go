@@ -208,8 +208,10 @@ func (cs *ConsensusService) Broadcast(addr, leader string) error {
 		// if leader and ticker not running , run it
 		cs.clients[addr] = NewNodes(addr, client, 5, cs.logger)
 		if addr == leader {
+			cs.logger.Infof("Leadership confirmed")
 			cs.leader = true
 			cs.state = Leader
+			cs.logger.Infof("I am god, destroyer of the world ")
 			go cs.Schedule()
 		} else if addr == cs.name {
 			cs.state = Follower
@@ -233,37 +235,32 @@ func (cs *ConsensusService) connectClients() {
 	// leader should be set here before any connection
 	// and each of them should have the information about the leader as well
 	// need to sit and think this one through
-
+	cs.logger.Infof("Scheduling client connection")
 	for _, addr := range cs.addresses {
 		addr := addr
 		val, ok := cs.clients[addr]
+		if addr == cs.name {
+			continue
+		}
 		if ok {
 			// has the client layer marked itself to be deleted ?
 			if val.delete {
 				cs.clientMux.Lock()
 				delete(cs.clients, val.name)
 				cs.clientMux.Unlock()
-			} else {
-
-				continue
 			}
 
-		}
-		if addr == cs.name {
-			continue
-		}
+		} else {
+			conn, err := connect(addr)
+			if err != nil {
+				cs.logger.Errorf("%v", err)
+			}
 
-		conn, err := connect(addr)
-		if err != nil {
-			cs.logger.Errorf("%v", err)
+			nc := NewNodes(addr, conn, 7, cs.logger)
+			cs.clients[nc.name] = nc
 		}
-
-		nc := NewNodes(addr, conn, 7, cs.logger)
-		cs.clients[nc.name] = nc
-		if cs.leader {
-			go cs.Schedule()
-		}
-
+		// we are going to generate heartbeat from the server code instead of nodes.go
+		go cs.clients[addr].Hearbeat()
 	}
 
 }
