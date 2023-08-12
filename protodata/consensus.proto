@@ -31,6 +31,7 @@ service Consensus {
   rpc GetMany(GetSeveralKeys) returns (GetSeveralResponse) {}
   rpc Broadcast(BroadcastNode) returns (BroadcastNodeResponse) {}
   rpc Vote(VoteNode) returns (VoteNodeResponse) {} 
+  rpc LeaderInfo(AskLeader) returns (LeaderInfoResponse) {}
 }
 
 // The request message containing the user's name.
@@ -94,4 +95,9 @@ message VoteNode {
 message VoteNodeResponse {
   string leader = 1; 
   bool status = 2 ; 
+}
+
+message AskLeader{}
+message LeaderInfoResponse {
+  string leader = 1;
 }

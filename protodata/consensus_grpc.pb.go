@@ -30,6 +30,7 @@ type ConsensusClient interface {
 	GetMany(ctx context.Context, in *GetSeveralKeys, opts ...grpc.CallOption) (*GetSeveralResponse, error)
 	Broadcast(ctx context.Context, in *BroadcastNode, opts ...grpc.CallOption) (*BroadcastNodeResponse, error)
 	Vote(ctx context.Context, in *VoteNode, opts ...grpc.CallOption) (*VoteNodeResponse, error)
+	LeaderInfo(ctx context.Context, in *AskLeader, opts ...grpc.CallOption) (*LeaderInfoResponse, error)
 }
 
 type consensusClient struct {
@@ -103,6 +104,15 @@ func (c *consensusClient) Vote(ctx context.Context, in *VoteNode, opts ...grpc.C
 	return out, nil
 }
 
+func (c *consensusClient) LeaderInfo(ctx context.Context, in *AskLeader, opts ...grpc.CallOption) (*LeaderInfoResponse, error) {
+	out := new(LeaderInfoResponse)
+	err := c.cc.Invoke(ctx, "/consensus.Consensus/LeaderInfo", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ConsensusServer is the server API for Consensus service.
 // All implementations must embed UnimplementedConsensusServer
 // for forward compatibility
@@ -115,6 +125,7 @@ type ConsensusServer interface {
 	GetMany(context.Context, *GetSeveralKeys) (*GetSeveralResponse, error)
 	Broadcast(context.Context, *BroadcastNode) (*BroadcastNodeResponse, error)
 	Vote(context.Context, *VoteNode) (*VoteNodeResponse, error)
+	LeaderInfo(context.Context, *AskLeader) (*LeaderInfoResponse, error)
 	mustEmbedUnimplementedConsensusServer()
 }
 
@@ -142,6 +153,9 @@ func (UnimplementedConsensusServer) Broadcast(context.Context, *BroadcastNode) (
 }
 func (UnimplementedConsensusServer) Vote(context.Context, *VoteNode) (*VoteNodeResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Vote not implemented")
+}
+func (UnimplementedConsensusServer) LeaderInfo(context.Context, *AskLeader) (*LeaderInfoResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method LeaderInfo not implemented")
 }
 func (UnimplementedConsensusServer) mustEmbedUnimplementedConsensusServer() {}
 
@@ -282,6 +296,24 @@ func _Consensus_Vote_Handler(srv interface{}, ctx context.Context, dec func(inte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Consensus_LeaderInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AskLeader)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ConsensusServer).LeaderInfo(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/consensus.Consensus/LeaderInfo",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ConsensusServer).LeaderInfo(ctx, req.(*AskLeader))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Consensus_ServiceDesc is the grpc.ServiceDesc for Consensus service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -316,6 +348,10 @@ var Consensus_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Vote",
 			Handler:    _Consensus_Vote_Handler,
+		},
+		{
+			MethodName: "LeaderInfo",
+			Handler:    _Consensus_LeaderInfo_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

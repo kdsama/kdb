@@ -2,6 +2,7 @@ package consensus
 
 import (
 	"context"
+	"errors"
 	"math/rand"
 	"sync"
 	"time"
@@ -43,8 +44,21 @@ import (
 // if the election term size is the same + vote has been casted (leader value is different) we send back false, else we just send true
 // first we need to make sure we connect all servers with each other.
 
+// there is problem with relaying the information about leadership
+// maybe when a server is initialized , from all the nodes ,we will tell it which one is the leader. So the server need to asks itself
+// If there is no servers yet we will vote ourself to be the leader.
+// so basically we need to start this once , we get all the server names from the broadcast in the array
+
 func (cs *ConsensusService) electMeAndBroadcast() {
+	rand.Seed(time.Now().UnixMicro())
+	time.Sleep(time.Duration(100 + rand.Intn(150)))
 	cs.term++
+	if len(cs.addresses) == 1 {
+		return
+		// dont do nothing
+		// just return
+		// you are not going to ask for vote from nobody
+	}
 	cs.askForVote()
 }
 
@@ -56,6 +70,9 @@ func (cs *ConsensusService) askForVote() {
 
 	for key, _ := range cs.clients {
 		//cs.Votefor Me()
+		if key == cs.name {
+			continue
+		}
 		key := key
 		go func() {
 			defer wg.Done()
@@ -72,11 +89,11 @@ func (cs *ConsensusService) askForVote() {
 		// my ticker for heartbeat is already
 
 		cs.state = Leader
+
 		cs.recTicker.Stop()
 	} else if voteCount == len(cs.clients)/2 {
 		cs.term++
-		rand.Seed(time.Now().UnixMicro())
-		time.Sleep(time.Duration(100 + rand.Intn(150)))
+
 		cs.electMeAndBroadcast()
 
 	} else {
@@ -105,4 +122,52 @@ func (cs *ConsensusService) Vote(term int, leader string) (string, bool) {
 		return cs.currLeader, true
 	}
 	return cs.currLeader, false
+}
+
+func (cs *ConsensusService) LeaderInfo() (string, error) {
+	if cs.currLeader == "" {
+		return "", errors.New("there is not leader ")
+	}
+	return cs.currLeader, nil
+}
+
+func (cs *ConsensusService) askWhoIsTheLeader() {
+	// we give ourselves vote first
+
+	wg := sync.WaitGroup{}
+	wg.Add(len(cs.clients))
+	leaderMap := map[string]int{}
+	max := -1
+	leader := ""
+	for key, _ := range cs.clients {
+		//cs.Votefor Me()
+		key := key
+		go func() {
+			defer wg.Done()
+			ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
+			defer cancel()
+			conn := *cs.clients[key].con
+			ldResponse, err := conn.LeaderInfo(ctx, &protodata.AskLeader{})
+			cs.logger.Infof("Error is %v", err)
+			cs.logger.Infof("LD RESPONSE %V", ldResponse)
+			if err == nil {
+				cs.clientMux.Lock()
+				leaderMap[ldResponse.Leader]++
+				if leaderMap[ldResponse.Leader] > max {
+					max = leaderMap[ldResponse.Leader]
+					leader = ldResponse.Leader
+				}
+				cs.clientMux.Unlock()
+			}
+
+		}()
+	}
+	wg.Wait()
+	if leader == "" || leaderMap[leader] < len(cs.clients)/2 {
+		cs.logger.Infof("Leader %s, leaderMap Count %d , total clients %d", leader, leaderMap[leader], len(cs.clients))
+		cs.logger.Fatalf("WTF this is not what I was expecting")
+	}
+	cs.logger.Infof("Our new leader is %s", leader)
+	cs.currLeader = leader
+
 }

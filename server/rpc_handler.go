@@ -118,6 +118,13 @@ func (s *Handler) Vote(ctx context.Context, in *pb.VoteNode) (*pb.VoteNodeRespon
 	return &pb.VoteNodeResponse{Leader: leader, Status: status}, nil
 }
 
+func (s *Handler) LeaderInfo(ctx context.Context, in *pb.AskLeader) (*pb.LeaderInfoResponse, error) {
+	leader, err := s.server.LeaderInfo()
+
+	return &pb.LeaderInfoResponse{Leader: leader}, err
+
+}
+
 // func (s *Handler) GetSeveral(ctx context.Context, in *pb.GetKey) (*pb.GetSeveralKeys, error) {
 // 	counter++
 // 	val, err := s.kv.GetNode(in.Key)
