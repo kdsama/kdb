@@ -99,7 +99,7 @@ func (cs *ConsensusService) lastHeatBeatCheck() {
 	}
 	if time.Since(cs.lastBeat) > 5*time.Second {
 		cs.logger.Errorf("Oh no , our leader died I shall become the next leader")
-		return
+
 	}
 
 }

@@ -78,11 +78,13 @@ func (s *service) addServer(addr string) error {
 			con:    client,
 		}
 		s.addresses = append(s.addresses, addr)
-		if len(s.addresses)-1 == 0 {
-			s.clients[addr].leader = true
-			s.leader = addr
-			// first server<-- make it the leader
-		}
+
+		// removed leader code
+		// if len(s.addresses)-1 == 0 {
+		// 	s.clients[addr].leader = true
+		// 	s.leader = addr
+		// 	// first server<-- make it the leader
+		// }
 		s.broadcast(addr)
 
 	} else {
