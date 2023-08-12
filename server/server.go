@@ -106,7 +106,7 @@ func (s *Server) AcknowledgeRecord(data *[]byte) error {
 func (s *Server) SetRecord(data *[]byte) error {
 	return s.kv.SetRecord(data)
 }
-func (s *Server) Broadcast(addr, leader string) error {
+func (s *Server) Broadcast(addr []string, leader string) error {
 
 	return s.cs.Broadcast(addr, leader)
 }

@@ -94,6 +94,7 @@ func (cs *ConsensusService) HeartbeatAck() {
 
 // last heart beat check , this will help us decide the candidacy
 func (cs *ConsensusService) lastHeatBeatCheck() {
+	cs.logger.Infof("Our master is %s", cs.currLeader)
 	if cs.state == Leader {
 		return
 	}

@@ -102,7 +102,7 @@ func (s *service) shareAllAddressesWithNewNode(a string) {
 		n := *s.clients[a].con
 		ctx, cancel := context.WithTimeout(context.Background(), 300*time.Millisecond)
 		defer cancel()
-		response, err := n.Broadcast(ctx, &pb.BroadcastNode{Addr: addr})
+		response, err := n.Broadcast(ctx, &pb.BroadcastNode{Addr: s.addresses})
 		if err != nil {
 			fmt.Println(err)
 		}
@@ -123,7 +123,7 @@ func (s *service) broadcast(addr string) error {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			response, err := n.Broadcast(ctx, &pb.BroadcastNode{Addr: addr})
+			response, err := n.Broadcast(ctx, &pb.BroadcastNode{Addr: s.addresses})
 			if err != nil {
 				fmt.Println(err)
 			}

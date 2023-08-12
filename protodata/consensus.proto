@@ -80,7 +80,7 @@ message HearbeatResponse {
 }
 
 message BroadcastNode {
-  string addr = 1 ; 
+  repeated string addr = 1 ; 
   string leader = 2 ; 
 }
 message BroadcastNodeResponse {

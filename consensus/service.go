@@ -204,33 +204,34 @@ func (cs *ConsensusService) SendTransactionConfirmation(data []byte, TxnID strin
 	return errTransactionBroken
 }
 
-func (cs *ConsensusService) Broadcast(addr, leader string) error {
+func (cs *ConsensusService) Broadcast(addresses []string, leader string) error {
 	// add the node if it doesnot exist already
-	cs.logger.Infof("%s v %v", addr, leader)
-	if _, ok := cs.clients[addr]; !ok {
 
-		client, err := connect(addr)
-		if err != nil {
-			return err
+	for _, addr := range addresses {
+		if _, ok := cs.clients[addr]; !ok {
+
+			client, err := connect(addr)
+			if err != nil {
+				return err
+			}
+			cs.clients[addr] = NewNodes(addr, client, 3, cs.logger)
+			cs.addresses = append(cs.addresses, addr)
 		}
-		// if leader and ticker not running , run it
-		cs.clients[addr] = NewNodes(addr, client, 3, cs.logger)
-		if addr == leader {
-			cs.logger.Infof("Leadership confirmed")
-
-			cs.state = Leader
-			cs.logger.Infof("I am god, destroyer of the world ")
-
-		} else if addr == cs.name {
-			cs.state = Follower
-		}
-		cs.addresses = append(cs.addresses, addr)
-
 	}
-	if len(cs.addresses) == 1 {
+	if cs.name == leader {
+		cs.state = Leader
+	}
+	cs.state = Follower
+
+	if len(addresses) == 1 {
 		// means I am the daddy caddy
 		//  I am gonna become the leader. At
+		// The positioning of this code should be shifted
+		// I am the first one, then Who am I broadcasting information to ?
+		// I think we should be sending server list to each of them, not just the new one
+		// I will change the signature of broadcast in protobuffer
 		cs.electMeAndBroadcast()
 	}
+
 	return nil
 }
