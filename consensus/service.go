@@ -57,6 +57,7 @@ type ConsensusService struct {
 	wg        map[string]*sync.WaitGroup
 	addresses []string
 	state     stateLevel
+	active    int
 }
 
 func NewConsensusService(name string, logger *logger.Logger) *ConsensusService {
@@ -71,6 +72,7 @@ func NewConsensusService(name string, logger *logger.Logger) *ConsensusService {
 		wg:        map[string]*sync.WaitGroup{},
 		addresses: []string{},
 		state:     Initializing,
+		active:    0,
 	}
 }
 
@@ -206,7 +208,7 @@ func (cs *ConsensusService) Broadcast(addr, leader string) error {
 			return err
 		}
 		// if leader and ticker not running , run it
-		cs.clients[addr] = NewNodes(addr, client, 5, cs.logger)
+		cs.clients[addr] = NewNodes(addr, client, 3, cs.logger)
 		if addr == leader {
 			cs.logger.Infof("Leadership confirmed")
 			cs.leader = true
@@ -235,11 +237,14 @@ func (cs *ConsensusService) connectClients() {
 	// leader should be set here before any connection
 	// and each of them should have the information about the leader as well
 	// need to sit and think this one through
-	cs.logger.Infof("Scheduling client connection")
+
+	cs.active = 0
 	for _, addr := range cs.addresses {
+		cs.active++
 		addr := addr
 		val, ok := cs.clients[addr]
 		if addr == cs.name {
+
 			continue
 		}
 		if ok {
@@ -248,22 +253,85 @@ func (cs *ConsensusService) connectClients() {
 				cs.clientMux.Lock()
 				delete(cs.clients, val.name)
 				cs.clientMux.Unlock()
+				cs.active--
 			}
 
 		} else {
+
 			conn, err := connect(addr)
+
 			if err != nil {
 				cs.logger.Errorf("%v", err)
-			}
+				cs.clientMux.Lock()
+				delete(cs.clients, addr)
+				cs.clientMux.Unlock()
+				cs.active--
+				continue
 
+			}
 			nc := NewNodes(addr, conn, 7, cs.logger)
 			cs.clients[nc.name] = nc
 		}
 		// we are going to generate heartbeat from the server code instead of nodes.go
-		go cs.clients[addr].Hearbeat()
+		cs.confirmHeartBeat()
+	}
+}
+
+func (cs *ConsensusService) confirmHeartBeat() {
+	// check for quorum
+	if !cs.leader {
+		return
+	}
+	if cs.active < len(cs.addresses)/2 {
+		// might as well
+		cs.logger.Warnf("Quorum is broken , we have %d active nodes out of %d", cs.active, len(cs.addresses))
+		// no hard action for now
+	}
+
+	var (
+		count    int
+		errCount int
+		quorum   = (len(cs.clients) - 1) / 2
+		wg       sync.WaitGroup
+		resultCh = make(chan error, len(cs.clients))
+	)
+
+	wg.Add(len(cs.clients))
+
+	for _, client := range cs.clients {
+		client := client
+
+		if client.name == cs.name || client.delete {
+			wg.Done()
+			continue
+		}
+
+		go func() {
+			defer wg.Done()
+
+			err := client.Hearbeat()
+
+			resultCh <- err
+		}()
+	}
+
+	wg.Wait()
+	close(resultCh)
+
+	for err := range resultCh {
+		if err != nil {
+			errCount++
+		} else {
+			count++
+		}
+	}
+
+	if count < quorum {
+		cs.logger.Errorf("Quorum is broken")
 	}
 
 }
+
 func connect(addr string) (*pb.ConsensusClient, error) {
 	addr += addressPort
 	conn, err := grpc.Dial(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))

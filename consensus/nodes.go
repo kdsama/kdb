@@ -2,6 +2,7 @@ package consensus
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/kdsama/kdb/config"
@@ -10,14 +11,15 @@ import (
 )
 
 type Nodes struct {
-	leader   bool
-	name     string
-	con      *pb.ConsensusClient
-	ticker   time.Ticker
-	lastBeat time.Time
-	factor   int
-	logger   *logger.Logger
-	delete   bool
+	leader    bool
+	name      string
+	con       *pb.ConsensusClient
+	ticker    time.Ticker
+	lastBeat  time.Time
+	factor    int
+	logger    *logger.Logger
+	delete    bool
+	dcCounter int
 }
 
 func NewNodes(name string, con *pb.ConsensusClient, factor int, logger *logger.Logger) *Nodes {
@@ -25,9 +27,9 @@ func NewNodes(name string, con *pb.ConsensusClient, factor int, logger *logger.L
 	t := time.Duration(factor) * time.Second
 	ticker := *time.NewTicker(t)
 
-	c := &Nodes{false, name, con, ticker, time.Now(), factor, logger, false}
+	c := &Nodes{false, name, con, ticker, time.Now(), factor, logger, false, 0}
 
-	// go c.Schedule()
+	go c.Schedule()
 	return c
 }
 
@@ -39,13 +41,22 @@ func (c *Nodes) Schedule() {
 		select {
 		case <-c.ticker.C:
 			{
-				c.Hearbeat()
+				c.HearbeatCheck()
 			}
 		}
 	}
 }
 
-func (c *Nodes) Hearbeat() {
+func (c *Nodes) HearbeatCheck() {
+	if !c.leader {
+	}
+
+	// if time.Since(c.lastBeat) > 3*time.Duration(c.factor)*time.Second {
+	// 	// c.logger.Errorf("The leader is dead I shall ask other nodes about it, but this layer has no idea about other nodes, so Need to remove ticker from here")
+	// }
+}
+
+func (c *Nodes) Hearbeat() error {
 
 	if time.Since(c.lastBeat) > time.Duration(10*c.factor)*time.Second {
 		c.logger.Errorf("Server %v is dead\n", c.name)
@@ -56,7 +67,7 @@ func (c *Nodes) Hearbeat() {
 
 		// this is us informing the service to delete this
 		c.delete = true
-		return
+		return errors.New("the node is dead to me")
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -66,11 +77,13 @@ func (c *Nodes) Hearbeat() {
 	_, err := (*nc).Ack(ctx, &pb.Hearbeat{Message: "i"})
 	if err != nil {
 		c.logger.Fatalf("Ouch, No heartbeat from %v because of %v \n", c.name, err)
-		return
+		return err
 	}
 	c.lastBeat = time.Now()
+
 	// c.ticker = *time.NewTicker(time.Duration(c.factor) * time.Second)
-	c.logger.Infof("Greeting: from %s ", c.name)
+
+	return nil
 }
 
 func (c *Nodes) SendRecord(ctx context.Context, data *[]byte, state config.RecordState) error {

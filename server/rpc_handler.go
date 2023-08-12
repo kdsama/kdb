@@ -57,7 +57,8 @@ func NewHandler(server *Server) *Handler {
 func (s *Handler) Ack(ctx context.Context, in *pb.Hearbeat) (*pb.HearbeatResponse, error) {
 
 	// log.Printf("Received: %v", in.GetMessage())
-	return &pb.HearbeatResponse{Message: "Hello " + in.GetMessage()}, nil
+	s.server.HeartbeatAck()
+	return &pb.HearbeatResponse{Message: ""}, nil
 }
 
 // Record received, now commit/ acknowledge according to the type of data
