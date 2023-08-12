@@ -3,6 +3,7 @@ package consensus
 import (
 	"context"
 	"errors"
+	"fmt"
 	"sync"
 	"time"
 
@@ -223,9 +224,10 @@ func (cs *ConsensusService) Broadcast(addr, leader string) error {
 
 		} else if addr == cs.name {
 			cs.state = Follower
-		} else {
-			cs.addresses = append(cs.addresses, addr)
 		}
+		cs.addresses = append(cs.addresses, addr)
+
 	}
+	fmt.Println("All addresses are", cs.clients)
 	return nil
 }

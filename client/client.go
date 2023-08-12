@@ -70,7 +70,7 @@ func (s *service) addServer(addr string) error {
 			return errors.New("cannot connect to the server")
 
 		}
-		fmt.Println("New client is ", client)
+
 		s.clients[addr] = &Nodes{
 			leader: false,
 			addr:   addr,
@@ -86,28 +86,30 @@ func (s *service) addServer(addr string) error {
 		// 	// first server<-- make it the leader
 		// }
 		s.broadcast(addr)
+		s.shareAllAddressesWithNewNode(addr)
+		// we also need to broadcast all the addresses to the newbie
 
 	} else {
 		return errors.New("Already present, so not going to broadcast or make it a leader")
 	}
 	return nil
 }
-
-func connect(addr string) (*pb.ConsensusClient, error) {
-
-	conn, err := grpc.Dial(addr+":50051", grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
-		return nil, err
+func (s *service) shareAllAddressesWithNewNode(a string) {
+	for _, addr := range s.addresses {
+		if addr == a {
+			continue
+		}
+		n := *s.clients[a].con
+		ctx, cancel := context.WithTimeout(context.Background(), 300*time.Millisecond)
+		defer cancel()
+		response, err := n.Broadcast(ctx, &pb.BroadcastNode{Addr: addr})
+		if err != nil {
+			fmt.Println(err)
+		}
+		fmt.Println(response)
 	}
-
-	// defer conn.Close()
-	c := pb.NewConsensusClient(conn)
-
-	return &c, nil
 }
 
-// we will broadcast and wont rely on the leader to tell everyone.
-// once broadcast message is sent, everyone will update the information about all the nodes
 func (s *service) broadcast(addr string) error {
 	// broadcast about the incoming server to all the servers
 	// broadcast message will include leader name and node added
@@ -121,7 +123,7 @@ func (s *service) broadcast(addr string) error {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			response, err := n.Broadcast(ctx, &pb.BroadcastNode{Addr: addr, Leader: s.leader})
+			response, err := n.Broadcast(ctx, &pb.BroadcastNode{Addr: addr})
 			if err != nil {
 				fmt.Println(err)
 			}
@@ -254,7 +256,7 @@ func (s *service) get(key string) (string, error) {
 
 func (s *service) getRandom(key string) (string, error) {
 	cl := s.getRandomClient()
-	fmt.Println("Random client we are taking is  <><><><><><>", cl)
+
 	n := *s.clients[cl].con
 	ctx, cancel := context.WithTimeout(context.Background(), 300*time.Millisecond)
 	defer cancel()
@@ -269,6 +271,22 @@ func (s *service) getRandomClient() string {
 	rand.Seed(time.Now().Unix())
 	return s.addresses[rand.Intn(len(s.addresses))]
 }
+
+func connect(addr string) (*pb.ConsensusClient, error) {
+
+	conn, err := grpc.Dial(addr+":50051", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		return nil, err
+	}
+
+	// defer conn.Close()
+	c := pb.NewConsensusClient(conn)
+
+	return &c, nil
+}
+
+// we will broadcast and wont rely on the leader to tell everyone.
+// once broadcast message is sent, everyone will update the information about all the nodes
 
 func init() {
 	prometheus.MustRegister(requestsTotal, requestLatency)
