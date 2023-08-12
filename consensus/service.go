@@ -45,7 +45,6 @@ const (
 )
 
 type ConsensusService struct {
-	leader     bool
 	currLeader string
 	name       string
 	logger     *logger.Logger
@@ -65,7 +64,6 @@ func NewConsensusService(name string, logger *logger.Logger) *ConsensusService {
 	ticker := time.NewTicker(time.Duration(5) * time.Second)
 	recTicker := time.NewTicker(time.Duration(3) * time.Second)
 	return &ConsensusService{
-		leader:    false,
 		name:      name,
 		logger:    logger,
 		ticker:    ticker,
@@ -219,7 +217,7 @@ func (cs *ConsensusService) Broadcast(addr, leader string) error {
 		cs.clients[addr] = NewNodes(addr, client, 3, cs.logger)
 		if addr == leader {
 			cs.logger.Infof("Leadership confirmed")
-			cs.leader = true
+
 			cs.state = Leader
 			cs.logger.Infof("I am god, destroyer of the world ")
 

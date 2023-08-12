@@ -29,7 +29,7 @@ import (
 
 func (cs *ConsensusService) checkHeartbeatOnNodes() {
 	// check for quorum
-	if !cs.leader {
+	if cs.state != Leader {
 		return
 	}
 	if cs.active < len(cs.addresses)/2 {
@@ -84,7 +84,7 @@ func (cs *ConsensusService) checkHeartbeatOnNodes() {
 
 // this is the receiving part of the heartbeat, received by the followers
 func (cs *ConsensusService) HeartbeatAck() {
-	if cs.leader {
+	if cs.state == Leader {
 		cs.logger.Errorf("What does this guy think he is , sending leader a heartbeat")
 	}
 
@@ -94,7 +94,7 @@ func (cs *ConsensusService) HeartbeatAck() {
 
 // last heart beat check , this will help us decide the candidacy
 func (cs *ConsensusService) lastHeatBeatCheck() {
-	if cs.leader {
+	if cs.state == Leader {
 		return
 	}
 	if time.Since(cs.lastBeat) > 5*time.Second {

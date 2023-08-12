@@ -1,6 +1,13 @@
 package consensus
 
-import "fmt"
+import (
+	"context"
+	"math/rand"
+	"sync"
+	"time"
+
+	"github.com/kdsama/kdb/protodata"
+)
 
 // now we have to talk about election
 
@@ -44,26 +51,46 @@ func (cs *ConsensusService) electMeAndBroadcast() {
 func (cs *ConsensusService) askForVote() {
 	// we give ourselves vote first
 	voteCount := 1
+	wg := sync.WaitGroup{}
+	wg.Add(len(cs.clients))
+
 	for key, _ := range cs.clients {
 		//cs.Votefor Me()
-		fmt.Println("key ", key)
+		key := key
+		go func() {
+			defer wg.Done()
+			ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
+			defer cancel()
+			conn := *cs.clients[key].con
+			conn.Vote(ctx, &protodata.VoteNode{Term: int32(cs.term), Leader: cs.name})
+			voteCount++
+		}()
 	}
 	if voteCount > len(cs.clients)/2 {
 		// I am the new leader now
 		// stop my receiver ticker for heartbeat
 		// my ticker for heartbeat is already
-		cs.leader = true
+
+		cs.state = Leader
 		cs.recTicker.Stop()
+	} else if voteCount == len(cs.clients)/2 {
+		cs.term++
+		rand.Seed(time.Now().UnixMicro())
+		time.Sleep(time.Duration(100 + rand.Intn(150)))
+		cs.electMeAndBroadcast()
+
 	} else {
-		// now there are two cases here
-		// where somebody else have gotten a lot of votes
-		// or somebody else has gotten equal votes as you
-		// how to figure this out ??
-		// lets say we also return the leader in case they are not voting for you .
-		// if the count is same as yours , we increase the election term value and do another vote
-		// else we make the received value as the new leader
-		// need new messages for rpc
+		cs.currLeader = "whatever new leader we receive"
+		cs.state = Follower
 	}
+	// now there are two cases here
+	// where somebody else have gotten a lot of votes
+	// or somebody else has gotten equal votes as you
+	// how to figure this out ??
+	// lets say we also return the leader in case they are not voting for you .
+	// if the count is same as yours , we increase the election term value and do another vote
+	// else we make the received value as the new leader
+	// need new messages for rpc
 
 }
 
