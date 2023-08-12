@@ -98,7 +98,7 @@ func (s *Server) Get(key string) (string, error) {
 }
 
 func (s *Server) HeartbeatAck() {
-	return s.cs.HeartbeatAck()
+	s.cs.HeartbeatAck()
 }
 
 func (s *Server) AcknowledgeRecord(data *[]byte) error {

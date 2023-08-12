@@ -8,9 +8,6 @@ import (
 
 	"github.com/kdsama/kdb/config"
 	"github.com/kdsama/kdb/logger"
-	pb "github.com/kdsama/kdb/protodata"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 )
 
 // here I need to implement the acknowledgement first
@@ -52,16 +49,19 @@ type ConsensusService struct {
 	name      string
 	logger    *logger.Logger
 	ticker    *time.Ticker
+	recTicker *time.Ticker
 	clientMux *sync.Mutex
 	clients   map[string]*Nodes
 	wg        map[string]*sync.WaitGroup
 	addresses []string
 	state     stateLevel
-	active    int
+	active    int // active nodes
+	lastBeat  time.Time
 }
 
 func NewConsensusService(name string, logger *logger.Logger) *ConsensusService {
 	ticker := time.NewTicker(time.Duration(5) * time.Second)
+	recTicker := time.NewTicker(time.Duration(3) * time.Second)
 	return &ConsensusService{
 		leader:    false,
 		name:      name,
@@ -73,19 +73,25 @@ func NewConsensusService(name string, logger *logger.Logger) *ConsensusService {
 		addresses: []string{},
 		state:     Initializing,
 		active:    0,
+		lastBeat:  time.Now(),
+		recTicker: recTicker,
 	}
 }
 
 func (cs *ConsensusService) Init() {
 	cs.state = Follower
+	cs.Schedule()
 }
 
 func (cs *ConsensusService) Schedule() {
 
 	for {
 		select {
+		case <-cs.recTicker.C:
+			cs.lastHeatBeatCheck()
 		case <-cs.ticker.C:
 			cs.connectClients()
+
 		}
 	}
 }
@@ -214,7 +220,7 @@ func (cs *ConsensusService) Broadcast(addr, leader string) error {
 			cs.leader = true
 			cs.state = Leader
 			cs.logger.Infof("I am god, destroyer of the world ")
-			go cs.Schedule()
+
 		} else if addr == cs.name {
 			cs.state = Follower
 		} else {
@@ -222,125 +228,4 @@ func (cs *ConsensusService) Broadcast(addr, leader string) error {
 		}
 	}
 	return nil
-}
-
-func (cs *ConsensusService) connectClients() {
-	// get the list of address from the servers.txt
-	// run the below function in different goroutines
-	// lets start with just
-	// now the other node information will be fetched from the client/discovery service
-
-	// The problem here is we need to setup a leader and do the connection afterwards
-	// so it will be better if I put everything in a maddr first
-	// and add new ones to the list by doing a cron call every n seconds
-	// this needs to be re-written
-	// leader should be set here before any connection
-	// and each of them should have the information about the leader as well
-	// need to sit and think this one through
-
-	cs.active = 0
-	for _, addr := range cs.addresses {
-		cs.active++
-		addr := addr
-		val, ok := cs.clients[addr]
-		if addr == cs.name {
-
-			continue
-		}
-		if ok {
-			// has the client layer marked itself to be deleted ?
-			if val.delete {
-				cs.clientMux.Lock()
-				delete(cs.clients, val.name)
-				cs.clientMux.Unlock()
-				cs.active--
-			}
-
-		} else {
-
-			conn, err := connect(addr)
-
-			if err != nil {
-				cs.logger.Errorf("%v", err)
-				cs.clientMux.Lock()
-				delete(cs.clients, addr)
-				cs.clientMux.Unlock()
-				cs.active--
-				continue
-
-			}
-			nc := NewNodes(addr, conn, 7, cs.logger)
-			cs.clients[nc.name] = nc
-		}
-		// we are going to generate heartbeat from the server code instead of nodes.go
-		cs.confirmHeartBeat()
-	}
-}
-
-func (cs *ConsensusService) confirmHeartBeat() {
-	// check for quorum
-	if !cs.leader {
-		return
-	}
-	if cs.active < len(cs.addresses)/2 {
-		// might as well
-		cs.logger.Warnf("Quorum is broken , we have %d active nodes out of %d", cs.active, len(cs.addresses))
-		// no hard action for now
-	}
-
-	var (
-		count    int
-		errCount int
-		quorum   = (len(cs.clients) - 1) / 2
-		wg       sync.WaitGroup
-		resultCh = make(chan error, len(cs.clients))
-	)
-
-	wg.Add(len(cs.clients))
-
-	for _, client := range cs.clients {
-		client := client
-
-		if client.name == cs.name || client.delete {
-			wg.Done()
-			continue
-		}
-
-		go func() {
-			defer wg.Done()
-
-			err := client.Hearbeat()
-
-			resultCh <- err
-		}()
-	}
-
-	wg.Wait()
-	close(resultCh)
-
-	for err := range resultCh {
-		if err != nil {
-			errCount++
-		} else {
-			count++
-		}
-	}
-
-	if count < quorum {
-		cs.logger.Errorf("Quorum is broken")
-	}
-
-}
-
-func connect(addr string) (*pb.ConsensusClient, error) {
-	addr += addressPort
-	conn, err := grpc.Dial(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
-		return nil, err
-	}
-
-	// defer conn.Close()
-	c := pb.NewConsensusClient(conn)
-
-	return &c, nil
 }
