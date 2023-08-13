@@ -1,10 +1,13 @@
 package consensus
 
-import "time"
+import (
+	"fmt"
+	"time"
+)
 
 func (cs *ConsensusService) Broadcast(addresses []string) error {
 	// add the node if it doesnot exist already
-
+	fmt.Println("Addresses whike my address is ", addresses)
 	for _, addr := range addresses {
 		if addr == cs.name {
 			continue
@@ -20,6 +23,7 @@ func (cs *ConsensusService) Broadcast(addresses []string) error {
 			cs.addresses = append(cs.addresses, addr)
 		}
 	}
+	fmt.Println("Addresses ", cs.addresses)
 
 	if cs.currLeader == "" {
 		if len(cs.addresses) == 0 {
@@ -29,16 +33,12 @@ func (cs *ConsensusService) Broadcast(addresses []string) error {
 			cs.askWhoIsTheLeader()
 		}
 	}
-	if cs.state == Leader {
-		if cs.recTicker != nil {
-			cs.recTicker.Stop()
-		}
-	} else {
-		if cs.recTicker == nil {
-			cs.recTicker = time.NewTicker(3 * time.Second)
-		}
+	if cs.recTicker == nil {
+		cs.recTicker = time.NewTicker(3 * time.Second)
 	}
+
 	if cs.ticker == nil {
+		cs.logger.Infof("NEw normal ticker ")
 		cs.ticker = time.NewTicker(5 * time.Second)
 	}
 	if !cs.init {

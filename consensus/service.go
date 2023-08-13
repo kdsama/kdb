@@ -3,7 +3,6 @@ package consensus
 import (
 	"context"
 	"errors"
-	"runtime"
 	"sync"
 	"time"
 
@@ -78,7 +77,7 @@ func NewConsensusService(name string, logger *logger.Logger) *ConsensusService {
 		active:    0,
 		lastBeat:  time.Now(),
 		recTicker: nil,
-		init:      true,
+		init:      false,
 	}
 }
 
@@ -100,7 +99,7 @@ func (cs *ConsensusService) Schedule() {
 			cs.connectClients()
 
 		}
-		runtime.Gosched()
+
 	}
 }
 

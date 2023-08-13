@@ -87,8 +87,8 @@ func (s *service) addServer(addr string) error {
 		// 	s.leader = addr
 		// 	// first server<-- make it the leader
 		// }
-		s.broadcast(addr)
-		s.shareAllAddressesWithNewNode(addr)
+		s.broadcast()
+		// s.shareAllAddressesWithNewNode(addr)
 		// we also need to broadcast all the addresses to the newbie
 
 	} else {
@@ -97,6 +97,7 @@ func (s *service) addServer(addr string) error {
 	return nil
 }
 func (s *service) shareAllAddressesWithNewNode(a string) {
+	fmt.Println("Is this being called or not ??")
 	for _, addr := range s.addresses {
 		if addr == a {
 			continue
@@ -112,7 +113,7 @@ func (s *service) shareAllAddressesWithNewNode(a string) {
 	}
 }
 
-func (s *service) broadcast(addr string) error {
+func (s *service) broadcast() error {
 	// broadcast about the incoming server to all the servers
 	// broadcast message will include leader name and node added
 	// we can verify leader name on each broadcast
@@ -127,7 +128,7 @@ func (s *service) broadcast(addr string) error {
 			defer wg.Done()
 			response, err := n.Broadcast(ctx, &pb.BroadcastNode{Addr: s.addresses})
 			if err != nil {
-				fmt.Println(err)
+				fmt.Println(err, addr)
 			}
 			fmt.Println(response)
 		}()

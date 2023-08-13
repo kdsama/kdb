@@ -109,9 +109,6 @@ func (cs *ConsensusService) askForVote() {
 	case won:
 		cs.state = Leader
 		cs.currLeader = cs.name
-		if cs.recTicker != nil {
-			cs.recTicker.Stop()
-		}
 
 	case lost:
 		cs.currLeader = leader

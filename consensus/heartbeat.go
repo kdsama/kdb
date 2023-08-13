@@ -50,11 +50,9 @@ func (cs *ConsensusService) checkHeartbeatOnNodes() {
 		resultCh = make(chan error, len(cs.clients))
 	)
 
-	wg.Add(len(cs.clients))
-
 	for _, client := range cs.clients {
 		client := client
-
+		wg.Add(1)
 		if client.delete {
 			wg.Done()
 			continue
@@ -103,9 +101,9 @@ func (cs *ConsensusService) lastHeatBeatCheck() {
 		return
 	}
 	if cs.state == Leader {
+
 		return
 	}
-
 	if time.Since(cs.lastBeat) > 10*time.Second {
 		cs.logger.Errorf("%s died", cs.currLeader)
 		cs.electMeAndBroadcast()
