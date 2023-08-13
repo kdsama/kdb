@@ -73,7 +73,7 @@ func (cs *ConsensusService) askForVote() {
 	wg := sync.WaitGroup{}
 
 	var leader string
-	fmt.Println("Looping ")
+
 	for key, _ := range cs.clients {
 		//cs.Votefor Me()
 		if key == cs.name || key == cs.currLeader {
@@ -87,12 +87,14 @@ func (cs *ConsensusService) askForVote() {
 			ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
 			defer cancel()
 			conn := *cs.clients[key].con
+			fmt.Println("asking", cs.clients[key].name)
 			r, err := conn.Vote(ctx, &protodata.VoteNode{Term: int32(cs.term), Leader: cs.name})
 			if err != nil {
-				// cs.logger.Infof("This is what it is %v", err)
+				cs.logger.Infof("This is what it is %v", err)
 				return
 
 			}
+			fmt.Println("R is ", r.Leader, r.Status)
 			if r.Leader == cs.name {
 				voteCount++
 			} else {
@@ -101,23 +103,22 @@ func (cs *ConsensusService) askForVote() {
 
 		}()
 	}
-	if voteCount > len(cs.clients)/2 {
-		// I am the new leader now
-		// stop my receiver ticker for heartbeat
-		// my ticker for heartbeat is already
 
+	result := quorumElection(len(cs.clients), voteCount)
+	switch result {
+	case won:
 		cs.state = Leader
-
+		cs.currLeader = cs.name
 		cs.recTicker.Stop()
-	} else if voteCount == len(cs.clients)/2 {
-		cs.term++
-		fmt.Println("Is this the reason ?? %d %d %d ", voteCount, len(cs.clients), len(cs.clients)/2)
-		cs.electMeAndBroadcast()
-
-	} else {
+	case lost:
 		cs.currLeader = leader
 		cs.state = Follower
+	case draw:
+		cs.term++
+		cs.logger.Infof("Is this the reason ?? %d %d %d %d", cs.term, voteCount, len(cs.clients), len(cs.clients)/2)
+		cs.electMeAndBroadcast()
 	}
+
 	// now there are two cases here
 	// where somebody else have gotten a lot of votes
 	// or somebody else has gotten equal votes as you
@@ -130,6 +131,7 @@ func (cs *ConsensusService) askForVote() {
 }
 
 func (cs *ConsensusService) Vote(term int, leader string) (string, bool) {
+	fmt.Println("Vote for term %d and leader %s", term, leader)
 	if term > cs.term {
 		// we are not persisting the information that who is the leader as of now
 		// maybe we will put it on the node side
@@ -139,6 +141,7 @@ func (cs *ConsensusService) Vote(term int, leader string) (string, bool) {
 		cs.currLeader = leader
 		return cs.currLeader, true
 	}
+	fmt.Println("Is currLeader  not changed here yet ??, what is the term ??? ")
 	return cs.currLeader, false
 }
 
