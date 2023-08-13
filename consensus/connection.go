@@ -36,7 +36,7 @@ func (cs *ConsensusService) connectClients() {
 				cs.clientMux.Lock()
 				delete(cs.clients, val.name)
 				cs.clientMux.Unlock()
-				cs.active--
+
 			}
 
 		} else {
@@ -48,7 +48,7 @@ func (cs *ConsensusService) connectClients() {
 				cs.clientMux.Lock()
 				delete(cs.clients, addr)
 				cs.clientMux.Unlock()
-				cs.active--
+
 				continue
 
 			}
@@ -59,6 +59,7 @@ func (cs *ConsensusService) connectClients() {
 
 	}
 	if cs.state == Leader {
+
 		cs.checkHeartbeatOnNodes()
 	}
 }

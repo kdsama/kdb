@@ -108,7 +108,7 @@ func (s *Server) SetRecord(data *[]byte) error {
 }
 func (s *Server) Broadcast(addr []string, leader string) error {
 
-	return s.cs.Broadcast(addr, leader)
+	return s.cs.Broadcast(addr)
 }
 
 func (s *Server) Vote(term int, leader string) (string, bool) {

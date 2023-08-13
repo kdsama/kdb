@@ -3,6 +3,7 @@ package consensus
 import (
 	"context"
 	"errors"
+	"fmt"
 	"sync"
 	"time"
 
@@ -63,6 +64,7 @@ type ConsensusService struct {
 func NewConsensusService(name string, logger *logger.Logger) *ConsensusService {
 	ticker := time.NewTicker(time.Duration(5) * time.Second)
 	recTicker := time.NewTicker(time.Duration(3) * time.Second)
+	fmt.Println("My name is ", name)
 	return &ConsensusService{
 		name:      name,
 		logger:    logger,
@@ -80,7 +82,7 @@ func NewConsensusService(name string, logger *logger.Logger) *ConsensusService {
 
 func (cs *ConsensusService) Init() {
 	cs.state = Follower
-	cs.Schedule()
+	go cs.Schedule()
 }
 
 func (cs *ConsensusService) Schedule() {
@@ -88,11 +90,13 @@ func (cs *ConsensusService) Schedule() {
 	for {
 		select {
 		case <-cs.recTicker.C:
-			if len(cs.clients) > 1 {
+			if cs.state != Leader {
+				// need to destroy this, as soon as someone Is elected leader
 				cs.lastHeatBeatCheck()
 			}
 
 		case <-cs.ticker.C:
+
 			cs.connectClients()
 
 		}

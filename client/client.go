@@ -78,7 +78,9 @@ func (s *service) addServer(addr string) error {
 			con:    client,
 		}
 		s.addresses = append(s.addresses, addr)
-
+		if len(s.addresses) == 1 {
+			s.leader = addr
+		}
 		// removed leader code
 		// if len(s.addresses)-1 == 0 {
 		// 	s.clients[addr].leader = true
@@ -152,7 +154,7 @@ func (s *service) set(key, val string) error {
 
 func (s *service) automateSet(duration, requests, sleep string) (int, error) {
 	rp, sp := 100000, 500
-
+	fmt.Println("Leader is ", s.leader)
 	if curr != 0 {
 		return -1, errors.New("A request is still getting completed")
 	}

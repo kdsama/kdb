@@ -55,6 +55,8 @@ func (cs *ConsensusService) electMeAndBroadcast() {
 	cs.term++
 	if len(cs.addresses) == 1 {
 		cs.currLeader = cs.name
+		cs.state = Leader
+
 		return
 		// dont do nothing
 		// just return
@@ -172,6 +174,5 @@ func (cs *ConsensusService) askWhoIsTheLeader() {
 	}
 
 	cs.currLeader = leader
-	cs.logger.Infof("Our new leader is %s", cs.currLeader)
 
 }

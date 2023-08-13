@@ -1,7 +1,6 @@
 package consensus
 
 import (
-	"fmt"
 	"sync"
 	"time"
 )
@@ -32,7 +31,8 @@ func (cs *ConsensusService) checkHeartbeatOnNodes() {
 	if cs.state != Leader {
 		return
 	}
-	if len(cs.addresses) == 1 {
+	cs.logger.Infof("The clients are ", cs.clients)
+	if len(cs.clients) == 1 {
 		cs.logger.Infof("No clients found but myself so no need to check heartbeat")
 		return
 	}
@@ -55,7 +55,7 @@ func (cs *ConsensusService) checkHeartbeatOnNodes() {
 
 	for _, client := range cs.clients {
 		client := client
-		fmt.Println("Sending heartbeat to ", client.name)
+
 		if client.name == cs.name || client.delete {
 			wg.Done()
 			continue
@@ -106,9 +106,10 @@ func (cs *ConsensusService) lastHeatBeatCheck() {
 	if cs.state == Leader {
 		return
 	}
-	if time.Since(cs.lastBeat) > 5*time.Second {
-		cs.logger.Errorf("Oh no , our leader died I shall become the next leader. I am talking about %s", cs.currLeader)
 
-	}
+	// if time.Since(cs.lastBeat) > 10*time.Second {
+	// 	cs.logger.Errorf("%s died", cs.currLeader)
+
+	// }
 
 }
