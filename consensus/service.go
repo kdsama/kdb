@@ -131,7 +131,7 @@ func (cs *ConsensusService) SendTransaction(data []byte, TxnID string) error {
 	for _, client := range cs.clients {
 		client := client
 
-		if client.name == cs.name || client.delete {
+		if client.delete {
 			wg.Done()
 			continue
 		}
@@ -182,7 +182,7 @@ func (cs *ConsensusService) SendTransactionConfirmation(data []byte, TxnID strin
 	for _, client := range cs.clients {
 		client := client
 
-		if client.name == cs.name || client.delete {
+		if client.delete {
 			wg.Done()
 			continue
 		}

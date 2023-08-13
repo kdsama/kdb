@@ -76,7 +76,7 @@ func (cs *ConsensusService) askForVote() {
 
 	for key, _ := range cs.clients {
 		//cs.Votefor Me()
-		if key == cs.name || key == cs.currLeader {
+		if key == cs.currLeader {
 			continue
 		}
 		wg.Add(1)
@@ -87,14 +87,14 @@ func (cs *ConsensusService) askForVote() {
 			ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
 			defer cancel()
 			conn := *cs.clients[key].con
-			fmt.Println("asking", cs.clients[key].name)
+
 			r, err := conn.Vote(ctx, &protodata.VoteNode{Term: int32(cs.term), Leader: cs.name})
 			if err != nil {
 				cs.logger.Infof("This is what it is %v", err)
 				return
 
 			}
-			fmt.Println("R is ", r.Leader, r.Status)
+
 			if r.Leader == cs.name {
 				voteCount++
 			} else {
@@ -160,11 +160,10 @@ func (cs *ConsensusService) askWhoIsTheLeader() {
 	leaderMap := map[string]int{}
 	max := -1
 	leader := ""
+	cs.logger.Infof("I am %v and the Clients %v ", cs.name, cs.clients)
 	for key, _ := range cs.clients {
 		//cs.Votefor Me()
-		if cs.clients[key].name == cs.name {
-			continue
-		}
+		wg.Add(1)
 		key := key
 		go func() {
 			defer wg.Done()

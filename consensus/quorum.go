@@ -12,13 +12,8 @@ const (
 
 func quorumElection(total, acquiredVotes int) result {
 
-	// so here we know that its an election
-	// so our leader is down.
-	// remove that from leader
-	// remove yourself as well
-	// and then compare with acquired Votes
-
-	total -= 1
+	// total does not include ourselves
+	// so no need to remove it from total count
 	halfVote := float32(total) / 2
 	fmt.Println(acquiredVotes, halfVote)
 	res := float32(acquiredVotes) - halfVote

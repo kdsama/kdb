@@ -20,16 +20,14 @@ func (cs *ConsensusService) connectClients() {
 	// and each of them should have the information about the leader as well
 	// need to sit and think this one through
 
-	cs.active = 0
 	for addr, _ := range cs.clients {
-		cs.active++
-
-		addr := addr
-		val, ok := cs.clients[addr]
+		// dont need to add our selves in the list
 		if addr == cs.name {
-
 			continue
 		}
+		addr := addr
+		val, ok := cs.clients[addr]
+
 		if ok {
 			// has the client layer marked itself to be deleted ?
 			if val.delete {

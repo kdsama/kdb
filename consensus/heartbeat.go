@@ -36,7 +36,6 @@ func (cs *ConsensusService) checkHeartbeatOnNodes() {
 		cs.logger.Infof("No clients found but myself so no need to check heartbeat %v  :::: %v", cs.name, cs.clients)
 		return
 	}
-	cs.logger.Infof("Multiple clients are present, we will start checking the heartbeat now ")
 	// if cs.active < len(cs.addresses)/2 {
 	// 	// might as well
 	// 	cs.logger.Warnf("Quorum is broken , we have %d active nodes out of %d", cs.active, len(cs.addresses))
@@ -56,7 +55,7 @@ func (cs *ConsensusService) checkHeartbeatOnNodes() {
 	for _, client := range cs.clients {
 		client := client
 
-		if client.name == cs.name || client.delete {
+		if client.delete {
 			wg.Done()
 			continue
 		}

@@ -4,6 +4,9 @@ func (cs *ConsensusService) Broadcast(addresses []string) error {
 	// add the node if it doesnot exist already
 
 	for _, addr := range addresses {
+		if addr == cs.name {
+			continue
+		}
 		if _, ok := cs.clients[addr]; !ok {
 
 			client, err := connect(addr)
@@ -17,7 +20,7 @@ func (cs *ConsensusService) Broadcast(addresses []string) error {
 	}
 
 	if cs.currLeader == "" {
-		if len(cs.addresses) == 1 {
+		if len(cs.addresses) == 0 {
 			cs.electMeAndBroadcast()
 		} else {
 			cs.state = Follower
