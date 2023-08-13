@@ -31,7 +31,7 @@ func (cs *ConsensusService) checkHeartbeatOnNodes() {
 	if cs.state != Leader {
 		return
 	}
-	cs.logger.Infof("The clients are ", cs.clients)
+
 	if len(cs.clients) == 1 {
 		cs.logger.Infof("No clients found but myself so no need to check heartbeat")
 		return
@@ -107,9 +107,9 @@ func (cs *ConsensusService) lastHeatBeatCheck() {
 		return
 	}
 
-	// if time.Since(cs.lastBeat) > 10*time.Second {
-	// 	cs.logger.Errorf("%s died", cs.currLeader)
-
-	// }
+	if time.Since(cs.lastBeat) > 10*time.Second {
+		cs.logger.Errorf("%s died", cs.currLeader)
+		cs.electMeAndBroadcast()
+	}
 
 }

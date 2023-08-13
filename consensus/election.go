@@ -70,20 +70,29 @@ func (cs *ConsensusService) askForVote() {
 	voteCount := 1
 	wg := sync.WaitGroup{}
 	wg.Add(len(cs.clients))
-
+	var leader string
 	for key, _ := range cs.clients {
 		//cs.Votefor Me()
 		if key == cs.name {
 			continue
 		}
+
 		key := key
 		go func() {
 			defer wg.Done()
 			ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
 			defer cancel()
 			conn := *cs.clients[key].con
-			conn.Vote(ctx, &protodata.VoteNode{Term: int32(cs.term), Leader: cs.name})
-			voteCount++
+			r, err := conn.Vote(ctx, &protodata.VoteNode{Term: int32(cs.term), Leader: cs.name})
+			if err != nil {
+				cs.logger.Infof("This is what it is %v", err)
+			}
+			if r.Leader == cs.name {
+				voteCount++
+			} else {
+				leader = r.Leader
+			}
+
 		}()
 	}
 	if voteCount > len(cs.clients)/2 {
@@ -100,7 +109,7 @@ func (cs *ConsensusService) askForVote() {
 		cs.electMeAndBroadcast()
 
 	} else {
-		cs.currLeader = "whatever new leader we receive"
+		cs.currLeader = leader
 		cs.state = Follower
 	}
 	// now there are two cases here
