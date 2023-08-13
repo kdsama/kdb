@@ -59,6 +59,7 @@ func (lg *Logger) Errorf(format string, args ...any) {
 }
 
 func (lg *Logger) Fatalf(format string, args ...any) {
+	format += "\n"
 	if lg.threshold > Fatal {
 		return
 	}

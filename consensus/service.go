@@ -88,7 +88,10 @@ func (cs *ConsensusService) Schedule() {
 	for {
 		select {
 		case <-cs.recTicker.C:
-			cs.lastHeatBeatCheck()
+			if len(cs.clients) > 1 {
+				cs.lastHeatBeatCheck()
+			}
+
 		case <-cs.ticker.C:
 			cs.connectClients()
 
@@ -202,40 +205,4 @@ func (cs *ConsensusService) SendTransactionConfirmation(data []byte, TxnID strin
 		return nil
 	}
 	return errTransactionBroken
-}
-
-func (cs *ConsensusService) Broadcast(addresses []string, leader string) error {
-	// add the node if it doesnot exist already
-
-	for _, addr := range addresses {
-		if _, ok := cs.clients[addr]; !ok {
-
-			client, err := connect(addr)
-			if err != nil {
-				return err
-			}
-			cs.clients[addr] = NewNodes(addr, client, 3, cs.logger)
-			cs.addresses = append(cs.addresses, addr)
-		}
-	}
-	if cs.name != leader {
-		cs.state = Follower
-	}
-	if len(cs.addresses) == 1 {
-		// means I am the daddy caddy
-		//  I am gonna become the leader. At
-		// The positioning of this code should be shifted
-		// I am the first one, then Who am I broadcasting information to ?
-		// I think we should be sending server list to each of them, not just the new one
-		// I will change the signature of broadcast in protobuffer
-		// maybe wait for sometime and then do the broadcast
-		time.Sleep(1000 * time.Millisecond)
-		if cs.currLeader == "" {
-			cs.electMeAndBroadcast()
-		}
-	} else {
-		cs.askWhoIsTheLeader()
-	}
-
-	return nil
 }

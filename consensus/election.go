@@ -54,6 +54,7 @@ func (cs *ConsensusService) electMeAndBroadcast() {
 	time.Sleep(time.Duration(100 + rand.Intn(150)))
 	cs.term++
 	if len(cs.addresses) == 1 {
+		cs.currLeader = cs.name
 		return
 		// dont do nothing
 		// just return
@@ -135,12 +136,15 @@ func (cs *ConsensusService) askWhoIsTheLeader() {
 	// we give ourselves vote first
 
 	wg := sync.WaitGroup{}
-	wg.Add(len(cs.clients))
+	wg.Add(len(cs.clients) - 1)
 	leaderMap := map[string]int{}
 	max := -1
 	leader := ""
 	for key, _ := range cs.clients {
 		//cs.Votefor Me()
+		if cs.clients[key].name == cs.name {
+			continue
+		}
 		key := key
 		go func() {
 			defer wg.Done()
@@ -148,8 +152,7 @@ func (cs *ConsensusService) askWhoIsTheLeader() {
 			defer cancel()
 			conn := *cs.clients[key].con
 			ldResponse, err := conn.LeaderInfo(ctx, &protodata.AskLeader{})
-			cs.logger.Infof("Error is %v", err)
-			cs.logger.Infof("LD RESPONSE %V", ldResponse)
+			cs.logger.Infof("LD RESPONSE %V", ldResponse.Leader)
 			if err == nil {
 				cs.clientMux.Lock()
 				leaderMap[ldResponse.Leader]++
@@ -167,7 +170,8 @@ func (cs *ConsensusService) askWhoIsTheLeader() {
 		cs.logger.Infof("Leader %s, leaderMap Count %d , total clients %d", leader, leaderMap[leader], len(cs.clients))
 		cs.logger.Fatalf("WTF this is not what I was expecting")
 	}
-	cs.logger.Infof("Our new leader is %s", leader)
+
 	cs.currLeader = leader
+	cs.logger.Infof("Our new leader is %s", cs.currLeader)
 
 }

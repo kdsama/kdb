@@ -32,11 +32,16 @@ func (cs *ConsensusService) checkHeartbeatOnNodes() {
 	if cs.state != Leader {
 		return
 	}
-	if cs.active < len(cs.addresses)/2 {
-		// might as well
-		cs.logger.Warnf("Quorum is broken , we have %d active nodes out of %d", cs.active, len(cs.addresses))
-		// no hard action for now
+	if len(cs.addresses) == 1 {
+		cs.logger.Infof("No clients found but myself so no need to check heartbeat")
+		return
 	}
+	cs.logger.Infof("Multiple clients are present, we will start checking the heartbeat now ")
+	// if cs.active < len(cs.addresses)/2 {
+	// 	// might as well
+	// 	cs.logger.Warnf("Quorum is broken , we have %d active nodes out of %d", cs.active, len(cs.addresses))
+	// 	// no hard action for now
+	// }
 
 	var (
 		count    int
@@ -94,6 +99,7 @@ func (cs *ConsensusService) HeartbeatAck() {
 
 // last heart beat check , this will help us decide the candidacy
 func (cs *ConsensusService) lastHeatBeatCheck() {
+
 	if cs.state == Initializing {
 		return
 	}
