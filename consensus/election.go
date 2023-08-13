@@ -3,6 +3,7 @@ package consensus
 import (
 	"context"
 	"errors"
+	"fmt"
 	"math/rand"
 	"sync"
 	"time"
@@ -51,7 +52,7 @@ import (
 
 func (cs *ConsensusService) electMeAndBroadcast() {
 	rand.Seed(time.Now().UnixMicro())
-	time.Sleep(time.Duration(100 + rand.Intn(150)))
+	time.Sleep(time.Duration(100+rand.Intn(150)) * time.Millisecond)
 	cs.term++
 	if len(cs.addresses) == 1 {
 		cs.currLeader = cs.name
@@ -67,25 +68,30 @@ func (cs *ConsensusService) electMeAndBroadcast() {
 
 func (cs *ConsensusService) askForVote() {
 	// we give ourselves vote first
+
 	voteCount := 1
 	wg := sync.WaitGroup{}
-	wg.Add(len(cs.clients))
+
 	var leader string
+	fmt.Println("Looping ")
 	for key, _ := range cs.clients {
 		//cs.Votefor Me()
-		if key == cs.name {
+		if key == cs.name || key == cs.currLeader {
 			continue
 		}
-
+		wg.Add(1)
 		key := key
 		go func() {
 			defer wg.Done()
+
 			ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
 			defer cancel()
 			conn := *cs.clients[key].con
 			r, err := conn.Vote(ctx, &protodata.VoteNode{Term: int32(cs.term), Leader: cs.name})
 			if err != nil {
-				cs.logger.Infof("This is what it is %v", err)
+				// cs.logger.Infof("This is what it is %v", err)
+				return
+
 			}
 			if r.Leader == cs.name {
 				voteCount++
@@ -105,7 +111,7 @@ func (cs *ConsensusService) askForVote() {
 		cs.recTicker.Stop()
 	} else if voteCount == len(cs.clients)/2 {
 		cs.term++
-
+		fmt.Println("Is this the reason ?? %d %d %d ", voteCount, len(cs.clients), len(cs.clients)/2)
 		cs.electMeAndBroadcast()
 
 	} else {
