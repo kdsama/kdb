@@ -1,5 +1,7 @@
 package consensus
 
+import "time"
+
 func (cs *ConsensusService) Broadcast(addresses []string) error {
 	// add the node if it doesnot exist already
 
@@ -27,6 +29,21 @@ func (cs *ConsensusService) Broadcast(addresses []string) error {
 			cs.askWhoIsTheLeader()
 		}
 	}
-
+	if cs.state == Leader {
+		if cs.recTicker != nil {
+			cs.recTicker.Stop()
+		}
+	} else {
+		if cs.recTicker == nil {
+			cs.recTicker = time.NewTicker(3 * time.Second)
+		}
+	}
+	if cs.ticker == nil {
+		cs.ticker = time.NewTicker(5 * time.Second)
+	}
+	if !cs.init {
+		cs.init = true
+		go cs.Schedule()
+	}
 	return nil
 }

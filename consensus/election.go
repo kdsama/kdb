@@ -51,18 +51,18 @@ import (
 // so basically we need to start this once , we get all the server names from the broadcast in the array
 
 func (cs *ConsensusService) electMeAndBroadcast() {
-	rand.Seed(time.Now().UnixMicro())
-	time.Sleep(time.Duration(100+rand.Intn(150)) * time.Millisecond)
-	cs.term++
 	if len(cs.addresses) == 1 {
 		cs.currLeader = cs.name
 		cs.state = Leader
-
 		return
 		// dont do nothing
 		// just return
 		// you are not going to ask for vote from nobody
 	}
+	rand.Seed(time.Now().UnixMicro())
+	time.Sleep(time.Duration(100+rand.Intn(150)) * time.Millisecond)
+	cs.term++
+
 	cs.askForVote()
 }
 
@@ -109,7 +109,10 @@ func (cs *ConsensusService) askForVote() {
 	case won:
 		cs.state = Leader
 		cs.currLeader = cs.name
-		cs.recTicker.Stop()
+		if cs.recTicker != nil {
+			cs.recTicker.Stop()
+		}
+
 	case lost:
 		cs.currLeader = leader
 		cs.state = Follower
@@ -171,8 +174,9 @@ func (cs *ConsensusService) askWhoIsTheLeader() {
 			defer cancel()
 			conn := *cs.clients[key].con
 			ldResponse, err := conn.LeaderInfo(ctx, &protodata.AskLeader{})
-			cs.logger.Infof("LD RESPONSE %V", ldResponse.Leader)
+
 			if err == nil {
+				cs.logger.Infof("LD RESPONSE %V", ldResponse.Leader)
 				cs.clientMux.Lock()
 				leaderMap[ldResponse.Leader]++
 				if leaderMap[ldResponse.Leader] > max {

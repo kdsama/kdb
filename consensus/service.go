@@ -3,7 +3,7 @@ package consensus
 import (
 	"context"
 	"errors"
-	"fmt"
+	"runtime"
 	"sync"
 	"time"
 
@@ -59,16 +59,17 @@ type ConsensusService struct {
 	active     int // active nodes
 	lastBeat   time.Time
 	term       int
+	init       bool
 }
 
 func NewConsensusService(name string, logger *logger.Logger) *ConsensusService {
-	ticker := time.NewTicker(time.Duration(5) * time.Second)
-	recTicker := time.NewTicker(time.Duration(3) * time.Second)
-	fmt.Println("My name is ", name)
+	// ticker := time.NewTicker(time.Duration(5) * time.Second)
+	// recTicker := time.NewTicker(time.Duration(3) * time.Second)
+
 	return &ConsensusService{
 		name:      name,
 		logger:    logger,
-		ticker:    ticker,
+		ticker:    nil,
 		clientMux: &sync.Mutex{},
 		clients:   map[string]*Nodes{},
 		wg:        map[string]*sync.WaitGroup{},
@@ -76,30 +77,30 @@ func NewConsensusService(name string, logger *logger.Logger) *ConsensusService {
 		state:     Initializing,
 		active:    0,
 		lastBeat:  time.Now(),
-		recTicker: recTicker,
+		recTicker: nil,
+		init:      true,
 	}
 }
 
 func (cs *ConsensusService) Init() {
 	cs.state = Follower
-	go cs.Schedule()
+	cs.logger.Infof("Waiting for the first broadcast")
+	// go cs.Schedule()
 }
 
 func (cs *ConsensusService) Schedule() {
 
 	for {
 		select {
+
 		case <-cs.recTicker.C:
-			if cs.state != Leader {
-				// need to destroy this, as soon as someone Is elected leader
-				cs.lastHeatBeatCheck()
-			}
-
+			// need to destroy this, as soon as someone Is elected leader
+			cs.lastHeatBeatCheck()
 		case <-cs.ticker.C:
-
 			cs.connectClients()
 
 		}
+		runtime.Gosched()
 	}
 }
 
