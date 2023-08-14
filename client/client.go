@@ -10,6 +10,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/kdsama/kdb/protodata"
 	pb "github.com/kdsama/kdb/protodata"
 	"github.com/prometheus/client_golang/prometheus"
 	"google.golang.org/grpc"
@@ -45,6 +46,7 @@ type service struct {
 	clients   map[string]*Nodes
 	leader    string
 	addresses []string
+	ticker    *time.Ticker
 }
 
 var (
@@ -55,11 +57,57 @@ var (
 )
 
 func NewService() *service {
-	return &service{
+	ticker := time.NewTicker(2 * time.Second)
+
+	s := &service{
 		clients:   map[string]*Nodes{},
 		leader:    "",
 		addresses: []string{},
+		ticker:    ticker,
 	}
+	go s.schedule()
+	return s
+}
+
+func (s *service) schedule() {
+	for {
+		select {
+		case <-s.ticker.C:
+			s.leaderCheck()
+		}
+	}
+}
+func (s *service) leaderCheck() {
+	// we give ourselves vote first
+
+	leaderMap := map[string]int{}
+	max := -1
+	leader := ""
+
+	for key, _ := range s.clients {
+		//s.Votefor Me()
+
+		key := key
+
+		ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
+		defer cancel()
+		conn := *s.clients[key].con
+		ldResponse, err := conn.LeaderInfo(ctx, &protodata.AskLeader{})
+
+		if err == nil {
+
+			leaderMap[ldResponse.Leader]++
+			if leaderMap[ldResponse.Leader] > max {
+				max = leaderMap[ldResponse.Leader]
+				leader = ldResponse.Leader
+			}
+
+		}
+
+	}
+
+	s.leader = leader
+
 }
 
 func (s *service) addServer(addr string) error {
@@ -155,7 +203,7 @@ func (s *service) set(key, val string) error {
 
 func (s *service) automateSet(duration, requests, sleep string) (int, error) {
 	rp, sp := 100000, 500
-	fmt.Println("Leader is ", s.leader)
+
 	if curr != 0 {
 		return -1, errors.New("A request is still getting completed")
 	}
@@ -228,7 +276,7 @@ func (s *service) automateGet(duration, requests, sleep string) (int, error) {
 			go func() {
 
 				rand.Seed(time.Now().UnixNano())
-				s.get("key" + fmt.Sprint(rand.Intn(10000)))
+				s.getRandom("key" + fmt.Sprint(rand.Intn(10000)))
 
 			}()
 		}

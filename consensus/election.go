@@ -3,7 +3,6 @@ package consensus
 import (
 	"context"
 	"errors"
-	"fmt"
 	"math/rand"
 	"sync"
 	"time"
@@ -51,7 +50,9 @@ import (
 // so basically we need to start this once , we get all the server names from the broadcast in the array
 
 func (cs *ConsensusService) electMeAndBroadcast() {
-	if len(cs.addresses) == 1 {
+
+	// need a way to return from here or not call this functon
+	if len(cs.addresses) == 0 {
 		cs.currLeader = cs.name
 		cs.state = Leader
 		return
@@ -59,10 +60,15 @@ func (cs *ConsensusService) electMeAndBroadcast() {
 		// just return
 		// you are not going to ask for vote from nobody
 	}
+	cs.logger.Infof(" time since last election ::: %v", time.Since(cs.voteTime))
+	if time.Since(cs.voteTime) < 1*time.Second {
+		return
+	}
 	rand.Seed(time.Now().UnixMicro())
-	time.Sleep(time.Duration(100+rand.Intn(150)) * time.Millisecond)
-	cs.term++
+	time.Sleep(time.Duration(100+rand.Intn(500)) * time.Millisecond)
 
+	cs.term++
+	cs.logger.Infof("ASking for vote now")
 	cs.askForVote()
 }
 
@@ -109,10 +115,12 @@ func (cs *ConsensusService) askForVote() {
 	case won:
 		cs.state = Leader
 		cs.currLeader = cs.name
+		cs.voteTime = time.Now()
 
 	case lost:
 		cs.currLeader = leader
 		cs.state = Follower
+		cs.voteTime = time.Now()
 	case draw:
 		cs.term++
 		cs.logger.Infof("Is this the reason ?? %d %d %d %d", cs.term, voteCount, len(cs.clients), len(cs.clients)/2)
@@ -131,17 +139,21 @@ func (cs *ConsensusService) askForVote() {
 }
 
 func (cs *ConsensusService) Vote(term int, leader string) (string, bool) {
-	fmt.Println("Vote for term %d and leader %s", term, leader)
+
 	if term > cs.term {
 		// we are not persisting the information that who is the leader as of now
 		// maybe we will put it on the node side
 		// but that means we dont instantly have that information
 		// so need to make changes about that
+		cs.clientMux.Lock()
 		cs.term = term
 		cs.currLeader = leader
+		cs.voteTime = time.Now()
+		cs.clientMux.Unlock()
+		cs.logger.Infof("I accept this person as our new leader ")
 		return cs.currLeader, true
 	}
-	fmt.Println("Is currLeader  not changed here yet ??, what is the term ??? ")
+
 	return cs.currLeader, false
 }
 
@@ -156,11 +168,10 @@ func (cs *ConsensusService) askWhoIsTheLeader() {
 	// we give ourselves vote first
 
 	wg := sync.WaitGroup{}
-	wg.Add(len(cs.clients) - 1)
 	leaderMap := map[string]int{}
 	max := -1
 	leader := ""
-	cs.logger.Infof("I am %v and the Clients %v ", cs.name, cs.clients)
+
 	for key, _ := range cs.clients {
 		//cs.Votefor Me()
 		wg.Add(1)
@@ -173,24 +184,29 @@ func (cs *ConsensusService) askWhoIsTheLeader() {
 			ldResponse, err := conn.LeaderInfo(ctx, &protodata.AskLeader{})
 
 			if err == nil {
-				cs.logger.Infof("LD RESPONSE %V", ldResponse.Leader)
+				cs.logger.Infof("leader is %s", ldResponse.Leader)
 				cs.clientMux.Lock()
+
 				leaderMap[ldResponse.Leader]++
 				if leaderMap[ldResponse.Leader] > max {
 					max = leaderMap[ldResponse.Leader]
 					leader = ldResponse.Leader
 				}
 				cs.clientMux.Unlock()
+
 			}
 
 		}()
 	}
+
 	wg.Wait()
+
 	if leader == "" || leaderMap[leader] < len(cs.clients)/2 {
 		cs.logger.Infof("Leader %s, leaderMap Count %d , total clients %d", leader, leaderMap[leader], len(cs.clients))
 		cs.logger.Fatalf("WTF this is not what I was expecting")
 	}
 
 	cs.currLeader = leader
+	cs.voteTime = time.Now()
 
 }

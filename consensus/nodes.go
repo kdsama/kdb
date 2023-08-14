@@ -11,14 +11,14 @@ import (
 )
 
 type Nodes struct {
-	name      string
-	con       *pb.ConsensusClient
-	ticker    time.Ticker
-	lastBeat  time.Time
-	factor    int
-	logger    *logger.Logger
-	delete    bool
-	dcCounter int
+	name     string
+	con      *pb.ConsensusClient
+	ticker   time.Ticker
+	lastBeat time.Time
+	factor   int
+	logger   *logger.Logger
+	delete   bool
+	init     bool
 }
 
 func NewNodes(name string, con *pb.ConsensusClient, factor int, logger *logger.Logger) *Nodes {
@@ -26,14 +26,14 @@ func NewNodes(name string, con *pb.ConsensusClient, factor int, logger *logger.L
 	t := time.Duration(factor) * time.Second
 	ticker := *time.NewTicker(t)
 
-	c := &Nodes{name, con, ticker, time.Now(), factor, logger, false, 0}
+	c := &Nodes{name, con, ticker, time.Now(), factor, logger, false, false}
 	return c
 }
 
 func (c *Nodes) Hearbeat() error {
 
-	if time.Since(c.lastBeat) > time.Duration(10*c.factor)*time.Second {
-		c.logger.Errorf("Server %v is dead\n", c.name)
+	if c.init && time.Since(c.lastBeat) > time.Duration(10*c.factor)*time.Second {
+		c.logger.Errorf("Server %v is dead", c.name)
 		// the server is not responsive
 		// changing the ticker timing
 		// remove it from the client map
@@ -43,15 +43,18 @@ func (c *Nodes) Hearbeat() error {
 		c.delete = true
 		return errors.New("the node is dead to me")
 	}
-
+	c.init = true
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	nc := c.con
 
 	_, err := (*nc).Ack(ctx, &pb.Hearbeat{Message: "i"})
 	if err != nil {
-		c.logger.Fatalf("Ouch, No heartbeat from %v because of %v \n", c.name, err)
-		return err
+		// mark it dead
+
+		c.logger.Errorf("Ouch, No heartbeat from %v because of %v \n", c.name, err)
+		c.delete = true
+		return nil
 	}
 	c.lastBeat = time.Now()
 

@@ -1,6 +1,7 @@
 package consensus
 
 import (
+	"fmt"
 	"sync"
 	"time"
 )
@@ -27,12 +28,13 @@ import (
 // this function is only accessible by the leader. It will connect to new clients and send heartbeat
 
 func (cs *ConsensusService) checkHeartbeatOnNodes() {
+	cs.logger.Infof("I am leader ")
 	// check for quorum
 	if cs.state != Leader {
 		return
 	}
 
-	if len(cs.clients) == 1 {
+	if len(cs.clients) == 0 {
 		cs.logger.Infof("No clients found but myself so no need to check heartbeat %v  :::: %v", cs.name, cs.clients)
 		return
 	}
@@ -96,7 +98,7 @@ func (cs *ConsensusService) HeartbeatAck() {
 
 // last heart beat check , this will help us decide the candidacy
 func (cs *ConsensusService) lastHeatBeatCheck() {
-
+	fmt.Println("Leader is ", cs.currLeader)
 	if cs.state == Initializing {
 		return
 	}
@@ -104,8 +106,13 @@ func (cs *ConsensusService) lastHeatBeatCheck() {
 
 		return
 	}
+	// so what if the term changed before you get to become a leader ??
+	// need to compare values
+	// or previous leader
+	// THis is where some synchronisation is important .
+	// How can we do it ?
+	// need a better idea for this one
 	if time.Since(cs.lastBeat) > 10*time.Second {
-		cs.logger.Errorf("%s died", cs.currLeader)
 		cs.electMeAndBroadcast()
 	}
 

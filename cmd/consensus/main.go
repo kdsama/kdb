@@ -55,7 +55,8 @@ func main() {
 	s := grpc.NewServer()
 
 	opts := logger.ToOutput(os.Stdout)
-	logger := logger.New(logger.Info, opts)
+	opts1 := logger.DateOpts(true)
+	logger := logger.New(logger.Info, opts, opts1)
 
 	cs := consensus.NewConsensusService(name, logger)
 

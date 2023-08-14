@@ -19,7 +19,6 @@ func (cs *ConsensusService) connectClients() {
 	// leader should be set here before any connection
 	// and each of them should have the information about the leader as well
 	// need to sit and think this one through
-
 	for addr, _ := range cs.clients {
 		// dont need to add our selves in the list
 		if addr == cs.name {

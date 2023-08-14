@@ -58,6 +58,7 @@ type ConsensusService struct {
 	active     int // active nodes
 	lastBeat   time.Time
 	term       int
+	voteTime   time.Time
 	init       bool
 }
 

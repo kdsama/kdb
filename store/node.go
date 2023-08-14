@@ -12,10 +12,10 @@ var (
 
 // compact order of the fields will lead to smaller size
 type Node struct {
-	Key              string `json:"key"`
-	Value            string `json:"value"`
-	Version          uint32 `json:"version"`
-	PreviousVersions []Node
+	Key              string      `json:"key"`
+	Value            string      `json:"value"`
+	Version          uint32      `json:"version"`
+	PreviousVersions []Node      `json:"-"`
 	Deleted          bool        `json:"deleted"`
 	Timestamp        int64       `json:"timestamp"`
 	Commit           commitLevel `json:"commit"`

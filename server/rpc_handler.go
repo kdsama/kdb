@@ -82,6 +82,7 @@ func (s *Handler) SendRecord(ctx context.Context, in *pb.WalEntry) (*pb.WalRespo
 }
 func (s *Handler) Get(ctx context.Context, in *pb.GetKey) (*pb.GetResponse, error) {
 	t := time.Now()
+
 	val, err := s.server.Get(in.Key)
 	if err != nil {
 		return &pb.GetResponse{Value: ""}, err
@@ -91,11 +92,11 @@ func (s *Handler) Get(ctx context.Context, in *pb.GetKey) (*pb.GetResponse, erro
 }
 func (s *Handler) Set(ctx context.Context, in *pb.SetKey) (*pb.SetKeyResponse, error) {
 	t := time.Now()
-	s.server.logger.Infof("Key %v and value %v", in.Key, in.Value)
 	err := s.server.Add(in.Key, in.Value)
 	if err != nil {
 		return &pb.SetKeyResponse{Message: ""}, err
 	}
+	s.server.logger.Infof("Setting", in.Key)
 	requestLatency.WithLabelValues("Set").Observe(float64(time.Since(t)) / 1000)
 	return &pb.SetKeyResponse{Message: "OK"}, nil
 }
