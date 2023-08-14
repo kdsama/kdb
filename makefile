@@ -38,3 +38,10 @@ restart:
 	make add
 	make add
 	make add
+
+
+startProm: 
+	docker run -p 9090:9090 -d -v $$(pwd)/prometheus/prom.yml:/etc/prometheus/prometheus.yml --network=kdb_backend  --name prom prom/prometheus
+
+startGraf:
+	docker run -d -p 3000:3000 --network=kdb_backend --name grafana grafana/grafana

@@ -21,7 +21,6 @@ package server
 
 import (
 	"context"
-	"os"
 	"time"
 
 	"github.com/kdsama/kdb/config"
@@ -37,13 +36,13 @@ type Handler struct {
 var (
 	requestsTotal = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
-			Name: os.Args[1] + "_ps_http_requests_total",
+			Name: "ps_http_requests_total",
 			Help: "Total number of HTTP requests",
 		},
 		[]string{"reqtype"},
 	)
 	requestLatency = prometheus.NewHistogramVec(prometheus.HistogramOpts{
-		Name:    os.Args[1] + "_ps_request_latency",
+		Name:    "ps_request_latency",
 		Help:    "btree inserts :: btree layer",
 		Buckets: []float64{0.0, 20.0, 40.0, 60.0, 80.0, 100.0, 160.0, 180.0, 200.0, 400.0, 800.0, 1600.0},
 	}, []string{"reqtype"})

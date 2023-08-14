@@ -1,0 +1,27 @@
+global:
+  scrape_interval: 2s  # Scrape every 2 seconds
+
+scrape_configs:
+  - job_name: 'node43722'
+    static_configs:
+      - targets: ['node43722:8080']  # Assuming /metrics is the default path
+        labels:
+          instance: 'node43722'
+
+  - job_name: 'node52369'
+    static_configs:
+      - targets: ['node52369:8080']
+        labels:
+          instance: 'node52369'
+
+  - job_name: 'node23920'
+    static_configs:
+      - targets: ['node23920:8080']
+        labels:
+          instance: 'node23920'
+
+  - job_name: 'node93488'
+    static_configs:
+      - targets: ['node93488:8080']
+        labels:
+          instance: 'node93488'

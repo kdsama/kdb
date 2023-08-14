@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"math/rand"
-	"os"
 	"strconv"
 	"sync"
 	"time"
@@ -20,13 +19,13 @@ import (
 var (
 	requestsTotal = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
-			Name: os.Args[1] + "_client_http_requests_total",
+			Name: "client_http_requests_total",
 			Help: "Total number of requests of different type",
 		},
 		[]string{"reqtype"},
 	)
 	requestLatency = prometheus.NewHistogramVec(prometheus.HistogramOpts{
-		Name:    os.Args[1] + "_client_request_latency",
+		Name:    "client_request_latency",
 		Help:    "requests latency in milliseconds, checked in the service layer, not handler",
 		Buckets: []float64{0.0, 2.0, 4.0, 6.0, 8.0, 10.0, 20.0, 40.0, 60.0, 80.0, 100.0, 160.0, 180.0, 200.0, 400.0, 800.0, 1000.0, 2000.0},
 	}, []string{"reqtype"})
