@@ -31,6 +31,8 @@ var (
 	}, []string{"reqtype"})
 )
 
+var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+
 // we need to have connections to the servers present here
 // we would also need
 
@@ -144,7 +146,7 @@ func (s *service) addServer(addr string) error {
 	return nil
 }
 func (s *service) shareAllAddressesWithNewNode(a string) {
-	fmt.Println("Is this being called or not ??")
+
 	for _, addr := range s.addresses {
 		if addr == a {
 			continue
@@ -228,7 +230,7 @@ func (s *service) automateSet(duration, requests, sleep string) (int, error) {
 
 			go func() {
 				rand.Seed(time.Now().UnixNano())
-				err := s.set("key"+fmt.Sprint(rand.Intn(100)), "val"+fmt.Sprint(rand.Intn(10000)))
+				err := s.set(randSeq(rand.Intn(10)), randSeq(rand.Intn(10)))
 				if err != nil {
 
 					errCount++
@@ -340,4 +342,12 @@ func connect(addr string) (*pb.ConsensusClient, error) {
 
 func init() {
 	prometheus.MustRegister(requestsTotal, requestLatency)
+}
+
+func randSeq(n int) string {
+	b := make([]rune, n)
+	for i := range b {
+		b[i] = letters[rand.Intn(len(letters))]
+	}
+	return string(b)
 }

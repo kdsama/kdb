@@ -53,6 +53,10 @@ func (ch *clientHandler) Get(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func (ch *clientHandler) Leader(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte(ch.service.leader))
+
+}
 func (ch *clientHandler) GetRandom(w http.ResponseWriter, r *http.Request) {
 	t := time.Now()
 	requestsTotal.WithLabelValues("GetRandom").Inc()

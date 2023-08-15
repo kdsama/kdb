@@ -14,7 +14,9 @@ type Logger struct {
 }
 
 func New(threshold Level, opts ...Options) *Logger {
-	lgs := &Logger{threshold: threshold, output: os.Stdout}
+	lgs := &Logger{
+		threshold: threshold,
+		output:    os.Stdout}
 
 	for _, f := range opts {
 		f(lgs)

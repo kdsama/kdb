@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
@@ -16,11 +17,31 @@ import (
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/nat"
+	"gopkg.in/yaml.v2"
 )
 
 type dockercli struct {
 	*client.Client
 	image string
+}
+
+type StaticConfig struct {
+	Targets []string `yaml:"targets"`
+	Labels  map[string]string
+}
+
+type ScrapeConfig struct {
+	JobName       string         `yaml:"job_name"`
+	StaticConfigs []StaticConfig `yaml:"static_configs"`
+}
+
+type GlobalConfig struct {
+	ScrapeInterval string `yaml:"scrape_interval"`
+}
+
+type PrometheusConfig struct {
+	Global        GlobalConfig   `yaml:"global"`
+	ScrapeConfigs []ScrapeConfig `yaml:"scrape_configs"`
 }
 
 const (
@@ -47,7 +68,7 @@ func main() {
 	case "list":
 		dc.listContainers()
 	case "add":
-		dc.addContainer()
+		dc.addContainers(args[3])
 	case "delete":
 		if len(args) == 4 {
 			dc.delete(args[3])
@@ -60,7 +81,47 @@ func main() {
 	}
 }
 
-func (dc *dockercli) addContainer() {
+func (dc *dockercli) addContainers(times string) {
+	n, _ := strconv.Atoi(times)
+	nodeNames := []string{}
+	config := PrometheusConfig{
+		Global: GlobalConfig{
+			ScrapeInterval: "2s",
+		}}
+	os.Remove("prometheus/prom.yml")
+	fmt.Println("Deleted the prom file")
+	for i := 0; i < n; i++ {
+		name := dc.addContainer()
+		fmt.Println("Container added :: ", name)
+		nodeNames = append(nodeNames, name)
+		config.ScrapeConfigs = append(config.ScrapeConfigs, ScrapeConfig{
+			JobName: name,
+			StaticConfigs: []StaticConfig{
+				{
+					Targets: []string{name + ":8080"},
+					Labels:  map[string]string{"instance": name},
+				},
+			},
+		})
+		time.Sleep(1 * time.Second)
+		http.Get("http://localhost:8080/add-server?name=" + name)
+	}
+	yamlBytes, err := yaml.Marshal(&config)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+
+	// Write the YAML data to a file
+	err = os.WriteFile("prometheus/prom.yml", yamlBytes, 0644)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+}
+
+func (dc *dockercli) addContainer() string {
+
 	// check if kdb_backend exists
 	nw, err := dc.NetworkList(context.Background(), types.NetworkListOptions{})
 	if err != nil {
@@ -132,8 +193,7 @@ func (dc *dockercli) addContainer() {
 	if err := dc.ContainerStart(context.Background(), resp.ID, types.ContainerStartOptions{}); err != nil {
 		panic(err)
 	}
-	time.Sleep(5 * time.Second)
-	http.Get("http://localhost:8080/add-server?name=" + name)
+	return name
 
 }
 
@@ -185,9 +245,6 @@ func (dc *dockercli) deleteAll() {
 		}
 	}
 
-	f, _ := filepath.Abs(filepath.Dir("serverInfo/"))
-
-	os.Truncate(f+"/servers.txt", int64(0))
 }
 func (dc *dockercli) listContainers() []string {
 

@@ -23,10 +23,20 @@ type Nodes struct {
 
 func NewNodes(name string, con *pb.ConsensusClient, factor int, logger *logger.Logger) *Nodes {
 
-	t := time.Duration(factor) * time.Second
-	ticker := *time.NewTicker(t)
+	var (
+		t      = time.Duration(factor) * time.Second
+		ticker = *time.NewTicker(t)
+	)
 
-	c := &Nodes{name, con, ticker, time.Now(), factor, logger, false, false}
+	c := &Nodes{
+		name:     name,
+		con:      con,
+		ticker:   ticker,
+		lastBeat: time.Now(),
+		factor:   factor,
+		logger:   logger,
+		delete:   false,
+		init:     false}
 	return c
 }
 

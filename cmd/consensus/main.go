@@ -27,6 +27,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/kdsama/kdb/config"
 	"github.com/kdsama/kdb/consensus"
 	"github.com/kdsama/kdb/logger"
 	pb "github.com/kdsama/kdb/protodata"
@@ -42,8 +43,14 @@ var (
 
 func main() {
 	flag.Parse()
-	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *port))
-	name := os.Args[1]
+	var (
+		lis, err = net.Listen("tcp", fmt.Sprintf(":%d", *port))
+		name     = os.Args[1]
+		s        *grpc.Server
+		opts     = logger.ToOutput(os.Stdout)
+		opts1    = logger.DateOpts(true)
+		logger   = logger.New(logger.Info, opts, opts1)
+	)
 
 	if name == "" {
 		log.Fatal("container name is required, exitting")
@@ -52,34 +59,28 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
-	s := grpc.NewServer()
-
-	opts := logger.ToOutput(os.Stdout)
-	opts1 := logger.DateOpts(true)
-	logger := logger.New(logger.Info, opts, opts1)
+	s = grpc.NewServer()
 
 	cs := consensus.NewConsensusService(name, logger)
 
 	go cs.Init()
 
-	kv := store.NewKVService("./data/kvservice/persist/", "node", "./data/kvservice/wal/", 1, 1000, logger)
-	// need to get naming better here
+	// initializing services
+	kv := store.NewKVService(config.DataPrefix, config.WalPrefix, config.Directory, config.WalBufferInterval, config.BtreeDegree, logger)
 	SR := server.New(kv, cs, logger)
-	go ServerHttp()
-	pb.RegisterConsensusServer(s, server.NewHandler(SR))
 
+	go ServerHttp()
+
+	pb.RegisterConsensusServer(s, server.NewHandler(SR))
 	log.Printf("server listening at %v", lis.Addr())
 	if err := s.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %v", err)
 	}
 
 }
-func ping(w http.ResponseWriter, req *http.Request) {
 
-	fmt.Fprintf(w, "pong")
-}
+// Serves Http Requests. Open for Prometheus to fetch metrics
 func ServerHttp() {
-	http.HandleFunc("/ping", ping)
 	http.Handle("/metrics", promhttp.Handler())
 
 	log.Fatal(http.ListenAndServe(":8080", nil))

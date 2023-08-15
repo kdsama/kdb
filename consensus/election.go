@@ -75,10 +75,11 @@ func (cs *ConsensusService) electMeAndBroadcast() {
 func (cs *ConsensusService) askForVote() {
 	// we give ourselves vote first
 
-	voteCount := 1
-	wg := sync.WaitGroup{}
-
-	var leader string
+	var (
+		voteCount = 1
+		wg        = sync.WaitGroup{}
+		leader    string
+	)
 
 	for key, _ := range cs.clients {
 		//cs.Votefor Me()
@@ -167,10 +168,12 @@ func (cs *ConsensusService) LeaderInfo() (string, error) {
 func (cs *ConsensusService) askWhoIsTheLeader() {
 	// we give ourselves vote first
 
-	wg := sync.WaitGroup{}
-	leaderMap := map[string]int{}
-	max := -1
-	leader := ""
+	var (
+		wg        = sync.WaitGroup{}
+		leaderMap = map[string]int{}
+		max       = -1
+		leader    = ""
+	)
 
 	for key, _ := range cs.clients {
 		//cs.Votefor Me()

@@ -1,7 +1,6 @@
 package consensus
 
 import (
-	"fmt"
 	"sync"
 	"time"
 )
@@ -38,11 +37,6 @@ func (cs *ConsensusService) checkHeartbeatOnNodes() {
 		cs.logger.Infof("No clients found but myself so no need to check heartbeat %v  :::: %v", cs.name, cs.clients)
 		return
 	}
-	// if cs.active < len(cs.addresses)/2 {
-	// 	// might as well
-	// 	cs.logger.Warnf("Quorum is broken , we have %d active nodes out of %d", cs.active, len(cs.addresses))
-	// 	// no hard action for now
-	// }
 
 	var (
 		count    int
@@ -98,7 +92,6 @@ func (cs *ConsensusService) HeartbeatAck() {
 
 // last heart beat check , this will help us decide the candidacy
 func (cs *ConsensusService) lastHeatBeatCheck() {
-	fmt.Println("Leader is ", cs.currLeader)
 	if cs.state == Initializing {
 		return
 	}

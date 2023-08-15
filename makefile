@@ -14,7 +14,7 @@ test:
 	docker-compose -f docker-compose.test.yml up --build --abort-on-container-exit
 	docker-compose -f docker-compose.test.yml down 
 add:
-	go run orchestrator/main.go add kdb
+	go run orchestrator/main.go add kdb 5
 	
 delete:
 	go run orchestrator/main.go delete kdb
@@ -29,15 +29,13 @@ reload:
 	make deleteAll
 	sudo rm -rf data/*
 	make build 
-	make add 
 	make add
-	make add
+
 
 restart:
 	make deleteAll
 	make add
-	make add
-	make add
+
 
 
 startProm: 
