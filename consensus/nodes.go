@@ -42,7 +42,7 @@ func NewNodes(name string, con *pb.ConsensusClient, factor int, logger *logger.L
 
 func (c *Nodes) Hearbeat() error {
 
-	if c.init && time.Since(c.lastBeat) > time.Duration(10*c.factor)*time.Second {
+	if c.init && time.Since(c.lastBeat) > time.Duration(3*c.factor)*time.Second {
 		c.logger.Errorf("Server %v is dead", c.name)
 		// the server is not responsive
 		// changing the ticker timing

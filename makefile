@@ -14,13 +14,13 @@ test:
 	docker-compose -f docker-compose.test.yml up --build --abort-on-container-exit
 	docker-compose -f docker-compose.test.yml down 
 add:
-	go run orchestrator/main.go add kdb 5
+	go run cmd/orchestrator/main.go add kdb 5
 	
 delete:
-	go run orchestrator/main.go delete kdb
+	go run cmd/orchestrator/main.go delete kdb
 
 deleteAll:
-	go run orchestrator/main.go deleteAll kdb
+	go run cmd/orchestrator/main.go deleteAll kdb
 
 proto:
 	protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative protodata/consensus.proto

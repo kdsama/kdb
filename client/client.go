@@ -31,7 +31,7 @@ var (
 	}, []string{"reqtype"})
 )
 
-var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+var letters = []rune("abcdefghijklmnopqrstuvwxyz")
 
 // we need to have connections to the servers present here
 // we would also need
@@ -230,7 +230,7 @@ func (s *service) automateSet(duration, requests, sleep string) (int, error) {
 
 			go func() {
 				rand.Seed(time.Now().UnixNano())
-				err := s.set(randSeq(rand.Intn(10)), randSeq(rand.Intn(10)))
+				err := s.set("key"+randSeq(rand.Intn(2)), randSeq(rand.Intn(1000)))
 				if err != nil {
 
 					errCount++
@@ -240,7 +240,6 @@ func (s *service) automateSet(duration, requests, sleep string) (int, error) {
 				}
 			}()
 		}
-
 		curr = 0
 	}()
 
