@@ -113,7 +113,7 @@ func (s *Handler) Vote(ctx context.Context, in *pb.VoteNode) (*pb.VoteNodeRespon
 
 	// ADD NODE TO EXISTING NODES
 	t := time.Now()
-	leader, status := s.server.Vote(int(in.Term), in.Leader)
+	leader, status := s.server.Vote(int(in.Term), in.Leader, in.Votes)
 	requestLatency.WithLabelValues("Vote_For_Leader").Observe(float64(time.Since(t)) / 1000)
 	return &pb.VoteNodeResponse{Leader: leader, Status: status}, nil
 }

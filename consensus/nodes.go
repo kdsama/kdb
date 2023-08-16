@@ -2,7 +2,6 @@ package consensus
 
 import (
 	"context"
-	"errors"
 	"time"
 
 	"github.com/kdsama/kdb/config"
@@ -42,33 +41,25 @@ func NewNodes(name string, con *pb.ConsensusClient, factor int, logger *logger.L
 
 func (c *Nodes) Hearbeat() error {
 
-	if c.init && time.Since(c.lastBeat) > time.Duration(3*c.factor)*time.Second {
-		c.logger.Errorf("Server %v is dead", c.name)
-		// the server is not responsive
-		// changing the ticker timing
-		// remove it from the client map
-		c.logger.Warnf("%v is dead as no hearbeat received for last 10 requests", c.name)
-
-		// this is us informing the service to delete this
-		c.delete = true
-		return errors.New("the node is dead to me")
-	}
 	c.init = true
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 300*time.Millisecond)
 	defer cancel()
 	nc := c.con
 
 	_, err := (*nc).Ack(ctx, &pb.Hearbeat{Message: "i"})
 	if err != nil {
-		// mark it dead
-
 		c.logger.Errorf("Ouch, No heartbeat from %v because of %v \n", c.name, err)
 		c.delete = true
 		return nil
 	}
-	c.lastBeat = time.Now()
-
-	// c.ticker = *time.NewTicker(time.Duration(c.factor) * time.Second)
+	if c.init && time.Since(c.lastBeat) > time.Duration(3*c.factor)*time.Second {
+		c.logger.Warnf("%v No Heartbeat ", c.name)
+		// this is us informing the service to delete this
+		c.delete = true
+	} else {
+		c.lastBeat = time.Now()
+		c.delete = false
+	}
 
 	return nil
 }

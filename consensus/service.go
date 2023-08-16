@@ -57,7 +57,7 @@ type ConsensusService struct {
 	state      stateLevel
 	active     int // active nodes
 	lastBeat   time.Time
-	term       int
+	term       *Term
 	voteTime   time.Time
 	init       bool
 }
@@ -131,12 +131,6 @@ func (cs *ConsensusService) SendTransaction(data []byte, TxnID string) error {
 
 	for _, client := range cs.clients {
 		client := client
-
-		if client.delete {
-			wg.Done()
-			continue
-		}
-
 		go func() {
 			defer wg.Done()
 
@@ -182,12 +176,6 @@ func (cs *ConsensusService) SendTransactionConfirmation(data []byte, TxnID strin
 
 	for _, client := range cs.clients {
 		client := client
-
-		if client.delete {
-			wg.Done()
-			continue
-		}
-
 		go func() {
 			defer wg.Done()
 

@@ -16,8 +16,10 @@ func quorumElection(total, acquiredVotes int) result {
 		halfVote = float32(total) / 2
 		res      = float32(acquiredVotes) - halfVote
 	)
-	if res >= 0 {
+	if res > 0 {
 		return won
+	} else if res == 0 {
+		return draw
 	}
 	return lost
 

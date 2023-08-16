@@ -91,6 +91,7 @@ message BroadcastNodeResponse {
 message VoteNode {
   string leader = 1 ; 
   int32 Term = 2 ; 
+  repeated string votes = 3;  
 }
 message VoteNodeResponse {
   string leader = 1; 

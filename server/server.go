@@ -111,8 +111,8 @@ func (s *Server) Broadcast(addr []string, leader string) error {
 	return s.cs.Broadcast(addr)
 }
 
-func (s *Server) Vote(term int, leader string) (string, bool) {
-	return s.cs.Vote(term, leader)
+func (s *Server) Vote(term int, leader string, votes []string) (string, bool) {
+	return s.cs.Vote(term, leader, votes)
 }
 
 func (s *Server) LeaderInfo() (string, error) {

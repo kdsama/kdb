@@ -10,44 +10,31 @@ import (
 	"github.com/kdsama/kdb/protodata"
 )
 
-// now we have to talk about election
+type Term struct {
+	ID     int32
+	Leader string
+	Votes  []string
+}
 
-// so a node will wait for a certain amount of time
-// and then send broadcast about its candidacy
-// Other nodes would have to acknowledge these two things
-// first that they need to check if thats the case with them as well
-// if yes , then they have to agree on the voting.
-// so in latstHeatbeat check , at a random interval of 150-300 ms I will become a candidate and send the candidacy request to all of the nodes
-// If the receiver hasn't voted yet in this term, then it votes for the candidate
-// so we have to define a term as well ???
-// if it doesnot get a majority of vote, a new term will start
-// it will wait again for a random time and send its candidacy
-// So if one becomes a leader on majority approval
-// That node needs to send a broadcast that it is the new leader
-// it can only send broadcast after majority vote has been reached.
-// first thing is , we need to have a common election term, throughout all the servers
-// once a leader is selected , on the initial process of startup
-// we set electionTerm++ and then select a leader
-// how to have an election term.
-// we should have a separate composite struct for the same ?
-// what data-structure should be used or we should use the same struct ?
-// and how to do the init leader election
-// Lets start at the beginning
-// Client will send a broadcast
-// that a server is added
-// we will check if there is > 1 addresses
-// then we will check do we have leader information
-// if no leader information + addresses > 1 we put ourselves as candidate and start an election
-// election term++
-// send leadership request to others
-// if others have election term size thats less. we just vote for the guy
-// if the election term size is the same + vote has been casted (leader value is different) we send back false, else we just send true
-// first we need to make sure we connect all servers with each other.
+var terms = []Term{}
 
-// there is problem with relaying the information about leadership
-// maybe when a server is initialized , from all the nodes ,we will tell it which one is the leader. So the server need to asks itself
-// If there is no servers yet we will vote ourself to be the leader.
-// so basically we need to start this once , we get all the server names from the broadcast in the array
+func NewTerm(id int32, leader string) (*Term, error) {
+
+	t := &Term{
+		ID:     id,
+		Leader: leader,
+		Votes:  []string{leader},
+	}
+	// check for existing term
+	if len(terms) == 1 {
+		if t.ID == terms[0].ID {
+			// there is already an election that has started
+			// dont share the vote in this case
+			return nil, errors.New("no broadcast")
+		}
+	}
+	return t, nil
+}
 
 func (cs *ConsensusService) electMeAndBroadcast() {
 
@@ -55,20 +42,27 @@ func (cs *ConsensusService) electMeAndBroadcast() {
 	if len(cs.addresses) == 0 {
 		cs.currLeader = cs.name
 		cs.state = Leader
+		t, _ := NewTerm(int32(0), cs.name)
+		cs.term = t
+
 		return
 		// dont do nothing
 		// just return
 		// you are not going to ask for vote from nobody
 	}
-	cs.logger.Infof(" time since last election ::: %v", time.Since(cs.voteTime))
-	if time.Since(cs.voteTime) < 1*time.Second {
+	rand.Seed(time.Now().UnixMicro())
+	time.Sleep(time.Duration(rand.Intn(10)) * time.Second)
+
+	id := cs.term.ID
+	id++
+	term, err := NewTerm(id, cs.name)
+	if err != nil {
+		// no need to broadcast yourself
 		return
 	}
-	rand.Seed(time.Now().UnixMicro())
-	time.Sleep(time.Duration(100+rand.Intn(500)) * time.Millisecond)
-
-	cs.term++
-	cs.logger.Infof("ASking for vote now")
+	terms = append(terms, *term)
+	cs.term = term
+	cs.logger.Infof("Term %d", cs.term.ID)
 	cs.askForVote()
 }
 
@@ -76,9 +70,8 @@ func (cs *ConsensusService) askForVote() {
 	// we give ourselves vote first
 
 	var (
-		voteCount = 1
-		wg        = sync.WaitGroup{}
-		leader    string
+		wg = sync.WaitGroup{}
+		// leader string
 	)
 
 	for key, _ := range cs.clients {
@@ -95,23 +88,40 @@ func (cs *ConsensusService) askForVote() {
 			defer cancel()
 			conn := *cs.clients[key].con
 
-			r, err := conn.Vote(ctx, &protodata.VoteNode{Term: int32(cs.term), Leader: cs.name})
+			r, err := conn.Vote(ctx, &protodata.VoteNode{Term: cs.term.ID, Leader: cs.term.Leader, Votes: cs.term.Votes})
 			if err != nil {
 				cs.logger.Infof("This is what it is %v", err)
 				return
 
 			}
-
 			if r.Leader == cs.name {
-				voteCount++
-			} else {
-				leader = r.Leader
+				terms[0].Votes = append(terms[0].Votes, key)
 			}
-
+			// now here we will put the logic
+			// we will return from vote acknowledgement the other peoples response
+			// They will say Yes or NO
+			// But first what I need to say is, if the election is a new one or an old one
+			// if it is a new one , just tell the guy they are the leader
+			// else if election is not a new one, we respond with term already started, restart a new one.
+			// But if you send me who has elected themselves as well, we both should be able to compare the number of votes we have to start a re-election
+			// Now comes the dead node part. Lets say we have 4 nodes
+			// 1 dies
+			// 2 of them go for an election for a new term
+			// One will reach the 3rd node later
+			// once its request is sent the 3rd node will say I already have made this new guy a leader
+			// 2nd node will check its quorum . Out of 4 nodes , he has 1 vote. It will make itself a follower
+			// It will broadcast LeaderInformation and make the new leader his own leader
+			// and then convert himself to the follower
+			// Once this happens , once we have a new leader , we can delete our latest term
+			// If they say no , they can mention who they voted for
+			// They can also share who else voted for that leader if they have that information
+			// WHat if both have the value one ?
 		}()
 	}
 
-	result := quorumElection(len(cs.clients), voteCount)
+	// implement a channel so that , I can check for won scenario proactively
+	//
+	result := quorumElection(len(cs.clients), len(terms[0].Votes))
 	switch result {
 	case won:
 		cs.state = Leader
@@ -119,42 +129,48 @@ func (cs *ConsensusService) askForVote() {
 		cs.voteTime = time.Now()
 
 	case lost:
-		cs.currLeader = leader
-		cs.state = Follower
-		cs.voteTime = time.Now()
+		cs.logger.Infof("We are going to broadcast and ask who is the leader as we lost this one bitch")
+		cs.askWhoIsTheLeader()
 	case draw:
-		cs.term++
-		cs.logger.Infof("Is this the reason ?? %d %d %d %d", cs.term, voteCount, len(cs.clients), len(cs.clients)/2)
+		terms = []Term{}
 		cs.electMeAndBroadcast()
 	}
 
-	// now there are two cases here
-	// where somebody else have gotten a lot of votes
-	// or somebody else has gotten equal votes as you
-	// how to figure this out ??
-	// lets say we also return the leader in case they are not voting for you .
-	// if the count is same as yours , we increase the election term value and do another vote
-	// else we make the received value as the new leader
-	// need new messages for rpc
-
+	terms = []Term{}
 }
 
-func (cs *ConsensusService) Vote(term int, leader string) (string, bool) {
+func (cs *ConsensusService) Vote(term int, leader string, votes []string) (string, bool) {
+	// now here we will put the logic
+	// we will return from vote acknowledgement the other peoples response
+	// They will say Yes or NO
+	// But first what I need to say is, if the election is a new one or an old one
+	// if it is a new one , just tell the guy they are the leader
+	// else if election is not a new one, we respond with term already started, restart a new one.
+	// But if you send me who has elected themselves as well, we both should be able to compare the number of votes we have to start a re-election
+	// Now comes the dead node part. Lets say we have 4 nodes
+	// 1 dies
+	// 2 of them go for an election for a new term
+	// One will reach the 3rd node later
+	// once its request is sent the 3rd node will say I already have made this new guy a leader
+	// 2nd node will check its quorum . Out of 4 nodes , he has 1 vote. It will make itself a follower
+	// It will broadcast LeaderInformation and make the new leader his own leader
+	// and then convert himself to the follower
+	// Once this happens , once we have a new leader , we can delete our latest term
+	// If they say no , they can mention who they voted for
+	// They can also share who else voted for that leader if they have that information
+	// WHat if both have the value one ?
 
-	if term > cs.term {
-		// we are not persisting the information that who is the leader as of now
-		// maybe we will put it on the node side
-		// but that means we dont instantly have that information
-		// so need to make changes about that
-		cs.clientMux.Lock()
-		cs.term = term
+	// check if currentTerm < asked term
+	if cs.term.ID < int32(term) {
 		cs.currLeader = leader
-		cs.voteTime = time.Now()
-		cs.clientMux.Unlock()
-		cs.logger.Infof("I accept this person as our new leader ")
-		return cs.currLeader, true
-	}
+		t, _ := NewTerm(int32(term), leader)
 
+		terms = []Term{}
+		terms = append(terms, *t)
+
+		return cs.currLeader, true
+
+	}
 	return cs.currLeader, false
 }
 
@@ -176,7 +192,6 @@ func (cs *ConsensusService) askWhoIsTheLeader() {
 	)
 
 	for key, _ := range cs.clients {
-		//cs.Votefor Me()
 		wg.Add(1)
 		key := key
 		go func() {
@@ -211,5 +226,9 @@ func (cs *ConsensusService) askWhoIsTheLeader() {
 
 	cs.currLeader = leader
 	cs.voteTime = time.Now()
+	if cs.term == nil {
+		t, _ := NewTerm(int32(0), leader)
+		cs.term = t
+	}
 
 }

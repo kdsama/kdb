@@ -1,7 +1,9 @@
 package consensus
 
 import (
+	"os"
 	"sync"
+	"syscall"
 	"time"
 )
 
@@ -27,7 +29,7 @@ import (
 // this function is only accessible by the leader. It will connect to new clients and send heartbeat
 
 func (cs *ConsensusService) checkHeartbeatOnNodes() {
-	cs.logger.Infof("I am leader ")
+
 	// check for quorum
 	if cs.state != Leader {
 		return
@@ -41,12 +43,15 @@ func (cs *ConsensusService) checkHeartbeatOnNodes() {
 	var (
 		count    int
 		errCount int
-		quorum   = (len(cs.clients) - 1) / 2
 		wg       sync.WaitGroup
 		resultCh = make(chan error, len(cs.clients))
 	)
 
 	for _, client := range cs.clients {
+		if time.Since(client.lastBeat) < 50*time.Millisecond {
+			resultCh <- nil
+			continue
+		}
 		client := client
 		wg.Add(1)
 		if client.delete {
@@ -72,11 +77,13 @@ func (cs *ConsensusService) checkHeartbeatOnNodes() {
 		} else {
 			count++
 		}
+		if won == quorumOperation(len(cs.addresses), count) {
+			return
+		}
 	}
-
-	if count < quorum {
-		cs.logger.Errorf("Quorum is broken")
-	}
+	cs.logger.Errorf("Leader with a broken Quorum")
+	pid := os.Getpid()
+	syscall.Kill(pid, syscall.SIGINT)
 
 }
 
