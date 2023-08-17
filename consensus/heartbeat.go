@@ -92,7 +92,7 @@ func (cs *ConsensusService) HeartbeatAck() {
 	if cs.state == Leader {
 		cs.logger.Errorf("What does this guy think he is , sending leader a heartbeat")
 	}
-
+	cs.logger.Infof("LEader is %s", cs.currLeader)
 	cs.lastBeat = time.Now()
 
 }

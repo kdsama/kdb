@@ -24,9 +24,11 @@ func (cs *ConsensusService) Broadcast(addresses []string) error {
 
 	if cs.currLeader == "" {
 		if len(cs.addresses) == 0 {
+			cs.logger.Infof("Elect myself tobe a leader")
 			cs.electMeAndBroadcast()
 		} else {
 			cs.state = Follower
+			cs.logger.Infof("Asking who the leader is ")
 			cs.askWhoIsTheLeader()
 		}
 	}

@@ -14,26 +14,26 @@ type Term struct {
 	ID     int32
 	Leader string
 	Votes  []string
+	Prev   *Term
 }
 
-var terms = []Term{}
-
-func NewTerm(id int32, leader string) (*Term, error) {
-
-	t := &Term{
-		ID:     id,
-		Leader: leader,
-		Votes:  []string{leader},
-	}
-	// check for existing term
-	if len(terms) == 1 {
-		if t.ID == terms[0].ID {
-			// there is already an election that has started
-			// dont share the vote in this case
-			return nil, errors.New("no broadcast")
+func (cs *ConsensusService) NewTerm(id int32, leader string, votes []string) bool {
+	//
+	if cs.term == nil {
+		cs.term = &Term{
+			ID:     id,
+			Leader: leader,
+			Votes:  votes,
+			Prev:   nil,
 		}
 	}
-	return t, nil
+	if id > cs.term.ID {
+		curr := cs.term
+		cs.term = &Term{id, leader, votes, curr}
+		return true
+	}
+	return false
+
 }
 
 func (cs *ConsensusService) electMeAndBroadcast() {
@@ -42,26 +42,27 @@ func (cs *ConsensusService) electMeAndBroadcast() {
 	if len(cs.addresses) == 0 {
 		cs.currLeader = cs.name
 		cs.state = Leader
-		t, _ := NewTerm(int32(0), cs.name)
-		cs.term = t
+		cs.NewTerm(int32(0), cs.name, []string{})
 
 		return
 		// dont do nothing
 		// just return
 		// you are not going to ask for vote from nobody
 	}
+	var id int32
+	if cs.term != nil {
+		id = cs.term.ID
+	}
+	id++
 	rand.Seed(time.Now().UnixMicro())
 	time.Sleep(time.Duration(rand.Intn(10)) * time.Second)
 
-	id := cs.term.ID
-	id++
-	term, err := NewTerm(id, cs.name)
-	if err != nil {
+	ok := cs.NewTerm(id, cs.name, []string{cs.name})
+	if !ok {
 		// no need to broadcast yourself
 		return
 	}
-	terms = append(terms, *term)
-	cs.term = term
+
 	cs.logger.Infof("Term %d", cs.term.ID)
 	cs.askForVote()
 }
@@ -73,7 +74,7 @@ func (cs *ConsensusService) askForVote() {
 		wg = sync.WaitGroup{}
 		// leader string
 	)
-
+	count := 1
 	for key, _ := range cs.clients {
 		//cs.Votefor Me()
 		if key == cs.currLeader {
@@ -95,7 +96,7 @@ func (cs *ConsensusService) askForVote() {
 
 			}
 			if r.Leader == cs.name {
-				terms[0].Votes = append(terms[0].Votes, key)
+				count++
 			}
 			// now here we will put the logic
 			// we will return from vote acknowledgement the other peoples response
@@ -121,7 +122,7 @@ func (cs *ConsensusService) askForVote() {
 
 	// implement a channel so that , I can check for won scenario proactively
 	//
-	result := quorumElection(len(cs.clients), len(terms[0].Votes))
+	result := quorumElection(len(cs.clients), count)
 	switch result {
 	case won:
 		cs.state = Leader
@@ -132,11 +133,9 @@ func (cs *ConsensusService) askForVote() {
 		cs.logger.Infof("We are going to broadcast and ask who is the leader as we lost this one bitch")
 		cs.askWhoIsTheLeader()
 	case draw:
-		terms = []Term{}
 		cs.electMeAndBroadcast()
 	}
 
-	terms = []Term{}
 }
 
 func (cs *ConsensusService) Vote(term int, leader string, votes []string) (string, bool) {
@@ -161,13 +160,10 @@ func (cs *ConsensusService) Vote(term int, leader string, votes []string) (strin
 	// WHat if both have the value one ?
 
 	// check if currentTerm < asked term
-	if cs.term.ID < int32(term) {
+	ok := cs.NewTerm(int32(term), leader, votes)
+	if ok {
 		cs.currLeader = leader
-		t, _ := NewTerm(int32(term), leader)
-
-		terms = []Term{}
-		terms = append(terms, *t)
-
+		// t, _ :=
 		return cs.currLeader, true
 
 	}
@@ -219,16 +215,7 @@ func (cs *ConsensusService) askWhoIsTheLeader() {
 
 	wg.Wait()
 
-	if leader == "" || leaderMap[leader] < len(cs.clients)/2 {
-		cs.logger.Infof("Leader %s, leaderMap Count %d , total clients %d", leader, leaderMap[leader], len(cs.clients))
-		cs.logger.Fatalf("WTF this is not what I was expecting")
-	}
-
 	cs.currLeader = leader
 	cs.voteTime = time.Now()
-	if cs.term == nil {
-		t, _ := NewTerm(int32(0), leader)
-		cs.term = t
-	}
 
 }
