@@ -53,7 +53,6 @@ type ConsensusService struct {
 	clientMux  *sync.Mutex
 	clients    map[string]*Nodes
 	wg         map[string]*sync.WaitGroup
-	addresses  []string
 	state      stateLevel
 	active     int // active nodes
 	lastBeat   time.Time
@@ -73,7 +72,6 @@ func NewConsensusService(name string, logger *logger.Logger) *ConsensusService {
 		clientMux: &sync.Mutex{},
 		clients:   map[string]*Nodes{},
 		wg:        map[string]*sync.WaitGroup{},
-		addresses: []string{},
 		state:     Initializing,
 		active:    0,
 		lastBeat:  time.Now(),

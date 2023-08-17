@@ -50,7 +50,7 @@ func main() {
 		name     = os.Args[1]
 		s        *grpc.Server
 		opts     = logger.ToOutput(os.Stdout)
-		opts1    = logger.DateOpts(true)
+		opts1    = logger.DateOpts(false)
 		logger   = logger.New(logger.Info, opts, opts1)
 	)
 

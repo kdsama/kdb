@@ -56,7 +56,7 @@ func (cs *ConsensusService) connectClients() {
 
 	}
 	if cs.state == Leader {
-
+		cs.logger.Infof("Ask for heartbeat here??")
 		cs.checkHeartbeatOnNodes()
 	}
 }

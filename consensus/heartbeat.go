@@ -77,7 +77,7 @@ func (cs *ConsensusService) checkHeartbeatOnNodes() {
 		} else {
 			count++
 		}
-		if won == quorumOperation(len(cs.addresses), count) {
+		if won == quorumOperation(len(cs.clients), count) {
 			return
 		}
 	}
@@ -92,7 +92,6 @@ func (cs *ConsensusService) HeartbeatAck() {
 	if cs.state == Leader {
 		cs.logger.Errorf("What does this guy think he is , sending leader a heartbeat")
 	}
-	cs.logger.Infof("LEader is %s", cs.currLeader)
 	cs.lastBeat = time.Now()
 
 }
@@ -113,6 +112,7 @@ func (cs *ConsensusService) lastHeatBeatCheck() {
 	// How can we do it ?
 	// need a better idea for this one
 	if time.Since(cs.lastBeat) > 10*time.Second {
+
 		cs.electMeAndBroadcast()
 	}
 

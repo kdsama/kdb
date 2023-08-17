@@ -3,6 +3,7 @@ package consensus
 import (
 	"context"
 	"errors"
+	"fmt"
 	"math/rand"
 	"sync"
 	"time"
@@ -39,7 +40,7 @@ func (cs *ConsensusService) NewTerm(id int32, leader string, votes []string) boo
 func (cs *ConsensusService) electMeAndBroadcast() {
 
 	// need a way to return from here or not call this functon
-	if len(cs.addresses) == 0 {
+	if len(cs.clients) == 0 {
 		cs.currLeader = cs.name
 		cs.state = Leader
 		cs.NewTerm(int32(0), cs.name, []string{})
@@ -54,12 +55,13 @@ func (cs *ConsensusService) electMeAndBroadcast() {
 		id = cs.term.ID
 	}
 	id++
+	fmt.Println("Going to set up election for term ", id)
 	rand.Seed(time.Now().UnixMicro())
 	time.Sleep(time.Duration(rand.Intn(10)) * time.Second)
-
 	ok := cs.NewTerm(id, cs.name, []string{cs.name})
 	if !ok {
 		// no need to broadcast yourself
+		fmt.Println("Cannot , somebody already started election for this term. ")
 		return
 	}
 
@@ -128,6 +130,7 @@ func (cs *ConsensusService) askForVote() {
 		cs.state = Leader
 		cs.currLeader = cs.name
 		cs.voteTime = time.Now()
+		cs.logger.Infof("I am the leader %s", cs.name)
 
 	case lost:
 		cs.logger.Infof("We are going to broadcast and ask who is the leader as we lost this one bitch")
@@ -160,6 +163,8 @@ func (cs *ConsensusService) Vote(term int, leader string, votes []string) (strin
 	// WHat if both have the value one ?
 
 	// check if currentTerm < asked term
+	cs.clientMux.Lock()
+	defer cs.clientMux.Unlock()
 	ok := cs.NewTerm(int32(term), leader, votes)
 	if ok {
 		cs.currLeader = leader
@@ -198,7 +203,7 @@ func (cs *ConsensusService) askWhoIsTheLeader() {
 			ldResponse, err := conn.LeaderInfo(ctx, &protodata.AskLeader{})
 
 			if err == nil {
-				cs.logger.Infof("leader is %s", ldResponse.Leader)
+
 				cs.clientMux.Lock()
 
 				leaderMap[ldResponse.Leader]++
@@ -214,7 +219,7 @@ func (cs *ConsensusService) askWhoIsTheLeader() {
 	}
 
 	wg.Wait()
-
+	// this will get us the latest leader
 	cs.currLeader = leader
 	cs.voteTime = time.Now()
 

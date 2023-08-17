@@ -18,12 +18,13 @@ func (cs *ConsensusService) Broadcast(addresses []string) error {
 				return err
 			}
 			cs.clients[addr] = NewNodes(addr, client, 3, cs.logger)
-			cs.addresses = append(cs.addresses, addr)
+
 		}
 	}
 
+	// a new initialization, no cron has been started yet.
 	if cs.currLeader == "" {
-		if len(cs.addresses) == 0 {
+		if len(cs.clients) == 0 {
 			cs.logger.Infof("Elect myself tobe a leader")
 			cs.electMeAndBroadcast()
 		} else {
