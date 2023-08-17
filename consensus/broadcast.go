@@ -26,10 +26,9 @@ func (cs *ConsensusService) Broadcast(addresses []string) error {
 	if cs.currLeader == "" {
 		if len(cs.clients) == 0 {
 			cs.logger.Infof("Elect myself tobe a leader")
-			cs.electMeAndBroadcast()
+			cs.requestElection()
 		} else {
-			cs.state = Follower
-			cs.logger.Infof("Asking who the leader is ")
+
 			cs.askWhoIsTheLeader()
 		}
 	}
@@ -37,13 +36,13 @@ func (cs *ConsensusService) Broadcast(addresses []string) error {
 	// need to implement a scenario
 	// when I become a leader I need to reset the values for all the clients of the lastBeat
 	if cs.recTicker == nil {
-		cs.recTicker = time.NewTicker(3 * time.Second)
+		cs.recTicker = time.NewTicker(700 * time.Millisecond)
 		cs.lastBeat = time.Now()
 	}
 
 	if cs.ticker == nil {
 		cs.logger.Infof("New normal ticker ")
-		cs.ticker = time.NewTicker(5 * time.Second)
+		cs.ticker = time.NewTicker(1 * time.Second)
 	}
 	if !cs.init {
 		cs.logger.Infof("Scheduling the scheduler")

@@ -34,7 +34,7 @@ func (cs *ConsensusService) checkHeartbeatOnNodes() {
 	if cs.state != Leader {
 		return
 	}
-
+	cs.logger.Infof("Checking heartbeat")
 	if len(cs.clients) == 0 {
 		cs.logger.Infof("No clients found but myself so no need to check heartbeat %v  :::: %v", cs.name, cs.clients)
 		return
@@ -92,8 +92,9 @@ func (cs *ConsensusService) HeartbeatAck() {
 	if cs.state == Leader {
 		cs.logger.Errorf("What does this guy think he is , sending leader a heartbeat")
 	}
+	cs.state = Follower
 	cs.lastBeat = time.Now()
-
+	cs.logger.Infof("Received heartbeat from %s", cs.currLeader)
 }
 
 // last heart beat check , this will help us decide the candidacy
@@ -102,18 +103,19 @@ func (cs *ConsensusService) lastHeatBeatCheck() {
 		return
 	}
 	if cs.state == Leader {
-
 		return
 	}
+
 	// so what if the term changed before you get to become a leader ??
 	// need to compare values
 	// or previous leader
 	// THis is where some synchronisation is important .
 	// How can we do it ?
 	// need a better idea for this one
-	if time.Since(cs.lastBeat) > 10*time.Second {
 
-		cs.electMeAndBroadcast()
+	if time.Since(cs.lastBeat) > 3*time.Second {
+		cs.logger.Infof("Request election ")
+		cs.requestElection()
 	}
 
 }

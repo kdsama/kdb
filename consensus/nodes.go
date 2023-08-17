@@ -48,18 +48,17 @@ func (c *Nodes) Hearbeat() error {
 
 	_, err := (*nc).Ack(ctx, &pb.Hearbeat{Message: "i"})
 	if err != nil {
-		c.logger.Errorf("Ouch, No heartbeat from %v because of %v \n", c.name, err)
-		c.delete = true
-		return nil
+		c.logger.Infof("Error %v", err)
+		if c.init && time.Since(c.lastBeat) > time.Duration(3*c.factor)*time.Second {
+			c.logger.Warnf("%v No Heartbeat ", c.name)
+			// this is us informing the service to delete this
+			c.delete = true
+		}
+		return err
 	}
-	if c.init && time.Since(c.lastBeat) > time.Duration(3*c.factor)*time.Second {
-		c.logger.Warnf("%v No Heartbeat ", c.name)
-		// this is us informing the service to delete this
-		c.delete = true
-	} else {
-		c.lastBeat = time.Now()
-		c.delete = false
-	}
+
+	c.lastBeat = time.Now()
+	c.delete = false
 
 	return nil
 }

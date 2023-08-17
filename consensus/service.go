@@ -56,9 +56,9 @@ type ConsensusService struct {
 	state      stateLevel
 	active     int // active nodes
 	lastBeat   time.Time
-	term       *Term
-	voteTime   time.Time
-	init       bool
+	term       int
+
+	init bool
 }
 
 func NewConsensusService(name string, logger *logger.Logger) *ConsensusService {
