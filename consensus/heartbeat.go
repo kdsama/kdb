@@ -48,10 +48,6 @@ func (cs *ConsensusService) checkHeartbeatOnNodes() {
 	)
 
 	for _, client := range cs.clients {
-		if time.Since(client.lastBeat) < 50*time.Millisecond {
-			resultCh <- nil
-			continue
-		}
 		client := client
 		wg.Add(1)
 		if client.delete {

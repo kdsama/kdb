@@ -82,6 +82,10 @@ func main() {
 }
 
 func (dc *dockercli) addContainers(times string) {
+	dc.addContainer(times)
+}
+
+func (dc *dockercli) addContainer(times string) {
 	n, _ := strconv.Atoi(times)
 	nodeNames := []string{}
 	config := PrometheusConfig{
@@ -90,9 +94,89 @@ func (dc *dockercli) addContainers(times string) {
 		}}
 	os.Remove("prometheus/prom.yml")
 	fmt.Println("Deleted the prom file")
+	fmt.Println("Run it n times", times, n)
+	count := 0
 	for i := 0; i < n; i++ {
-		name := dc.addContainer()
-		fmt.Println("Container added :: ", name)
+		// check if kdb_backend exists
+		nw, err := dc.NetworkList(context.Background(), types.NetworkListOptions{})
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		for _, network := range nw {
+			if network.Name == NETWORK {
+				count++
+			}
+		}
+		if count == 0 {
+			dc.NetworkCreate(context.Background(), NETWORK, types.NetworkCreate{})
+		}
+
+		rand.Seed(time.Now().UnixNano())
+		randId := fmt.Sprintf("%v", rand.Int31n(100000))
+		name := "node" + randId
+		rand.Seed(time.Now().UnixNano())
+		name2 := "node" + fmt.Sprintf("%v", rand.Int31n(100000))
+
+		var exposedPorts nat.PortSet
+		portBindings := nat.PortMap{
+			"8080/tcp": []nat.PortBinding{{HostIP: "127.0.0.1", HostPort: "8080"}},
+		}
+
+		volume, _ := filepath.Abs(filepath.Dir("data/"))
+
+		volume += "/" + "data" + randId
+		err1 := os.Mkdir(volume, 0755)
+		if err1 != nil {
+			log.Fatal(err1)
+		}
+
+		// write to server info file
+		cmd := []string{"./bin/serve", name}
+		// check if containers existed previously
+		arr := dc.listContainers()
+		if len(arr) == 0 {
+
+			exposedPorts = nat.PortSet{"8080/tcp": {}}
+			resp, err := dc.ContainerCreate(context.Background(), &container.Config{
+				Image:        dc.image,
+				Cmd:          []string{"./bin/serveClient", name2},
+				ExposedPorts: exposedPorts,
+			}, &container.HostConfig{PortBindings: portBindings}, // Binds: []string{volume + ":/go/src/data"}
+				&network.NetworkingConfig{EndpointsConfig: map[string]*network.EndpointSettings{NETWORK: {NetworkID: NETWORK}}}, nil, name2)
+
+			if err != nil {
+				panic(err)
+			}
+			if err := dc.ContainerStart(context.Background(), resp.ID, types.ContainerStartOptions{}); err != nil {
+				panic(err)
+			}
+			nodeNames = append(nodeNames, name2)
+			config.ScrapeConfigs = append(config.ScrapeConfigs, ScrapeConfig{
+				JobName: name2,
+				StaticConfigs: []StaticConfig{
+					{
+						Targets: []string{name2 + ":8080"},
+						Labels:  map[string]string{"instance": name2},
+					},
+				},
+			})
+		}
+
+		resp, err := dc.ContainerCreate(context.Background(), &container.Config{
+			Image:        dc.image,
+			Cmd:          cmd,
+			ExposedPorts: exposedPorts,
+		}, &container.HostConfig{
+			Binds: []string{volume + ":/go/src/data"}},
+			&network.NetworkingConfig{EndpointsConfig: map[string]*network.EndpointSettings{NETWORK: {NetworkID: NETWORK}}}, nil, name)
+
+		if err != nil {
+			panic(err)
+		}
+		if err := dc.ContainerStart(context.Background(), resp.ID, types.ContainerStartOptions{}); err != nil {
+			panic(err)
+		}
 		nodeNames = append(nodeNames, name)
 		config.ScrapeConfigs = append(config.ScrapeConfigs, ScrapeConfig{
 			JobName: name,
@@ -105,6 +189,7 @@ func (dc *dockercli) addContainers(times string) {
 		})
 		time.Sleep(1 * time.Second)
 		http.Get("http://localhost:8080/add-server?name=" + name)
+		fmt.Println(nodeNames)
 	}
 	yamlBytes, err := yaml.Marshal(&config)
 	if err != nil {
@@ -118,82 +203,6 @@ func (dc *dockercli) addContainers(times string) {
 		fmt.Println("Error:", err)
 		return
 	}
-}
-
-func (dc *dockercli) addContainer() string {
-
-	// check if kdb_backend exists
-	nw, err := dc.NetworkList(context.Background(), types.NetworkListOptions{})
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	count := 0
-	for _, network := range nw {
-		if network.Name == NETWORK {
-			count++
-		}
-	}
-	if count == 0 {
-		dc.NetworkCreate(context.Background(), NETWORK, types.NetworkCreate{})
-	}
-
-	rand.Seed(time.Now().UnixNano())
-	randId := fmt.Sprintf("%v", rand.Int31n(100000))
-	name := "node" + randId
-	rand.Seed(time.Now().UnixNano())
-	name2 := "node" + fmt.Sprintf("%v", rand.Int31n(100000))
-
-	var exposedPorts nat.PortSet
-	portBindings := nat.PortMap{
-		"8080/tcp": []nat.PortBinding{{HostIP: "127.0.0.1", HostPort: "8080"}},
-	}
-
-	volume, _ := filepath.Abs(filepath.Dir("data/"))
-
-	volume += "/" + "data" + randId
-	err1 := os.Mkdir(volume, 0755)
-	if err1 != nil {
-		log.Fatal(err1)
-	}
-
-	// write to server info file
-	cmd := []string{"./bin/serve", name}
-	// check if containers existed previously
-	arr := dc.listContainers()
-	if len(arr) == 0 {
-
-		exposedPorts = nat.PortSet{"8080/tcp": {}}
-		resp, err := dc.ContainerCreate(context.Background(), &container.Config{
-			Image:        dc.image,
-			Cmd:          []string{"./bin/serveClient", name2},
-			ExposedPorts: exposedPorts,
-		}, &container.HostConfig{PortBindings: portBindings}, // Binds: []string{volume + ":/go/src/data"}
-			&network.NetworkingConfig{EndpointsConfig: map[string]*network.EndpointSettings{NETWORK: {NetworkID: NETWORK}}}, nil, name2)
-
-		if err != nil {
-			panic(err)
-		}
-		if err := dc.ContainerStart(context.Background(), resp.ID, types.ContainerStartOptions{}); err != nil {
-			panic(err)
-		}
-	}
-
-	resp, err := dc.ContainerCreate(context.Background(), &container.Config{
-		Image:        dc.image,
-		Cmd:          cmd,
-		ExposedPorts: exposedPorts,
-	}, &container.HostConfig{
-		Binds: []string{volume + ":/go/src/data"}},
-		&network.NetworkingConfig{EndpointsConfig: map[string]*network.EndpointSettings{NETWORK: {NetworkID: NETWORK}}}, nil, name)
-
-	if err != nil {
-		panic(err)
-	}
-	if err := dc.ContainerStart(context.Background(), resp.ID, types.ContainerStartOptions{}); err != nil {
-		panic(err)
-	}
-	return name
 
 }
 
