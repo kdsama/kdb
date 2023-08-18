@@ -34,6 +34,7 @@ reload:
 
 restart:
 	make deleteAll
+	sudo rm -rf data/*
 	make add
 
 

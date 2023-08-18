@@ -260,3 +260,27 @@ func (fsv *fileService) GetAllFilesInDirectory(root string, string_arr *[]string
 	wg.Wait()
 
 }
+func (fsv *fileService) WriteAndReturnLineNumbers(fp string, data []byte) (int, error) {
+
+	dir := filepath.Dir(fp)
+
+	// Create directories recursively if they don't exist
+	err := os.MkdirAll(dir, 0755)
+	if err != nil {
+		return 0, err
+	}
+
+	// Write file using ioutil.WriteFile
+	file, err := os.OpenFile(fp, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0644)
+	if err != nil {
+		return 0, err
+	}
+	defer file.Close()
+
+	_, err = fmt.Fprint(file, string(data))
+	f, err := os.Stat(fp)
+	if err != nil {
+		return 0, err
+	}
+	return int(f.Size()), nil
+}

@@ -95,7 +95,6 @@ func (s *Handler) Set(ctx context.Context, in *pb.SetKey) (*pb.SetKeyResponse, e
 	if err != nil {
 		return &pb.SetKeyResponse{Message: ""}, err
 	}
-	s.server.logger.Infof("Setting", in.Key)
 	requestLatency.WithLabelValues("Set").Observe(float64(time.Since(t)) / 1000)
 	return &pb.SetKeyResponse{Message: "OK"}, nil
 }
