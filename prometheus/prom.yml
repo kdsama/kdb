@@ -1,39 +1,39 @@
 global:
   scrape_interval: 2s
 scrape_configs:
-- job_name: node24377
+- job_name: node19564
   static_configs:
   - targets:
-    - node24377:8080
+    - node19564:8080
     labels:
-      instance: node24377
-- job_name: node21152
+      instance: node19564
+- job_name: node19954
   static_configs:
   - targets:
-    - node21152:8080
+    - node19954:9865
     labels:
-      instance: node21152
-- job_name: node64281
+      instance: node19954
+- job_name: node76321
   static_configs:
   - targets:
-    - node64281:8080
+    - node76321:14333
     labels:
-      instance: node64281
-- job_name: node32013
+      instance: node76321
+- job_name: node19359
   static_configs:
   - targets:
-    - node32013:8080
+    - node19359:10554
     labels:
-      instance: node32013
-- job_name: node26580
+      instance: node19359
+- job_name: node6371
   static_configs:
   - targets:
-    - node26580:8080
+    - node6371:8523
     labels:
-      instance: node26580
-- job_name: node89017
+      instance: node6371
+- job_name: node45554
   static_configs:
   - targets:
-    - node89017:8080
+    - node45554:14069
     labels:
-      instance: node89017
+      instance: node45554

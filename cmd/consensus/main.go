@@ -42,14 +42,16 @@ import (
 func main() {
 
 	var (
-		prt = flag.Int("port", 50051, "The server port")
-		nm  = flag.String("name", "", "This is the name of the node")
+		prt  = flag.Int("port", 50051, "The server port")
+		pprt = flag.String("promport", ":8080", "The server port")
+		nm   = flag.String("name", "", "This is the name of the node")
 	)
 	flag.Parse()
 
 	var (
 		port     = *prt
 		name     = *nm
+		promPort = *pprt
 		lis, err = net.Listen("tcp", fmt.Sprintf(":%d", port))
 		s        *grpc.Server
 		opts     = logger.ToOutput(os.Stdout)
@@ -74,7 +76,7 @@ func main() {
 	kv.Init()
 	SR := server.New(kv, cs, logger)
 
-	go ServerHttp()
+	go ServerHttp(promPort)
 
 	pb.RegisterConsensusServer(s, server.NewHandler(SR))
 	log.Printf("server listening at %v", lis.Addr())
@@ -88,9 +90,9 @@ func main() {
 }
 
 // Serves Http Requests. Open for Prometheus to fetch metrics
-func ServerHttp() {
+func ServerHttp(promPort string) {
 	http.Handle("/metrics", promhttp.Handler())
 
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	log.Fatal(http.ListenAndServe(promPort, nil))
 
 }

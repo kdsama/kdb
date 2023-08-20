@@ -39,13 +39,13 @@ func NewPrometheusConfig() *PrometheusConfig {
 	return config
 }
 
-func (ps *PrometheusConfig) AddScrapeConfig(name string) {
+func (ps *PrometheusConfig) AddScrapeConfig(name string, port string) {
 
 	ps.ScrapeConfigs = append(ps.ScrapeConfigs, ScrapeConfig{
 		JobName: name,
 		StaticConfigs: []StaticConfig{
 			{
-				Targets: []string{name + prometheusDefaultPort},
+				Targets: []string{name + port},
 				Labels:  map[string]string{"instance": name},
 			},
 		},

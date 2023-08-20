@@ -128,12 +128,12 @@ func (dc *dockercli) addContainer(times string) {
 				panic(err)
 			}
 
-			ps.AddScrapeConfig(name2)
+			ps.AddScrapeConfig(name2, ":8080")
 		}
 		rand.Seed(time.Now().UnixNano())
 		prt := 50051 + rand.Intn(1000)
-
-		cmd = append(cmd, "-port", fmt.Sprint(prt))
+		prmPort := fmt.Sprintf(":%d", 8080+rand.Intn(10000))
+		cmd = append(cmd, "-port", fmt.Sprint(prt), "-promport", prmPort)
 		fmt.Println("We are goint o add port ", prt, cmd)
 		resp, err := dc.ContainerCreate(context.Background(), &container.Config{
 			Image:        dc.image,
@@ -149,7 +149,7 @@ func (dc *dockercli) addContainer(times string) {
 		if err := dc.ContainerStart(context.Background(), resp.ID, types.ContainerStartOptions{}); err != nil {
 			panic(err)
 		}
-		ps.AddScrapeConfig(name)
+		ps.AddScrapeConfig(name, prmPort)
 		time.Sleep(1 * time.Second)
 		http.Get("http://localhost:8080/add-server?name=" + name + fmt.Sprintf(":%d", prt))
 
