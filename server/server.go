@@ -63,9 +63,10 @@ func (s *Server) Add(key, value string) error {
 	}
 	err = s.cs.SendTransaction(dat, entry.TxnID)
 	if err != nil {
-		s.logger.Fatalf("%v", err)
+		s.logger.Errorf("%v", err)
 		return err
 	}
+	// Here we have to do something with transactionID
 	err = s.kv.SetRecord(&dat)
 	if err != nil {
 		s.logger.Fatalf("%v", err)

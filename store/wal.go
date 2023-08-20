@@ -67,12 +67,8 @@ var (
 )
 
 const (
-	MAX_BUFFER_SIZE = 30000
+	MAX_BUFFER_SIZE = 300000
 	MAX_FILE_SIZE   = 100000000
-)
-
-var (
-	file_counter = 0
 )
 
 func NewWAL(prefix, directory string, fs fileService, duration int, lg *logger.Logger) *WAL {

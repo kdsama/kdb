@@ -282,7 +282,6 @@ func (kvs *KVService) GetLastTransaction() (string, error) {
 	return latestTransaction.TxnID, nil
 }
 
-func (kvs *KVService) Load() error {
+// func (kvs *KVService) Load() error {
 
-	return nil
-}
+// }

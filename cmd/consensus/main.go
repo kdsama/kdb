@@ -39,21 +39,23 @@ import (
 	"google.golang.org/grpc"
 )
 
-var (
-	port = flag.Int("port", 50051, "The server port")
-)
-
 func main() {
-	flag.Parse()
+
 	var (
-		lis, err = net.Listen("tcp", fmt.Sprintf(":%d", *port))
-		name     = os.Args[1]
+		prt = flag.Int("port", 50051, "The server port")
+		nm  = flag.String("name", "", "This is the name of the node")
+	)
+	flag.Parse()
+
+	var (
+		port     = *prt
+		name     = *nm
+		lis, err = net.Listen("tcp", fmt.Sprintf(":%d", port))
 		s        *grpc.Server
 		opts     = logger.ToOutput(os.Stdout)
 		opts1    = logger.DateOpts(false)
 		logger   = logger.New(logger.Info, opts, opts1)
 	)
-
 	if name == "" {
 		log.Fatal("container name is required, exitting")
 	}
@@ -63,12 +65,13 @@ func main() {
 	}
 	s = grpc.NewServer()
 
-	cs := consensus.NewConsensusService(name, logger)
+	cs := consensus.NewConsensusService(fmt.Sprintf("%s:%d", name, port), logger)
 
 	go cs.Init()
 
 	// initializing services
 	kv := store.NewKVService(config.DataPrefix, config.WalPrefix, config.Directory, config.WalBufferInterval, config.BtreeDegree, logger)
+	kv.Init()
 	SR := server.New(kv, cs, logger)
 
 	go ServerHttp()

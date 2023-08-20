@@ -30,6 +30,7 @@ reload:
 	sudo rm -rf data/*
 	make build 
 	make add
+	docker restart prom 
 
 
 restart:

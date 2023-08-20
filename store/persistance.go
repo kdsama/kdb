@@ -107,7 +107,8 @@ func (p *Persistance) GetNodesInParallel(buffered_channel chan string) {
 	for file_dir := range buffered_channel {
 		n, err := p.GetNodeFromAbsolutePath(file_dir)
 		if err != nil {
-			p.logger.Fatalf(err.Error())
+			// p.logger.Fatalf(err.Error())
+			p.logger.Infof("For now we will say there is no error but terhe is %s", err.Error())
 		} else {
 			p.mut.Lock()
 			p.nodes = append(p.nodes, n)

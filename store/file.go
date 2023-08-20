@@ -236,7 +236,8 @@ func (fsv *fileService) GetAllFilesInDirectory(root string, string_arr *[]string
 	wg := sync.WaitGroup{}
 	files, err := ioutil.ReadDir(root)
 	if err != nil {
-
+		fmt.Println("For now we say there is no error ")
+		return
 		log.Fatal(err)
 	}
 	for _, file := range files {

@@ -1,12 +1,14 @@
 package consensus
 
 import (
+	"fmt"
 	"time"
 )
 
 func (cs *ConsensusService) Broadcast(addresses []string) error {
 	// add the node if it doesnot exist already
 	for _, addr := range addresses {
+		fmt.Println("Addr")
 		if addr == cs.name {
 			continue
 		}
@@ -25,7 +27,6 @@ func (cs *ConsensusService) Broadcast(addresses []string) error {
 	// a new initialization, no cron has been started yet.
 	if cs.currLeader == "" {
 		if len(cs.clients) == 0 {
-			cs.logger.Infof("Elect myself tobe a leader")
 			cs.requestElection()
 		} else {
 

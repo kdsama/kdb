@@ -31,7 +31,7 @@ var (
 	}, []string{"reqtype"})
 )
 
-var letters = []rune("abcdefghijklmnopqrstuvwxyz")
+var letters = []rune("abcde")
 
 // we need to have connections to the servers present here
 // we would also need
@@ -130,15 +130,7 @@ func (s *service) addServer(addr string) error {
 		if len(s.addresses) == 1 {
 			s.leader = addr
 		}
-		// removed leader code
-		// if len(s.addresses)-1 == 0 {
-		// 	s.clients[addr].leader = true
-		// 	s.leader = addr
-		// 	// first server<-- make it the leader
-		// }
 		s.broadcast()
-		// s.shareAllAddressesWithNewNode(addr)
-		// we also need to broadcast all the addresses to the newbie
 
 	} else {
 		return errors.New("Already present, so not going to broadcast or make it a leader")
@@ -171,9 +163,11 @@ func (s *service) broadcast() error {
 	defer cancel()
 	wg := sync.WaitGroup{}
 	for _, addr := range s.addresses {
+		addr := addr
 		n := *s.clients[addr].con
 		wg.Add(1)
 		go func() {
+
 			defer wg.Done()
 			response, err := n.Broadcast(ctx, &pb.BroadcastNode{Addr: s.addresses})
 			if err != nil {
@@ -190,15 +184,17 @@ func (s *service) broadcast() error {
 func (s *service) set(key, val string) error {
 	t := time.Now()
 
-	requestsTotal.WithLabelValues("Set").Inc()
 	n := *s.clients[s.leader].con
 	ctx, cancel := context.WithTimeout(context.Background(), 300*time.Millisecond)
 	defer cancel()
 	_, err := n.Set(ctx, &pb.SetKey{Key: key, Value: val})
-	requestLatency.WithLabelValues("Set").Observe(float64(time.Since(t)) / 1000_000)
+
 	if err != nil {
+		requestsTotal.WithLabelValues("SetError").Inc()
 		return err
 	}
+	requestsTotal.WithLabelValues("Set").Inc()
+	requestLatency.WithLabelValues("Set").Observe(float64(time.Since(t)) / 1000_000)
 	return nil
 }
 
@@ -230,7 +226,7 @@ func (s *service) automateSet(duration, requests, sleep string) (int, error) {
 
 			go func() {
 				rand.Seed(time.Now().UnixNano())
-				err := s.set("key"+randSeq(rand.Intn(2)), randSeq(rand.Intn(1000)))
+				err := s.set("key"+randSeq(rand.Intn(3)), randSeq(rand.Intn(1000)))
 				if err != nil {
 
 					errCount++
@@ -276,7 +272,7 @@ func (s *service) automateGet(duration, requests, sleep string) (int, error) {
 			go func() {
 
 				rand.Seed(time.Now().UnixNano())
-				s.getRandom("key" + fmt.Sprint(rand.Intn(10000)))
+				s.getRandom("key" + fmt.Sprint("key"+randSeq(rand.Intn(5))))
 
 			}()
 		}
@@ -306,6 +302,8 @@ func (s *service) get(key string) (string, error) {
 }
 
 func (s *service) getRandom(key string) (string, error) {
+	t := time.Now()
+	requestsTotal.WithLabelValues("GetRandom").Inc()
 	cl := s.getRandomClient()
 
 	n := *s.clients[cl].con
@@ -313,8 +311,11 @@ func (s *service) getRandom(key string) (string, error) {
 	defer cancel()
 	val, err := n.Get(ctx, &pb.GetKey{Key: key})
 	if err != nil {
-		return "", err
+		requestsTotal.WithLabelValues("GetRandomError").Inc()
+		requestLatency.WithLabelValues("GetRandom").Observe(float64(time.Since(t)) / 1000_000)
+		return "", nil
 	}
+	requestLatency.WithLabelValues("GetRandom").Observe(float64(time.Since(t)) / 1000_000)
 	return val.Value, nil
 }
 
@@ -325,7 +326,7 @@ func (s *service) getRandomClient() string {
 
 func connect(addr string) (*pb.ConsensusClient, error) {
 
-	conn, err := grpc.Dial(addr+":50051", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.Dial(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return nil, err
 	}
