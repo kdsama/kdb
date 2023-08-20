@@ -10,6 +10,7 @@ import (
 	"github.com/kdsama/kdb/protodata"
 )
 
+// request for election . If the node is the only standing one, it elects itself as a leader
 func (cs *ConsensusService) requestElection() {
 	if len(cs.clients) == 0 {
 		cs.state = Leader
@@ -21,8 +22,9 @@ func (cs *ConsensusService) requestElection() {
 
 }
 
+// election process, with a  random timeOut.
 func (cs *ConsensusService) askForVote() {
-	// we give ourselves vote first
+	// Lock so it doesnot collide with a voting request that might be received at the same time.
 	rand.Seed(time.Now().UnixMicro())
 	time.Sleep(time.Duration(50+rand.Intn(150)) * time.Millisecond)
 	cs.clientMux.Lock()
@@ -36,10 +38,8 @@ func (cs *ConsensusService) askForVote() {
 		term = cs.term
 		// leader string
 	)
-	cs.logger.Infof("%s is the term in lock ", cs.term)
-	count := 0
+	count := 0 // we dont give ourselves vote as we dont have ourselves in the client list
 	for key, _ := range cs.clients {
-		//cs.Votefor Me()
 		wg.Add(1)
 		key := key
 		go func() {
@@ -49,6 +49,7 @@ func (cs *ConsensusService) askForVote() {
 			defer cancel()
 			conn := *cs.clients[key].con
 
+			// Vote Request through RPC
 			r, err := conn.Vote(ctx, &protodata.VoteNode{Term: int32(term), Leader: cs.currLeader, Votes: []string{}})
 			cs.logger.Infof("%v this is the vote response", r)
 			if err != nil || !r.Status {
@@ -57,16 +58,19 @@ func (cs *ConsensusService) askForVote() {
 			cs.clientMux.Lock()
 			defer cs.clientMux.Unlock()
 			count++
-			cs.logger.Infof("count %d after vote from %s %d and bool value %v", count, key, len(cs.clients)/2, done)
+
 			if done || count < len(cs.clients)/2 {
 				return
 			}
-			cs.logger.Infof("Are we here though ?????? %d ", term)
+
 			done = true
+			// Once we are not a Candidate or the termState is different from when this function was executed means either we are leader or followe
+			// but not a candidate anymore
 			if cs.state != Candidate || cs.term != term {
 				return
 			}
-			cs.logger.Infof("Are we leader now ??")
+
+			//  Leader state confirmed
 			cs.state = Leader
 			cs.currLeader = cs.name
 		}()

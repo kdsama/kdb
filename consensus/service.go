@@ -45,26 +45,22 @@ const (
 )
 
 type ConsensusService struct {
-	currLeader string
-	name       string
+	currLeader string // currentLeader
+	name       string // name of our server
 	logger     *logger.Logger
-	ticker     *time.Ticker
-	recTicker  *time.Ticker
-	clientMux  *sync.Mutex
-	clients    map[string]*Nodes
+	ticker     *time.Ticker      // duration after which the leader sends the heartbeat
+	recTicker  *time.Ticker      // duration after its checked whether a heartbeat is received
+	clientMux  *sync.Mutex       // mutex Lock
+	clients    map[string]*Nodes // recently connect clients
 	wg         map[string]*sync.WaitGroup
-	state      stateLevel
-	active     int // active nodes
-	lastBeat   time.Time
-	term       int
-
-	init bool
+	state      stateLevel // state is stored (Leader,Follower or Candidate)
+	active     int        // active nodes
+	lastBeat   time.Time  // Last time a heartbeat was received, if not a leader.
+	term       int        // election term
+	init       bool       // turns true when the service is initialized
 }
 
 func NewConsensusService(name string, logger *logger.Logger) *ConsensusService {
-	// ticker := time.NewTicker(time.Duration(5) * time.Second)
-	// recTicker := time.NewTicker(time.Duration(3) * time.Second)
-
 	return &ConsensusService{
 		name:      name,
 		logger:    logger,
@@ -80,19 +76,20 @@ func NewConsensusService(name string, logger *logger.Logger) *ConsensusService {
 	}
 }
 
+// initializes and set our selves as a follower
 func (cs *ConsensusService) Init() {
 	cs.state = Follower
 	cs.logger.Infof("Waiting for the first broadcast")
 	// go cs.Schedule()
 }
 
+// schedules timer for heartbeats and heartbeat acknowledgements
 func (cs *ConsensusService) Schedule() {
 
 	for {
 		select {
 
 		case <-cs.recTicker.C:
-			// need to destroy this, as soon as someone Is elected leader
 			cs.lastHeatBeatCheck()
 		case <-cs.ticker.C:
 			cs.connectClients()
@@ -112,6 +109,7 @@ func (cs *ConsensusService) Get(cname string, key string) (string, error) {
 	return value, err
 }
 
+// sends unconfirmed transactions to all the clients
 func (cs *ConsensusService) SendTransaction(data []byte, TxnID string) error {
 	d := data
 
@@ -148,7 +146,7 @@ func (cs *ConsensusService) SendTransaction(data []byte, TxnID string) error {
 			count++
 		}
 	}
-
+	// quorum check, proceed only if we have gotten atleast half acknowledgements on the transaction
 	if count > quorum {
 
 		return nil
@@ -156,6 +154,7 @@ func (cs *ConsensusService) SendTransaction(data []byte, TxnID string) error {
 	return errTransactionAborted
 }
 
+// transaction confirmation
 func (cs *ConsensusService) SendTransactionConfirmation(data []byte, TxnID string, state config.RecordState) error {
 
 	d := data

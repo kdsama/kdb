@@ -6,19 +6,8 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
+// connect to all the clients
 func (cs *ConsensusService) connectClients() {
-	// get the list of address from the servers.txt
-	// run the below function in different goroutines
-	// lets start with just
-	// now the other node information will be fetched from the client/discovery service
-
-	// The problem here is we need to setup a leader and do the connection afterwards
-	// so it will be better if I put everything in a maddr first
-	// and add new ones to the list by doing a cron call every n seconds
-	// this needs to be re-written
-	// leader should be set here before any connection
-	// and each of them should have the information about the leader as well
-	// need to sit and think this one through
 	for addr, _ := range cs.clients {
 		// dont need to add our selves in the list
 		if addr == cs.name {

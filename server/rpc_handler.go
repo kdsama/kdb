@@ -79,6 +79,8 @@ func (s *Handler) SendRecord(ctx context.Context, in *pb.WalEntry) (*pb.WalRespo
 	return &pb.WalResponse{Message: "ok"}, nil
 
 }
+
+// Handles Get request for keys
 func (s *Handler) Get(ctx context.Context, in *pb.GetKey) (*pb.GetResponse, error) {
 	t := time.Now()
 
@@ -89,6 +91,8 @@ func (s *Handler) Get(ctx context.Context, in *pb.GetKey) (*pb.GetResponse, erro
 	requestLatency.WithLabelValues("Get").Observe(float64(time.Since(t)) / 1000)
 	return &pb.GetResponse{Value: val}, nil
 }
+
+// Handles Set request for keys (ADD)
 func (s *Handler) Set(ctx context.Context, in *pb.SetKey) (*pb.SetKeyResponse, error) {
 	t := time.Now()
 	err := s.server.Add(in.Key, in.Value)
@@ -99,6 +103,7 @@ func (s *Handler) Set(ctx context.Context, in *pb.SetKey) (*pb.SetKeyResponse, e
 	return &pb.SetKeyResponse{Message: "OK"}, nil
 }
 
+// Received Broadcast, sent by the client-discover
 func (s *Handler) Broadcast(ctx context.Context, in *pb.BroadcastNode) (*pb.BroadcastNodeResponse, error) {
 
 	// ADD NODE TO EXISTING NODES
@@ -108,6 +113,7 @@ func (s *Handler) Broadcast(ctx context.Context, in *pb.BroadcastNode) (*pb.Broa
 	return &pb.BroadcastNodeResponse{Message: "Ok"}, nil
 }
 
+// Invoked when a node asks for a vote.
 func (s *Handler) Vote(ctx context.Context, in *pb.VoteNode) (*pb.VoteNodeResponse, error) {
 
 	// ADD NODE TO EXISTING NODES
@@ -117,6 +123,7 @@ func (s *Handler) Vote(ctx context.Context, in *pb.VoteNode) (*pb.VoteNodeRespon
 	return &pb.VoteNodeResponse{Leader: leader, Status: status}, nil
 }
 
+// Gives leader information that is currently stored
 func (s *Handler) LeaderInfo(ctx context.Context, in *pb.AskLeader) (*pb.LeaderInfoResponse, error) {
 	leader, err := s.server.LeaderInfo()
 
@@ -124,15 +131,7 @@ func (s *Handler) LeaderInfo(ctx context.Context, in *pb.AskLeader) (*pb.LeaderI
 
 }
 
-// func (s *Handler) GetSeveral(ctx context.Context, in *pb.GetKey) (*pb.GetSeveralKeys, error) {
-// 	counter++
-// 	val, err := s.kv.GetNode(in.Key)
-// 	if err != nil {
-// 		return &pb.GetResponse{Value: ""}, err
-// 	}
-// 	return &pb.GetResponse{Value: val.Value}, nil
-// }
-
+// initializing Prometheus metrices
 func init() {
 	prometheus.MustRegister(requestsTotal, requestLatency)
 }

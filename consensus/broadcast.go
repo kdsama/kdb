@@ -1,14 +1,13 @@
 package consensus
 
 import (
-	"fmt"
 	"time"
 )
 
+// broadcas
 func (cs *ConsensusService) Broadcast(addresses []string) error {
 	// add the node if it doesnot exist already
 	for _, addr := range addresses {
-		fmt.Println("Addr")
 		if addr == cs.name {
 			continue
 		}
@@ -24,7 +23,6 @@ func (cs *ConsensusService) Broadcast(addresses []string) error {
 		}
 	}
 
-	// a new initialization, no cron has been started yet.
 	if cs.currLeader == "" {
 		if len(cs.clients) == 0 {
 			cs.requestElection()
@@ -34,8 +32,6 @@ func (cs *ConsensusService) Broadcast(addresses []string) error {
 		}
 	}
 
-	// need to implement a scenario
-	// when I become a leader I need to reset the values for all the clients of the lastBeat
 	if cs.recTicker == nil {
 		cs.recTicker = time.NewTicker(700 * time.Millisecond)
 		cs.lastBeat = time.Now()

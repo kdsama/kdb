@@ -10,9 +10,9 @@ import (
 )
 
 type Nodes struct {
-	name     string
-	con      *pb.ConsensusClient
-	ticker   time.Ticker
+	name     string              // name of the connected client
+	con      *pb.ConsensusClient // connection
+	ticker   time.Ticker         //
 	lastBeat time.Time
 	factor   int
 	logger   *logger.Logger
