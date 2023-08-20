@@ -12,7 +12,9 @@ type WalEntry struct {
 
 func NewWalEntry(node *Node, operation string, txnID string) *WalEntry {
 
-	return &WalEntry{node, operation, txnID}
+	return &WalEntry{Node: node,
+		Operation: operation,
+		TxnID:     txnID}
 }
 
 // serializing operations.

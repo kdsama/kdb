@@ -23,7 +23,13 @@ type Node struct {
 
 func NewNode(key string, value string) *Node {
 	t := time.Now().Unix()
-	return &Node{key, value, 0, nil, false, t, commitLevel(Waiting)}
+	return &Node{Key: key,
+		Value:            value,
+		Version:          0,
+		PreviousVersions: nil,
+		Deleted:          false,
+		Timestamp:        t,
+		Commit:           commitLevel(Waiting)}
 }
 
 func (n *Node) CommitNode() {

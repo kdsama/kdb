@@ -35,7 +35,11 @@ type GoogleBTree struct {
 
 func newBTree(degree int, lg *logger.Logger) *GoogleBTree {
 	t := btree.New(degree)
-	return &GoogleBTree{t, lg, &sync.RWMutex{}}
+	return &GoogleBTree{
+		tree:   t,
+		logger: lg,
+		mut:    &sync.RWMutex{},
+	}
 }
 
 func (bt *GoogleBTree) addKeyString(key string) bool {

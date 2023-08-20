@@ -75,7 +75,16 @@ func NewWAL(prefix, directory string, fs fileService, duration int, lg *logger.L
 
 	t := time.Duration(duration) * time.Second
 	ticker := *time.NewTicker(t)
-	wal := WAL{prefix, directory, 0, 0, &sync.Mutex{}, fs, ticker, []byte{}, lg}
+	wal := WAL{
+		prefix:       prefix,
+		directory:    directory,
+		counter:      0,
+		file_counter: 0,
+		lock:         &sync.Mutex{},
+		fs:           fs,
+		ticker:       ticker,
+		latestEntry:  []byte{},
+		logger:       lg}
 
 	wal.setLatestFileCounter()
 	wal.setLatestCounter()

@@ -71,7 +71,13 @@ func NewKVService(dataPrefix, walPrefix, directory string, duration int, degree 
 	hm := NewHashMap(lg)
 	btree := newBTree(degree, lg)
 	ps := NewPersistance(dataPrefix, lg)
-	return &KVService{hm, btree, wal, ps, sync.Mutex{}, lg}
+	return &KVService{
+		hm:     hm,
+		btree:  btree,
+		wal:    wal,
+		ps:     ps,
+		mut:    sync.Mutex{},
+		logger: lg}
 }
 
 func (kvs *KVService) Init() {

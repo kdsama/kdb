@@ -38,7 +38,10 @@ func NewHashMap(lg *logger.Logger) *HashMap {
 	kv := map[string]*Node{}
 	mut := sync.RWMutex{}
 
-	h := &HashMap{kv, &mut, lg}
+	h := &HashMap{
+		kv:     kv,
+		mut:    &mut,
+		logger: lg}
 	go h.mapSize()
 	return h
 }
