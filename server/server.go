@@ -28,7 +28,7 @@ import (
 // so it can be considered as functions for rpcHandlers ?
 
 type Server struct {
-	kv      *store.KVService
+	kv      store.KVer
 	cs      *consensus.ConsensusService
 	logger  *logger.Logger
 	userMap *map[string]string
@@ -77,6 +77,7 @@ func (s *Server) Add(key, value string) error {
 
 func (s *Server) Get(key string) (string, error) {
 	requestsTotal.WithLabelValues("Get Key").Inc()
+
 	// 	Now that we are at the server
 	// we dont need to do the connection work
 	// We just need to return what kv revturns here

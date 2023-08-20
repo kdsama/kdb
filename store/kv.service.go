@@ -48,11 +48,18 @@ var (
 )
 
 type KVer interface {
-	Add(key string, value string) (string, error)
-	Update(key string, value string) (string, error)
-	Delete(key string) (string, error)
-	SetRecord() error
-	Load() error
+	Init()
+	Commit(we *WalEntry) error
+	Abort(we *WalEntry) error
+	Add(key string, value string) (WalEntry, error)
+	Update(key string, value string) (WalEntry, error)
+	Delete(key string) (WalEntry, error)
+	GetNode(key string) (*Node, error)
+	GetManyNodes(key string) ([]Node, error)
+	SerializeRecord(entry *WalEntry) ([]byte, error)
+	AcknowledgeRecord(data *[]byte) error
+	SetRecord(data *[]byte) error
+	GetLastTransaction() (string, error)
 }
 
 type KVService struct {
@@ -256,15 +263,6 @@ func (kvs *KVService) SetRecord(data *[]byte) error {
 	}
 
 	return err
-}
-
-// how  multiple records will be shared ??
-
-func (kvs *KVService) SetRecords() error {
-	// we can chuck this for now
-	// the outer layer will just call our function multiple number of times.
-
-	return nil
 }
 
 func (kvs *KVService) GetLastTransaction() (string, error) {
