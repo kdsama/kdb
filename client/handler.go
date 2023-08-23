@@ -22,7 +22,6 @@ func (ch *clientHandler) AddServer(w http.ResponseWriter, r *http.Request) {
 	t := time.Now()
 	requestsTotal.WithLabelValues("AddServer").Inc()
 	val := r.URL.Query().Get("name")
-
 	if val != "" {
 
 		err := ch.service.addServer(val)

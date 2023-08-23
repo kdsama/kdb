@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	_ "net/http/pprof"
 
 	cd "github.com/kdsama/kdb/client"
 	"github.com/prometheus/client_golang/prometheus/promhttp"

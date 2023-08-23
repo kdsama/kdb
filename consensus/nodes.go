@@ -9,7 +9,7 @@ import (
 	pb "github.com/kdsama/kdb/protodata"
 )
 
-type Nodes struct {
+type Node struct {
 	name     string              // name of the connected client
 	con      *pb.ConsensusClient // connection
 	ticker   time.Ticker         //
@@ -20,14 +20,15 @@ type Nodes struct {
 	init     bool
 }
 
-func NewNodes(name string, con *pb.ConsensusClient, factor int, logger *logger.Logger) *Nodes {
+// new client object
+func NewNodes(name string, con *pb.ConsensusClient, factor int, logger *logger.Logger) *Node {
 
 	var (
 		t      = time.Duration(factor) * time.Second
 		ticker = *time.NewTicker(t)
 	)
 
-	c := &Nodes{
+	c := &Node{
 		name:     name,
 		con:      con,
 		ticker:   ticker,
@@ -35,11 +36,13 @@ func NewNodes(name string, con *pb.ConsensusClient, factor int, logger *logger.L
 		factor:   factor,
 		logger:   logger,
 		delete:   false,
-		init:     false}
+		init:     false,
+	}
 	return c
 }
 
-func (c *Nodes) Hearbeat() error {
+// Hearbeat to this particular client
+func (c *Node) Hearbeat() error {
 
 	c.init = true
 	ctx, cancel := context.WithTimeout(context.Background(), 300*time.Millisecond)
@@ -63,7 +66,8 @@ func (c *Nodes) Hearbeat() error {
 	return nil
 }
 
-func (c *Nodes) SendRecord(ctx context.Context, data *[]byte, state config.RecordState) error {
+// data sent to client (set transaction or set TransactionConfirmation)
+func (c *Node) SendRecord(ctx context.Context, data *[]byte, state config.RecordState) error {
 	// we should not send it to dead ones
 
 	ctx, cancel := context.WithTimeout(ctx, 300*time.Millisecond)
@@ -82,7 +86,8 @@ func (c *Nodes) SendRecord(ctx context.Context, data *[]byte, state config.Recor
 	return nil
 }
 
-func (c *Nodes) GetRecord(ctx context.Context, key string) (string, error) {
+// client asked for data (get key)
+func (c *Node) GetRecord(ctx context.Context, key string) (string, error) {
 	ctx, cancel := context.WithTimeout(ctx, 300*time.Millisecond)
 	defer cancel()
 	nc := c.con

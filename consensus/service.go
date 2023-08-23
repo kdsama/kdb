@@ -48,10 +48,10 @@ type ConsensusService struct {
 	currLeader string // currentLeader
 	name       string // name of our server
 	logger     *logger.Logger
-	ticker     *time.Ticker      // duration after which the leader sends the heartbeat
-	recTicker  *time.Ticker      // duration after its checked whether a heartbeat is received
-	clientMux  *sync.Mutex       // mutex Lock
-	clients    map[string]*Nodes // recently connect clients
+	ticker     *time.Ticker     // duration after which the leader sends the heartbeat
+	recTicker  *time.Ticker     // duration after its checked whether a heartbeat is received
+	clientMux  *sync.Mutex      // mutex Lock
+	clients    map[string]*Node // recently connect clients
 	wg         map[string]*sync.WaitGroup
 	state      stateLevel // state is stored (Leader,Follower or Candidate)
 	active     int        // active nodes
@@ -66,7 +66,7 @@ func NewConsensusService(name string, logger *logger.Logger) *ConsensusService {
 		logger:    logger,
 		ticker:    nil,
 		clientMux: &sync.Mutex{},
-		clients:   map[string]*Nodes{},
+		clients:   map[string]*Node{},
 		wg:        map[string]*sync.WaitGroup{},
 		state:     Initializing,
 		active:    0,

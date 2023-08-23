@@ -8,6 +8,7 @@ const (
 	draw
 )
 
+// checking for quorun election, not being used as of now
 func quorumElection(total, acquiredVotes int) result {
 
 	// total does not include ourselves
@@ -25,6 +26,7 @@ func quorumElection(total, acquiredVotes int) result {
 
 }
 
+// quorum check for Any transaction operation
 func quorumOperation(total, acquiredVotes int) result {
 	var (
 		halfVote = float32(total) / 2

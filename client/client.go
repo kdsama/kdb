@@ -31,7 +31,7 @@ var (
 	}, []string{"reqtype"})
 )
 
-var letters = []rune("abcde")
+var letters = []rune("abcdefgh")
 
 // we need to have connections to the servers present here
 // we would also need
@@ -116,6 +116,7 @@ func (s *service) addServer(addr string) error {
 	if !ok {
 		client, err := connect(addr)
 		if err != nil {
+			fmt.Println("Connected ???", err)
 			return errors.New("cannot connect to the server")
 
 		}
@@ -169,8 +170,10 @@ func (s *service) broadcast() error {
 		go func() {
 
 			defer wg.Done()
+
 			response, err := n.Broadcast(ctx, &pb.BroadcastNode{Addr: s.addresses})
 			if err != nil {
+
 				fmt.Println(err, addr)
 			}
 			fmt.Println(response)
