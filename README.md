@@ -1,7 +1,7 @@
 # kdb
 Distributed Key-Value Store (Master's Project)
 
-```markdown
+
 # Distributed Key-Value Store
 
 <!--- ![Project Demo](demo.gif) <!-- Replace with a link to your project demo or a GIF showcasing it --> 
@@ -106,6 +106,6 @@ For any inquiries or suggestions, contact [kshitij.dhingra5@gmail.com].
 
 ---
 Customize this template with your specific project details, setup instructions, and usage guidelines.
-```
+
 
 Please integrate your code and details from the previous messages into this template to create a comprehensive `README.md` file for your distributed key-value store project.
