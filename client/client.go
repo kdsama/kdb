@@ -31,7 +31,7 @@ var (
 	}, []string{"reqtype"})
 )
 
-var letters = []rune("abcdefgh")
+var letters = []rune("abcdefghijklmnopq")
 
 // we need to have connections to the servers present here
 // we would also need
@@ -275,7 +275,7 @@ func (s *service) automateGet(duration, requests, sleep string) (int, error) {
 			go func() {
 
 				rand.Seed(time.Now().UnixNano())
-				s.getRandom("key" + fmt.Sprint("key"+randSeq(rand.Intn(5))))
+				s.getRandom("key" + fmt.Sprint("key"+randSeq(rand.Intn(3))))
 
 			}()
 		}
