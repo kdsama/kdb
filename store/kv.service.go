@@ -6,7 +6,7 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/kdsama/kdb/logger"
+	"go.uber.org/zap"
 )
 
 // Now here is the service that will bind everything together
@@ -68,10 +68,10 @@ type KVService struct {
 	wal    *WAL
 	ps     *Persistance
 	mut    sync.Mutex
-	logger *logger.Logger
+	logger *zap.SugaredLogger
 }
 
-func NewKVService(dataPrefix, walPrefix, directory string, duration int, degree int, lg *logger.Logger) *KVService {
+func NewKVService(dataPrefix, walPrefix, directory string, duration int, degree int, lg *zap.SugaredLogger) *KVService {
 	// load all the data
 	fs := NewFileService()
 	wal := NewWAL(walPrefix, directory, *fs, duration, lg)

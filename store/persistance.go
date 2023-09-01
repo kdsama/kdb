@@ -9,8 +9,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/kdsama/kdb/logger"
 	"github.com/prometheus/client_golang/prometheus"
+	"go.uber.org/zap"
 )
 
 const (
@@ -36,10 +36,10 @@ type Persistance struct {
 	mut    *sync.Mutex
 	wg     sync.WaitGroup
 	nodes  []Node
-	logger *logger.Logger
+	logger *zap.SugaredLogger
 }
 
-func NewPersistance(prefix string, lg *logger.Logger) *Persistance {
+func NewPersistance(prefix string, lg *zap.SugaredLogger) *Persistance {
 	fs := NewFileService()
 
 	return &Persistance{fs: fs,

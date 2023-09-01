@@ -3,18 +3,18 @@ package server
 import (
 	"github.com/kdsama/kdb/config"
 	"github.com/kdsama/kdb/consensus"
-	"github.com/kdsama/kdb/logger"
 	"github.com/kdsama/kdb/store"
+	"go.uber.org/zap"
 )
 
 type Server struct {
 	kv      store.KVer
 	cs      *consensus.ConsensusService
-	logger  *logger.Logger
+	logger  *zap.SugaredLogger
 	userMap *map[string]string
 }
 
-func New(kv *store.KVService, cs *consensus.ConsensusService, logger *logger.Logger) *Server {
+func New(kv *store.KVService, cs *consensus.ConsensusService, logger *zap.SugaredLogger) *Server {
 
 	return &Server{
 		kv:      kv,

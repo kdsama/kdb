@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/kdsama/kdb/logger"
+	"go.uber.org/zap"
 )
 
 var (
@@ -24,7 +24,10 @@ var (
 // Should we also have a persistance buffer ?
 // wal buffer doesn't make sense as of now.
 // Or does it ?
-var lg = logger.New(logger.Info)
+var (
+	rg, _ = zap.NewDevelopment()
+	lg    = rg.Sugar()
+)
 
 func TestKVInit(t *testing.T) {
 

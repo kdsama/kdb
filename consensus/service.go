@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/kdsama/kdb/config"
-	"github.com/kdsama/kdb/logger"
+	"go.uber.org/zap"
 )
 
 // here I need to implement the acknowledgement first
@@ -47,7 +47,7 @@ const (
 type ConsensusService struct {
 	currLeader string // currentLeader
 	name       string // name of our server
-	logger     *logger.Logger
+	logger     *zap.SugaredLogger
 	ticker     *time.Ticker     // duration after which the leader sends the heartbeat
 	recTicker  *time.Ticker     // duration after its checked whether a heartbeat is received
 	clientMux  *sync.Mutex      // mutex Lock
@@ -60,7 +60,7 @@ type ConsensusService struct {
 	init       bool       // turns true when the service is initialized
 }
 
-func NewConsensusService(name string, logger *logger.Logger) *ConsensusService {
+func NewConsensusService(name string, logger *zap.SugaredLogger) *ConsensusService {
 	return &ConsensusService{
 		name:      name,
 		logger:    logger,

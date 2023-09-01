@@ -8,8 +8,8 @@ import (
 	"time"
 	"unsafe"
 
-	"github.com/kdsama/kdb/logger"
 	"github.com/prometheus/client_golang/prometheus"
+	"go.uber.org/zap"
 )
 
 var (
@@ -31,10 +31,10 @@ type keyValue map[string]*Node
 type HashMap struct {
 	kv     keyValue
 	mut    *sync.RWMutex
-	logger *logger.Logger
+	logger *zap.SugaredLogger
 }
 
-func NewHashMap(lg *logger.Logger) *HashMap {
+func NewHashMap(lg *zap.SugaredLogger) *HashMap {
 	kv := map[string]*Node{}
 	mut := sync.RWMutex{}
 

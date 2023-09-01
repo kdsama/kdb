@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/kdsama/kdb/config"
-	"github.com/kdsama/kdb/logger"
 	pb "github.com/kdsama/kdb/protodata"
+	"go.uber.org/zap"
 )
 
 type Node struct {
@@ -15,13 +15,13 @@ type Node struct {
 	ticker   time.Ticker         //
 	lastBeat time.Time
 	factor   int
-	logger   *logger.Logger
+	logger   *zap.SugaredLogger
 	delete   bool
 	init     bool
 }
 
 // new client object
-func NewNodes(name string, con *pb.ConsensusClient, factor int, logger *logger.Logger) *Node {
+func NewNodes(name string, con *pb.ConsensusClient, factor int, logger *zap.SugaredLogger) *Node {
 
 	var (
 		t      = time.Duration(factor) * time.Second

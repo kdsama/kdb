@@ -31,11 +31,11 @@ import (
 
 	"github.com/kdsama/kdb/config"
 	"github.com/kdsama/kdb/consensus"
-	"github.com/kdsama/kdb/logger"
 	pb "github.com/kdsama/kdb/protodata"
 	"github.com/kdsama/kdb/server"
 	"github.com/kdsama/kdb/store"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"go.uber.org/zap"
 	"google.golang.org/grpc"
 )
 
@@ -54,9 +54,9 @@ func main() {
 		promPort = *pprt
 		lis, err = net.Listen("tcp", fmt.Sprintf(":%d", port))
 		s        *grpc.Server
-		opts     = logger.ToOutput(os.Stdout)
-		opts1    = logger.DateOpts(false)
-		logger   = logger.New(logger.Info, opts, opts1)
+		// opts     = logger.ToOutput(os.Stdout)
+		// opts1    = logger.DateOpts(false)
+		logger = setupLogger()
 	)
 	if name == "" {
 		log.Fatal("container name is required, exitting")
@@ -95,4 +95,10 @@ func ServerHttp(promPort string) {
 
 	log.Fatal(http.ListenAndServe(promPort, nil))
 
+}
+
+func setupLogger() *zap.SugaredLogger {
+
+	l, _ := zap.NewDevelopment()
+	return l.Sugar()
 }

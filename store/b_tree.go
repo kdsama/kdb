@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/google/btree"
-	"github.com/kdsama/kdb/logger"
 	"github.com/prometheus/client_golang/prometheus"
+	"go.uber.org/zap"
 )
 
 var btreeLatency = prometheus.NewHistogramVec(prometheus.HistogramOpts{
@@ -29,11 +29,11 @@ type BTree interface {
 
 type GoogleBTree struct {
 	tree   *btree.BTree
-	logger *logger.Logger
+	logger *zap.SugaredLogger
 	mut    *sync.RWMutex
 }
 
-func newBTree(degree int, lg *logger.Logger) *GoogleBTree {
+func newBTree(degree int, lg *zap.SugaredLogger) *GoogleBTree {
 	t := btree.New(degree)
 	return &GoogleBTree{
 		tree:   t,

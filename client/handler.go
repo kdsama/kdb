@@ -4,22 +4,27 @@ import (
 	"fmt"
 	"net/http"
 	"time"
+
+	"go.uber.org/zap"
 )
 
 // here all the handlers will come
 
 type clientHandler struct {
 	service *service
+	l       *zap.SugaredLogger
 }
 
-func NewClientHandler() *clientHandler {
+func NewClientHandler(l *zap.SugaredLogger) *clientHandler {
 	return &clientHandler{
 		service: NewService(),
+		l:       l,
 	}
 }
 
 func (ch *clientHandler) AddServer(w http.ResponseWriter, r *http.Request) {
 	t := time.Now()
+	ch.l.Info("AddServer")
 	requestsTotal.WithLabelValues("AddServer").Inc()
 	val := r.URL.Query().Get("name")
 	if val != "" {
@@ -27,6 +32,8 @@ func (ch *clientHandler) AddServer(w http.ResponseWriter, r *http.Request) {
 		err := ch.service.addServer(val)
 		if err != nil {
 			w.Write([]byte("Not OK"))
+			ch.l.Error(err.Error())
+			zap.Fields(zap.String("api", "add-server"))
 			return
 		}
 		w.Write([]byte("OK"))

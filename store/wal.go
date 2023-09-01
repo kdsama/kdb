@@ -10,8 +10,8 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/kdsama/kdb/logger"
 	"github.com/prometheus/client_golang/prometheus"
+	"go.uber.org/zap"
 )
 
 /* Key: The key represents the unique identifier or name associated with the data being stored. It is used to retrieve or reference the data in the database.
@@ -55,7 +55,7 @@ type WAL struct {
 	fs           fileService
 	ticker       time.Ticker
 	latestEntry  []byte
-	logger       *logger.Logger
+	logger       *zap.SugaredLogger
 }
 
 var (
@@ -71,7 +71,7 @@ const (
 	MAX_FILE_SIZE   = 100000000
 )
 
-func NewWAL(prefix, directory string, fs fileService, duration int, lg *logger.Logger) *WAL {
+func NewWAL(prefix, directory string, fs fileService, duration int, lg *zap.SugaredLogger) *WAL {
 
 	t := time.Duration(duration) * time.Second
 	ticker := *time.NewTicker(t)

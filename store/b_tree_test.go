@@ -3,8 +3,6 @@ package store
 import (
 	"sync"
 	"testing"
-
-	"github.com/kdsama/kdb/logger"
 )
 
 func TestBTree(t *testing.T) {
@@ -16,7 +14,7 @@ func TestBTree(t *testing.T) {
 func TestAddKeyString(t *testing.T) {
 	Sample_Keys := []string{"a", "aa", "a*a", "b", "bc", "bcd", "a", "aa", "a*a", "b", "bc", "bcd", "a", "a"}
 	degree := 4
-	lg := logger.New(logger.Info)
+	// lg := logger.New(logger.Info)
 	btree := newBTree(degree, lg)
 
 	//setKey

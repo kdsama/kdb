@@ -131,7 +131,7 @@ func (s *service) addServer(addr string) error {
 		if len(s.addresses) == 1 {
 			s.leader = addr
 		}
-		s.broadcast()
+		return s.broadcast()
 
 	} else {
 		return errors.New("Already present, so not going to broadcast or make it a leader")
@@ -163,6 +163,7 @@ func (s *service) broadcast() error {
 	ctx, cancel := context.WithTimeout(context.Background(), 300*time.Millisecond)
 	defer cancel()
 	wg := sync.WaitGroup{}
+	var e error
 	for _, addr := range s.addresses {
 		addr := addr
 		n := *s.clients[addr].con
@@ -174,14 +175,14 @@ func (s *service) broadcast() error {
 			response, err := n.Broadcast(ctx, &pb.BroadcastNode{Addr: s.addresses})
 			if err != nil {
 
-				fmt.Println(err, addr)
+				e = err
 			}
 			fmt.Println(response)
 		}()
 	}
 	wg.Wait()
 
-	return nil
+	return e
 }
 
 func (s *service) set(key, val string) error {

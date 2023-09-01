@@ -7,13 +7,16 @@ import (
 
 	cd "github.com/kdsama/kdb/client"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"go.uber.org/zap"
 )
 
 var ()
 
 func main() {
 
-	clh := cd.NewClientHandler()
+	logger := setupLogger()
+	clh := cd.NewClientHandler(logger)
+
 	http.HandleFunc("/add-server", clh.AddServer)
 	// to get data from leader
 	http.HandleFunc("/get", clh.Get)
@@ -31,4 +34,10 @@ func main() {
 	http.Handle("/metrics", promhttp.Handler())
 	log.Fatal(http.ListenAndServe(":8080", nil))
 
+}
+
+func setupLogger() *zap.SugaredLogger {
+
+	l, _ := zap.NewDevelopment()
+	return l.Sugar()
 }
