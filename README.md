@@ -42,8 +42,8 @@ This project showcases a distributed key-value store implementation in Golang. T
 
 ## Getting Started
 
-1. Clone the repository: `git clone https://github.com/your-username/your-repo.git`
-2. Navigate to the project directory: `cd your-repo`
+1. Clone the repository: `git clone https://github.com/kdsama/kdb.git`
+2. Navigate to the project directory: `cd kdb`
 3. Follow the setup instructions in the respective subfolders (`client`, `node`, `store`) to configure and run the components.
 
 ## Usage
@@ -51,42 +51,23 @@ This project showcases a distributed key-value store implementation in Golang. T
 1. Start the nodes: Navigate to the `node` folder and run `go run node.go --port <port_number>` for each node.
 2. Interact with the key-value store using the client application located in the `client` folder. Run the client with `go run client.go --server <server_address>`.
 
-## Example
+## Run
+You can utilize the makefile. Here are the commands 
+To run the project, you can utilize the provided Makefile. Here are some useful commands:
 
-Here's a code snippet demonstrating how to interact with the key-value store from your client application:
+- `make run`: Stops any running containers, builds the Docker image, and brings up the project containers.
+- `make new`: Similar to `make run`, but also cleans the previous data before starting.
+- `make build`: Builds the Docker image for the key-value store.
+- `make stop`: Stops the project containers.
+- `make down`: Stops and removes the project containers.
+- `make test`: Runs tests using the test configuration.
+- `make add`: Adds a key-value pair using the client. Adds 5 nodes. 
+- `make delete`: Deletes a key-value pair using the client.
+- `make deleteAll`: Deletes all key-value pairs using the client.
+- `make proto`: Generates Go code from the consensus.proto file.
+- `make reload`: Deletes all data, rebuilds the Docker image, adds data, and restarts Prometheus. 
+- `make restart`: Deletes all data, rebuilds the Docker image, and adds data.
 
-```go
-// Import the necessary packages
-import (
-    "fmt"
-    "github.com/your-username/your-repo/client"
-)
-
-func main() {
-    // Initialize the client
-    client := client.NewClient("server-address:port")
-
-    // Perform operations
-    key := "example_key"
-    value := "example_value"
-    
-    // Store a value
-    err := client.Store(key, value)
-    if err != nil {
-        fmt.Println("Error storing value:", err)
-    }
-    
-    // Retrieve a value
-    retrievedValue, err := client.Get(key)
-    if err != nil {
-        fmt.Println("Error retrieving value:", err)
-    } else {
-        fmt.Println("Retrieved value:", retrievedValue)
-    }
-    
-    // Perform other operations...
-}
-```
 
 ## Contribution
 
