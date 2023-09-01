@@ -14,7 +14,6 @@ func (cs *ConsensusService) checkHeartbeatOnNodes() {
 	if cs.state != Leader {
 		return
 	}
-	cs.logger.Infof("Checking heartbeat")
 	if len(cs.clients) == 0 {
 		cs.logger.Infof("No clients found but myself so no need to check heartbeat %v  :::: %v", cs.name, cs.clients)
 		return
