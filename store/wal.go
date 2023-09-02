@@ -148,18 +148,16 @@ func (w *WAL) addEntry(node Node, operation string) (WalEntry, error) {
 	newCounter := w.IncrementCounter()
 	txnID := w.prefix + fmt.Sprint(newCounter)
 	walEntry := NewWalEntry(&node, operation, txnID)
-	toAppendData, err := walEntry.serialize()
-	toAppendData = append(toAppendData, byte('\n'))
-	if err != nil {
-		return WalEntry{}, err
-	}
-	w.lock.Lock()
-	w.latestEntry = toAppendData
-	wal_buffer = append(wal_buffer, toAppendData...)
-	w.lock.Unlock()
-	if len(wal_buffer) > MAX_BUFFER_SIZE {
-		go w.BufferUpdate()
-	}
+	// toAppendData, err := walEntry.serialize()
+	// toAppendData = append(toAppendData, byte('\n'))
+	// if err != nil {
+	// 	return WalEntry{}, err
+	// }
+	// w.lock.Lock()
+	// w.latestEntry = toAppendData
+	// wal_buffer = append(wal_buffer, toAppendData...)
+	// w.lock.Unlock()
+	w.logger.Infof("WAL Entry %v", walEntry)
 	return *walEntry, nil
 }
 
@@ -174,7 +172,7 @@ func (w *WAL) AddWALEntry(wal *[]byte) {
 	// but for now leaving it as is
 	w.latestEntry = arr
 	wal_buffer = append(wal_buffer, arr...)
-
+	w.logger.Info("Added a new entry to wal buffer ")
 	w.lock.Unlock()
 
 }

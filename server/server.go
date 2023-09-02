@@ -8,19 +8,19 @@ import (
 )
 
 type Server struct {
-	kv      store.KVer
-	cs      *consensus.ConsensusService
-	logger  *zap.SugaredLogger
-	userMap *map[string]string
+	kv     store.KVer
+	cs     *consensus.ConsensusService
+	logger *zap.SugaredLogger
+	TsMap  *map[string]string
 }
 
 func New(kv *store.KVService, cs *consensus.ConsensusService, logger *zap.SugaredLogger) *Server {
 
 	return &Server{
-		kv:      kv,
-		cs:      cs,
-		logger:  logger,
-		userMap: &map[string]string{},
+		kv:     kv,
+		cs:     cs,
+		logger: logger,
+		TsMap:  &map[string]string{},
 	}
 }
 
@@ -41,6 +41,7 @@ func (s *Server) Add(key, value string) error {
 		return err
 	}
 	err = s.cs.SendTransaction(dat, entry.TxnID)
+
 	if err != nil {
 		s.logger.Errorf("%v", err)
 		return err

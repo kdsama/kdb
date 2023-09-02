@@ -229,8 +229,8 @@ func (s *service) automateSet(duration, requests, sleep string) (int, error) {
 			time.Sleep(time.Duration(sp) * time.Microsecond)
 
 			go func() {
-				rand.Seed(time.Now().UnixNano())
-				err := s.set("key"+randSeq(rand.Intn(3)), randSeq(rand.Intn(1000)))
+				// rand.Seed(time.Now().UnixNano())
+				err := s.set("key"+randSeq(rand.Intn(3)), randSeq(rand.Intn(10)))
 				if err != nil {
 
 					errCount++

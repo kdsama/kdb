@@ -56,7 +56,7 @@ func (cs *ConsensusService) checkHeartbeatOnNodes() {
 			return
 		}
 	}
-	cs.logger.Errorf("Leader with a broken Quorum")
+
 	pid := os.Getpid()
 	syscall.Kill(pid, syscall.SIGINT)
 
@@ -69,7 +69,7 @@ func (cs *ConsensusService) HeartbeatAck() {
 	}
 	cs.state = Follower
 	cs.lastBeat = time.Now()
-	cs.logger.Infof("Received heartbeat from %s", cs.currLeader)
+	// cs.logger.Infof("Received heartbeat from %s", cs.currLeader)
 }
 
 // last heart beat check , this will help us decide the candidacy

@@ -44,7 +44,7 @@ func (cs *ConsensusService) connectClients() {
 		// we are going to generate heartbeat from the server code instead of nodes.go
 	}
 	if cs.state == Leader {
-		cs.logger.Infof("Leader %s ::Sending Heartbeat", cs.name)
+		// cs.logger.Infof("Leader %s ::Sending Heartbeat", cs.name)
 		cs.checkHeartbeatOnNodes()
 	}
 }

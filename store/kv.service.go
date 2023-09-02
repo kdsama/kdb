@@ -207,7 +207,7 @@ func (kvs *KVService) AcknowledgeRecord(data *[]byte) error {
 	}
 
 	// we dont have to deserialize data that is already deserialized
-	kvs.wal.AddWALEntry(data)
+	// kvs.wal.AddWALEntry(data)
 
 	return nil
 }

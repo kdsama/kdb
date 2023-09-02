@@ -99,6 +99,6 @@ func ServerHttp(promPort string) {
 
 func setupLogger() *zap.SugaredLogger {
 
-	l, _ := zap.NewDevelopment()
+	l, _ := zap.NewProduction()
 	return l.Sugar()
 }
