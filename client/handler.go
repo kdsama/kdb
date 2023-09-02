@@ -41,7 +41,7 @@ func (ch *clientHandler) AddServer(w http.ResponseWriter, r *http.Request) {
 	} else {
 		w.Write([]byte("Not OK"))
 	}
-	requestLatency.WithLabelValues("AddServer").Observe(float64(time.Since(t)) / 1000)
+	requestLatency.WithLabelValues("AddServer").Observe(float64(time.Since(t).Milliseconds()))
 }
 
 func (ch *clientHandler) Get(w http.ResponseWriter, r *http.Request) {
@@ -55,7 +55,7 @@ func (ch *clientHandler) Get(w http.ResponseWriter, r *http.Request) {
 	} else {
 		w.Write([]byte(fmt.Sprintf("Key :: %s, value :: %s ::", key, val)))
 	}
-	requestLatency.WithLabelValues("Get").Observe(float64(time.Since(t)) / 1000)
+	requestLatency.WithLabelValues("Get").Observe(float64(time.Since(t).Milliseconds()))
 
 }
 
@@ -75,7 +75,7 @@ func (ch *clientHandler) GetRandom(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(fmt.Sprintf("Key :: %s, value :: %s ::", key, val)))
 	}
 
-	requestLatency.WithLabelValues("GetRandom").Observe(float64(time.Since(t)) / 1000)
+	requestLatency.WithLabelValues("GetRandom").Observe(float64(time.Since(t).Milliseconds()))
 }
 
 func (ch *clientHandler) Set(w http.ResponseWriter, r *http.Request) {

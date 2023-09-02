@@ -5,6 +5,7 @@ import (
 	"errors"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"go.uber.org/zap"
 )
@@ -69,6 +70,9 @@ type KVService struct {
 	ps     *Persistance
 	mut    sync.Mutex
 	logger *zap.SugaredLogger
+
+	txnTimestampMut sync.RWMutex
+	txnTimestamp    map[string]int64 // No concurrent hits on the same key, so keys can be safely deleted
 }
 
 func NewKVService(dataPrefix, walPrefix, directory string, duration int, degree int, lg *zap.SugaredLogger) *KVService {
@@ -79,12 +83,15 @@ func NewKVService(dataPrefix, walPrefix, directory string, duration int, degree 
 	btree := newBTree(degree, lg)
 	ps := NewPersistance(dataPrefix, lg)
 	return &KVService{
-		hm:     hm,
-		btree:  btree,
-		wal:    wal,
-		ps:     ps,
-		mut:    sync.Mutex{},
-		logger: lg}
+		hm:              hm,
+		btree:           btree,
+		wal:             wal,
+		ps:              ps,
+		mut:             sync.Mutex{},
+		logger:          lg,
+		txnTimestamp:    map[string]int64{},
+		txnTimestampMut: sync.RWMutex{},
+	}
 }
 
 func (kvs *KVService) Init() {
@@ -138,7 +145,7 @@ func (kvs *KVService) Abort(we *WalEntry) error {
 	// this means data is not there in the persistance layer, or hashmap or btree
 	// we just need to log it in wal transactional records
 	// commit the node
-	(*we).Node.Abort()
+	// (*we).Node.Abort()
 	// add it to logs
 	_, err := kvs.wal.addEntry(*(*we).Node, (*we).Operation)
 	return err
@@ -158,7 +165,13 @@ func (kvs *KVService) Add(key string, value string) (WalEntry, error) {
 
 	// need to return the whole WAL log here instead of just transactionID
 	// same for all the other
-	return kvs.wal.addEntry(*node, ADD)
+	wal, err := kvs.wal.addEntry(*node, ADD)
+	if err == nil {
+		kvs.txnTimestampMut.Lock()
+		kvs.txnTimestamp[wal.TxnID] = node.Timestamp
+		kvs.txnTimestampMut.Unlock()
+	}
+	return wal, err
 
 }
 
@@ -201,11 +214,14 @@ func (kvs *KVService) SerializeRecord(entry *WalEntry) ([]byte, error) {
 func (kvs *KVService) AcknowledgeRecord(data *[]byte) error {
 	// check if data is malformed or not
 
-	_, err := deserialize(*data)
+	wal, err := deserialize(*data)
 	if err != nil {
 		return err
 	}
+	kvs.txnTimestampMut.Lock()
 
+	kvs.txnTimestamp[wal.TxnID] = time.Now().UnixMilli()
+	kvs.txnTimestampMut.Unlock()
 	// we dont have to deserialize data that is already deserialized
 	// kvs.wal.AddWALEntry(data)
 
@@ -231,9 +247,18 @@ func (kvs *KVService) SetRecord(data *[]byte) error {
 	if walEntry.Node == nil {
 		kvs.logger.Fatalf("Error caused by this walEntry %v", walEntry)
 	}
-
+	// Update The Node Information
+	// created And Updated Timestamp to be saved now
+	kvs.txnTimestampMut.Lock()
+	walEntry.Node.Timestamp = kvs.txnTimestamp[walEntry.TxnID]
+	// kvs.txnTimestampMut.RUnlock()
+	// `kvs.logger.Infof("%v ::: ", kvs.txnTimestamp[])
+	walEntry.Node.CommitTimestamp = time.Now().UnixMilli()
+	// kvs.txnTimestampMut.Lock()
+	delete(kvs.txnTimestamp, walEntry.TxnID)
+	kvs.txnTimestampMut.Unlock()
 	node, err := kvs.hm.AddNode(walEntry.Node)
-
+	// kvs.logger.Infof("SET %s, took %d Milliseconds", walEntry.Node.Key, (walEntry.Node.CommitTimestamp - walEntry.Node.Timestamp))
 	walEntry.Node = node
 	if err != nil && err != err_Upserted {
 		return err

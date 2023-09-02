@@ -11,7 +11,6 @@ type Server struct {
 	kv     store.KVer
 	cs     *consensus.ConsensusService
 	logger *zap.SugaredLogger
-	TsMap  *map[string]string
 }
 
 func New(kv *store.KVService, cs *consensus.ConsensusService, logger *zap.SugaredLogger) *Server {
@@ -20,7 +19,6 @@ func New(kv *store.KVService, cs *consensus.ConsensusService, logger *zap.Sugare
 		kv:     kv,
 		cs:     cs,
 		logger: logger,
-		TsMap:  &map[string]string{},
 	}
 }
 

@@ -48,7 +48,7 @@ func (bt *GoogleBTree) addKeyString(key string) bool {
 	bt.mut.Lock()
 	bt.tree.ReplaceOrInsert(Key(key))
 	bt.mut.Unlock()
-	btreeLatency.WithLabelValues("put (ms)").Observe(float64(time.Since(t)) / 1000)
+	btreeLatency.WithLabelValues("put (ms)").Observe(float64(time.Since(t).Milliseconds()))
 	return true
 }
 

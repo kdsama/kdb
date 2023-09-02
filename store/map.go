@@ -59,7 +59,7 @@ func (hm *HashMap) AddNode(node *Node) (*Node, error) {
 	hm.mut.Lock()
 	_, ok := hm.kv[node.Key]
 	hm.kv[node.Key] = node
-	hm.kv[node.Key].CommitNode()
+	// hm.kv[node.Key].CommitNode()
 	hm.mut.Unlock()
 	if ok {
 		return node, err_Upserted

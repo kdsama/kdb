@@ -12,37 +12,31 @@ var (
 
 // compact order of the fields will lead to smaller size
 type Node struct {
-	Key              string      `json:"key"`
-	Value            string      `json:"value"`
-	Version          uint32      `json:"version"`
-	PreviousVersions []Node      `json:"-"`
-	Deleted          bool        `json:"deleted"`
-	Timestamp        int64       `json:"timestamp"`
-	Commit           commitLevel `json:"commit"`
+	Key              string `json:"key"`
+	Value            string `json:"value"`
+	Version          uint32 `json:"version"`
+	PreviousVersions []Node `json:"-"`
+	Deleted          bool   `json:"deleted"`
+	Timestamp        int64  `json:"timestamp"`
+	CommitTimestamp  int64  `json:"commitTimestamp"`
+	// Commit           commitLevel `json:"commit"`
 }
 
 func NewNode(key string, value string) *Node {
-	t := time.Now().Unix()
+	t := time.Now().UnixMilli()
 	return &Node{Key: key,
 		Value:            value,
 		Version:          0,
 		PreviousVersions: nil,
 		Deleted:          false,
 		Timestamp:        t,
-		Commit:           commitLevel(Waiting)}
-}
+		// Commit:           commitLevel(Waiting)}
+	}
 
-func (n *Node) CommitNode() {
-	// get current information and put it to prev version
-	n.Commit = Committed
 }
-func (n *Node) Abort() {
-	n.Commit = Aborted
-}
-
 func (n *Node) Update(value string) Node {
 	// get current information and put it to prev version
-	n.PreviousVersions = append(n.PreviousVersions, Node{n.Key, n.Value, n.Version, nil, n.Deleted, n.Timestamp, n.Commit})
+	n.PreviousVersions = append(n.PreviousVersions, Node{n.Key, n.Value, n.Version, nil, n.Deleted, n.Timestamp, 0})
 	n.Value = value
 	n.Version += 1
 	return *n
@@ -57,6 +51,6 @@ func (n *Node) Delete() bool {
 
 func (n *Node) persistanceReady() Node {
 
-	return_node := Node{n.Key, n.Value, n.Version, nil, n.Deleted, n.Timestamp, n.Commit}
+	return_node := Node{n.Key, n.Value, n.Version, nil, n.Deleted, n.Timestamp, 0}
 	return return_node
 }

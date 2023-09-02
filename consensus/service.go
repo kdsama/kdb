@@ -58,6 +58,7 @@ type ConsensusService struct {
 	lastBeat   time.Time  // Last time a heartbeat was received, if not a leader.
 	term       int        // election term
 	init       bool       // turns true when the service is initialized
+
 }
 
 func NewConsensusService(name string, logger *zap.SugaredLogger) *ConsensusService {

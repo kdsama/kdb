@@ -68,12 +68,12 @@ func (s *Handler) SendRecord(ctx context.Context, in *pb.WalEntry) (*pb.WalRespo
 		// a function is required to just add a wal entry
 		t := time.Now()
 		s.server.AcknowledgeRecord(&in.Entry)
-		requestLatency.WithLabelValues("Acknowledge").Observe(float64(time.Since(t)) / 1000)
+		requestLatency.WithLabelValues("Acknowledge").Observe(float64(time.Since(t).Milliseconds()))
 
 	case int32(config.Commit):
 		t := time.Now()
 		s.server.SetRecord(&in.Entry)
-		requestLatency.WithLabelValues("Commit").Observe(float64(time.Since(t)) / 1000)
+		requestLatency.WithLabelValues("Commit").Observe(float64(time.Since(t).Milliseconds()))
 	}
 
 	return &pb.WalResponse{Message: "ok"}, nil
@@ -88,7 +88,7 @@ func (s *Handler) Get(ctx context.Context, in *pb.GetKey) (*pb.GetResponse, erro
 	if err != nil {
 		return &pb.GetResponse{Value: ""}, err
 	}
-	requestLatency.WithLabelValues("Get").Observe(float64(time.Since(t)) / 1000)
+	requestLatency.WithLabelValues("Get").Observe(float64(time.Since(t).Milliseconds()))
 	return &pb.GetResponse{Value: val}, nil
 }
 
@@ -99,7 +99,7 @@ func (s *Handler) Set(ctx context.Context, in *pb.SetKey) (*pb.SetKeyResponse, e
 	if err != nil {
 		return &pb.SetKeyResponse{Message: ""}, err
 	}
-	requestLatency.WithLabelValues("Set").Observe(float64(time.Since(t)) / 1000)
+	requestLatency.WithLabelValues("Set").Observe(float64(time.Since(t).Milliseconds()))
 	return &pb.SetKeyResponse{Message: "OK"}, nil
 }
 
@@ -109,7 +109,7 @@ func (s *Handler) Broadcast(ctx context.Context, in *pb.BroadcastNode) (*pb.Broa
 	// ADD NODE TO EXISTING NODES
 	t := time.Now()
 	s.server.Broadcast(in.Addr, in.Leader)
-	requestLatency.WithLabelValues("Set").Observe(float64(time.Since(t)) / 1000)
+	requestLatency.WithLabelValues("Set").Observe(float64(time.Since(t).Milliseconds()))
 	return &pb.BroadcastNodeResponse{Message: "Ok"}, nil
 }
 
@@ -119,7 +119,7 @@ func (s *Handler) Vote(ctx context.Context, in *pb.VoteNode) (*pb.VoteNodeRespon
 	// ADD NODE TO EXISTING NODES
 	t := time.Now()
 	leader, status := s.server.Vote(int(in.Term), in.Leader, in.Votes)
-	requestLatency.WithLabelValues("Vote_For_Leader").Observe(float64(time.Since(t)) / 1000)
+	requestLatency.WithLabelValues("Vote_For_Leader").Observe(float64(time.Since(t).Milliseconds()))
 	return &pb.VoteNodeResponse{Leader: leader, Status: status}, nil
 }
 

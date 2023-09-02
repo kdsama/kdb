@@ -20,7 +20,7 @@ func NewWalEntry(node *Node, operation string, txnID string) *WalEntry {
 // serializing operations.
 func (we *WalEntry) serialize() ([]byte, error) {
 
-	b := Node{we.Node.Key, we.Node.Value, we.Node.Version, nil, we.Node.Deleted, we.Node.Timestamp, we.Node.Commit}
+	b := Node{we.Node.Key, we.Node.Value, we.Node.Version, nil, we.Node.Deleted, we.Node.Timestamp, we.Node.CommitTimestamp}
 	a := WalEntry{&b, we.Operation, we.TxnID}
 	arr, err := json.Marshal(a)
 	if err != nil {

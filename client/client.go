@@ -198,7 +198,7 @@ func (s *service) set(key, val string) error {
 		return err
 	}
 	requestsTotal.WithLabelValues("Set").Inc()
-	requestLatency.WithLabelValues("Set").Observe(float64(time.Since(t)) / 1000_000)
+	requestLatency.WithLabelValues("Set").Observe(float64(time.Since(t).Milliseconds()))
 	return nil
 }
 
@@ -297,7 +297,7 @@ func (s *service) get(key string) (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 300*time.Millisecond)
 	defer cancel()
 	val, err := n.Get(ctx, &pb.GetKey{Key: key})
-	requestLatency.WithLabelValues("Get").Observe(float64(time.Since(t)) / 1000_000)
+	requestLatency.WithLabelValues("Get").Observe(float64(time.Since(t).Milliseconds()))
 	if err != nil {
 		return "", err
 	}
@@ -306,20 +306,20 @@ func (s *service) get(key string) (string, error) {
 }
 
 func (s *service) getRandom(key string) (string, error) {
-	t := time.Now()
+
 	requestsTotal.WithLabelValues("GetRandom").Inc()
 	cl := s.getRandomClient()
-
+	t := time.Now()
 	n := *s.clients[cl].con
 	ctx, cancel := context.WithTimeout(context.Background(), 300*time.Millisecond)
 	defer cancel()
 	val, err := n.Get(ctx, &pb.GetKey{Key: key})
 	if err != nil {
 		requestsTotal.WithLabelValues("GetRandomError").Inc()
-		requestLatency.WithLabelValues("GetRandom").Observe(float64(time.Since(t)) / 1000_000)
+		requestLatency.WithLabelValues("GetRandom").Observe(float64(time.Since(t).Milliseconds()))
 		return "", nil
 	}
-	requestLatency.WithLabelValues("GetRandom").Observe(float64(time.Since(t)) / 1000_000)
+	requestLatency.WithLabelValues("GetRandom").Observe(float64(time.Since(t).Milliseconds()))
 	return val.Value, nil
 }
 
