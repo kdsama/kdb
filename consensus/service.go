@@ -100,6 +100,10 @@ func (cs *ConsensusService) Schedule() {
 	}
 }
 
+func GetLinearStruct() {
+
+}
+
 func (cs *ConsensusService) GetLinear(key string, ExistingValue string) (string, error) {
 
 	ValueMap := map[string]int{}
@@ -169,6 +173,7 @@ func (cs *ConsensusService) SendTransaction(data []byte, TxnID string) error {
 
 	for err := range resultCh {
 		if err != nil {
+			cs.logger.Info(err)
 			errCount++
 		} else {
 			count++

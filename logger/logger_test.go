@@ -22,15 +22,15 @@ func TestLogger(t *testing.T) {
 	tt := map[string]testCase{
 		"info": {
 			level: Info,
-			want:  inf + "\n" + wrn + "\n" + errorm + "\n",
+			want:  TemplateInfo + inf + "\n" + TemplateWarn + wrn + "\n" + TemplateError + errorm + "\n",
 		},
 		"warn": {
 			level: Warn,
-			want:  wrn + "\n" + errorm + "\n",
+			want:  TemplateWarn + wrn + "\n" + TemplateError + errorm + "\n",
 		},
 		"error": {
 			level: Error,
-			want:  errorm + "\n",
+			want:  TemplateError + errorm + "\n",
 		},
 	}
 
