@@ -191,12 +191,13 @@ func (s *service) set(key, val string) error {
 	n := *s.clients[s.leader].con
 	ctx, cancel := context.WithTimeout(context.Background(), 300*time.Millisecond)
 	defer cancel()
-	_, err := n.Set(ctx, &pb.SetKey{Key: key, Value: val})
+	v, err := n.Set(ctx, &pb.SetKey{Key: key, Value: val})
 
 	if err != nil {
 		requestsTotal.WithLabelValues("SetError").Inc()
 		return err
 	}
+	fmt.Println(v.Message)
 	requestsTotal.WithLabelValues("Set").Inc()
 	requestLatency.WithLabelValues("Set").Observe(float64(time.Since(t).Milliseconds()))
 	return nil
