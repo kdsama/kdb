@@ -47,9 +47,23 @@ func (s *Server) Add(key, value string) error {
 	// Here we have to do something with transactionID
 	err = s.kv.SetRecord(&dat)
 	if err != nil {
-		s.logger.Fatalf("%v", err)
+		s.logger.Fatalf("Woah %v", err)
 	}
 	return s.cs.SendTransactionConfirmation(dat, entry.TxnID, config.Commit)
+
+}
+
+func (s *Server) GetLinear(key string) (string, error) {
+	requestsTotal.WithLabelValues("GetLinear Key ").Inc()
+	node, err := s.kv.GetNode(key)
+	var val string
+	if err == nil {
+		// key migh tbe missing
+		val = node.Value
+	}
+
+	return s.cs.GetLinear(key, val)
+	// return node.Value, nil
 
 }
 

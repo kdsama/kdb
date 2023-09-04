@@ -108,11 +108,11 @@ func TestAdd(t *testing.T) {
 	file := x.wal.getCurrentFileName()
 	data, err := x.ps.fs.ReadLatestFromFile(file)
 	if err != nil {
-		t.Fatal(err)
+		t.Fatal("WTF", err)
 	}
 	wal_entry, err := deserialize([]byte(data))
 	if err != nil {
-		t.Fatal(err)
+		t.Fatal("WTFAS", err)
 	}
 	want := wal_entry.TxnID
 	got := txnID
@@ -138,11 +138,11 @@ func TestUpdate(t *testing.T) {
 	file := x.wal.getCurrentFileName()
 	data, err := x.ps.fs.ReadLatestFromFile(file)
 	if err != nil {
-		t.Fatal(err)
+		t.Fatal("ASASSASA", err)
 	}
 	wal_entry, err := deserialize([]byte(data))
 	if err != nil {
-		t.Fatal(err)
+		t.Fatal("ASdasqwe12312312", err)
 	}
 	want := wal_entry.TxnID
 	got := txnID

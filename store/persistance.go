@@ -66,7 +66,7 @@ func (p *Persistance) Add(node Node) error {
 func serializeNode(node Node) ([]byte, Node) {
 	bytes, err := json.Marshal(node)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("perpepreppreprp", err)
 	}
 	return bytes, node
 }

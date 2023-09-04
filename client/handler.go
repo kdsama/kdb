@@ -98,8 +98,9 @@ func (ch *clientHandler) AutomateGet(w http.ResponseWriter, r *http.Request) {
 	duration := r.URL.Query().Get("duration")
 	tr := r.URL.Query().Get("requests")
 	sleep := r.URL.Query().Get("sleep")
+	linear := r.URL.Query().Get("linear")
 	// we need to send data as well
-	val, err := ch.service.automateGet(duration, tr, sleep)
+	val, err := ch.service.automateGet(duration, tr, sleep, linear)
 	if err != nil {
 		w.Write([]byte(err.Error()))
 	} else {

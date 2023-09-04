@@ -31,7 +31,7 @@ var (
 	}, []string{"reqtype"})
 )
 
-var letters = []rune("abcdefghijklmnopq")
+var letters = []rune("abcd")
 
 // we need to have connections to the servers present here
 // we would also need
@@ -229,8 +229,8 @@ func (s *service) automateSet(duration, requests, sleep string) (int, error) {
 			time.Sleep(time.Duration(sp) * time.Microsecond)
 
 			go func() {
-				// rand.Seed(time.Now().UnixNano())
-				err := s.set("key"+randSeq(rand.Intn(3)), randSeq(rand.Intn(10)))
+				rand.Seed(time.Now().UnixNano())
+				err := s.set("key"+randSeq(rand.Intn(2)), randSeq(rand.Intn(10)))
 				if err != nil {
 
 					errCount++
@@ -246,7 +246,7 @@ func (s *service) automateSet(duration, requests, sleep string) (int, error) {
 	return curr, nil
 }
 
-func (s *service) automateGet(duration, requests, sleep string) (int, error) {
+func (s *service) automateGet(duration, requests, sleep, linear string) (int, error) {
 	rp, sp := 100000, 50
 
 	if mcurr != 0 {
@@ -274,9 +274,13 @@ func (s *service) automateGet(duration, requests, sleep string) (int, error) {
 			time.Sleep(time.Duration(sp) * time.Microsecond)
 
 			go func() {
-
-				rand.Seed(time.Now().UnixNano())
-				s.getRandom("key" + fmt.Sprint("key"+randSeq(rand.Intn(3))))
+				if linear != "" {
+					rand.Seed(time.Now().UnixNano())
+					s.getRandomLinear(fmt.Sprint("key" + randSeq(rand.Intn(2))))
+				} else {
+					rand.Seed(time.Now().UnixNano())
+					s.getRandom(fmt.Sprint("key" + randSeq(rand.Intn(2))))
+				}
 
 			}()
 		}
@@ -296,7 +300,7 @@ func (s *service) get(key string) (string, error) {
 	n := *s.clients[cl].con
 	ctx, cancel := context.WithTimeout(context.Background(), 300*time.Millisecond)
 	defer cancel()
-	val, err := n.Get(ctx, &pb.GetKey{Key: key})
+	val, err := n.GetLinear(ctx, &pb.GetKey{Key: key})
 	requestLatency.WithLabelValues("Get").Observe(float64(time.Since(t).Milliseconds()))
 	if err != nil {
 		return "", err
@@ -320,6 +324,28 @@ func (s *service) getRandom(key string) (string, error) {
 		return "", nil
 	}
 	requestLatency.WithLabelValues("GetRandom").Observe(float64(time.Since(t).Milliseconds()))
+	return val.Value, nil
+}
+
+func (s *service) getRandomLinear(key string) (string, error) {
+
+	requestsTotal.WithLabelValues("GetRandomLinear").Inc()
+	cl := s.leader
+
+	t := time.Now()
+	n := *s.clients[cl].con
+	ctx, cancel := context.WithTimeout(context.Background(), 1000*time.Millisecond)
+	defer cancel()
+	val, err := n.GetLinear(ctx, &pb.GetKey{Key: key})
+
+	if err != nil {
+		fmt.Println("??", err)
+		requestsTotal.WithLabelValues("GetRandomLinearError").Inc()
+		requestLatency.WithLabelValues("GetRandomLinear").Observe(float64(time.Since(t).Milliseconds()))
+		return "", nil
+	}
+
+	requestLatency.WithLabelValues("GetRandomLinear").Observe(float64(time.Since(t).Milliseconds()))
 	return val.Value, nil
 }
 

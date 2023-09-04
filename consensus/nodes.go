@@ -88,7 +88,9 @@ func (c *Node) SendRecord(ctx context.Context, data *[]byte, state config.Record
 
 // client asked for data (get key)
 func (c *Node) GetRecord(ctx context.Context, key string) (string, error) {
-	ctx, cancel := context.WithTimeout(ctx, 300*time.Millisecond)
+	ctx, cancel := context.WithTimeout(ctx, 800*time.Millisecond)
+	// t := time.Now()
+
 	defer cancel()
 	nc := c.con
 	res, err := (*nc).Get(ctx, &pb.GetKey{Key: key})
@@ -96,6 +98,6 @@ func (c *Node) GetRecord(ctx context.Context, key string) (string, error) {
 		c.logger.Errorf("Ouch, Failed to Get data to %s\n", c.name, err)
 		return "", err
 	}
-
+	// c.logger.Infof("Time taken in ms ::: %d", time.Since(t).Milliseconds())
 	return res.Value, nil
 }

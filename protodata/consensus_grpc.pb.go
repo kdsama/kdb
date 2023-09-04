@@ -26,6 +26,7 @@ type ConsensusClient interface {
 	SendRecord(ctx context.Context, in *WalEntry, opts ...grpc.CallOption) (*WalResponse, error)
 	Ack(ctx context.Context, in *Hearbeat, opts ...grpc.CallOption) (*HearbeatResponse, error)
 	Get(ctx context.Context, in *GetKey, opts ...grpc.CallOption) (*GetResponse, error)
+	GetLinear(ctx context.Context, in *GetKey, opts ...grpc.CallOption) (*GetResponse, error)
 	Set(ctx context.Context, in *SetKey, opts ...grpc.CallOption) (*SetKeyResponse, error)
 	GetMany(ctx context.Context, in *GetSeveralKeys, opts ...grpc.CallOption) (*GetSeveralResponse, error)
 	Broadcast(ctx context.Context, in *BroadcastNode, opts ...grpc.CallOption) (*BroadcastNodeResponse, error)
@@ -62,6 +63,15 @@ func (c *consensusClient) Ack(ctx context.Context, in *Hearbeat, opts ...grpc.Ca
 func (c *consensusClient) Get(ctx context.Context, in *GetKey, opts ...grpc.CallOption) (*GetResponse, error) {
 	out := new(GetResponse)
 	err := c.cc.Invoke(ctx, "/consensus.Consensus/Get", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *consensusClient) GetLinear(ctx context.Context, in *GetKey, opts ...grpc.CallOption) (*GetResponse, error) {
+	out := new(GetResponse)
+	err := c.cc.Invoke(ctx, "/consensus.Consensus/GetLinear", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -121,6 +131,7 @@ type ConsensusServer interface {
 	SendRecord(context.Context, *WalEntry) (*WalResponse, error)
 	Ack(context.Context, *Hearbeat) (*HearbeatResponse, error)
 	Get(context.Context, *GetKey) (*GetResponse, error)
+	GetLinear(context.Context, *GetKey) (*GetResponse, error)
 	Set(context.Context, *SetKey) (*SetKeyResponse, error)
 	GetMany(context.Context, *GetSeveralKeys) (*GetSeveralResponse, error)
 	Broadcast(context.Context, *BroadcastNode) (*BroadcastNodeResponse, error)
@@ -141,6 +152,9 @@ func (UnimplementedConsensusServer) Ack(context.Context, *Hearbeat) (*HearbeatRe
 }
 func (UnimplementedConsensusServer) Get(context.Context, *GetKey) (*GetResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Get not implemented")
+}
+func (UnimplementedConsensusServer) GetLinear(context.Context, *GetKey) (*GetResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetLinear not implemented")
 }
 func (UnimplementedConsensusServer) Set(context.Context, *SetKey) (*SetKeyResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Set not implemented")
@@ -220,6 +234,24 @@ func _Consensus_Get_Handler(srv interface{}, ctx context.Context, dec func(inter
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ConsensusServer).Get(ctx, req.(*GetKey))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Consensus_GetLinear_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetKey)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ConsensusServer).GetLinear(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/consensus.Consensus/GetLinear",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ConsensusServer).GetLinear(ctx, req.(*GetKey))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -332,6 +364,10 @@ var Consensus_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Get",
 			Handler:    _Consensus_Get_Handler,
+		},
+		{
+			MethodName: "GetLinear",
+			Handler:    _Consensus_GetLinear_Handler,
 		},
 		{
 			MethodName: "Set",

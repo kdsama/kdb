@@ -15,7 +15,7 @@ func (cs *ConsensusService) Broadcast(addresses []string) error {
 
 			client, err := connect(addr)
 			if err != nil {
-				cs.logger.Fatalf("%v", err)
+				cs.logger.Fatalf(" What ??%v", err)
 				return err
 			}
 			cs.clients[addr] = NewNodes(addr, client, 3, cs.logger)

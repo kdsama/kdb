@@ -27,6 +27,8 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"runtime"
+	"runtime/pprof"
 	"syscall"
 
 	"github.com/kdsama/kdb/config"
@@ -38,6 +40,9 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 )
+
+var cpuprofile = flag.String("cpuprofile", "./data/cpu.prof", "write cpu profile to file")
+var memprofile = flag.String("memprofile", "./data/mem.prof", "write cpu profile to file")
 
 func main() {
 
@@ -58,6 +63,49 @@ func main() {
 		// opts1    = logger.DateOpts(false)
 		logger = setupLogger()
 	)
+	if *cpuprofile != "" {
+		fmt.Println("Running with CPU profile")
+		f, err := os.Create(*cpuprofile)
+		if err != nil {
+			log.Fatal(err)
+		}
+		pprof.StartCPUProfile(f)
+	}
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+	go func() {
+		<-sigs
+		fmt.Println("Finished")
+		if *memprofile != "" {
+			f, err := os.Create(*memprofile)
+			if err != nil {
+				log.Fatal(err)
+			}
+			f1, err := os.Create(*memprofile + "1")
+			if err != nil {
+				log.Fatal(err)
+			}
+			f2, err := os.Create(*memprofile + "2")
+			if err != nil {
+				log.Fatal(err)
+			}
+			f3, err := os.Create(*memprofile + "3")
+			if err != nil {
+				log.Fatal(err)
+			}
+			runtime.GC()
+			pprof.Lookup("heap").WriteTo(f, 0)
+			pprof.Lookup("goroutine").WriteTo(f1, 0)
+			pprof.Lookup("threadcreate").WriteTo(f2, 0)
+			pprof.Lookup("block").WriteTo(f3, 0)
+			defer f.Close()
+		}
+		if *cpuprofile != "" {
+			pprof.StopCPUProfile()
+		}
+
+		os.Exit(0)
+	}()
 	if name == "" {
 		log.Fatal("container name is required, exitting")
 	}
@@ -83,9 +131,9 @@ func main() {
 	if err := s.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %v", err)
 	}
-	sig := make(chan os.Signal, 1)
-	signal.Notify(sig, os.Interrupt, syscall.SIGTERM)
-	<-sig
+	// sig := make(chan os.Signal, 1)
+	// signal.Notify(sig, os.Interrupt, syscall.SIGTERM)
+	// <-sig
 
 }
 
@@ -93,7 +141,7 @@ func main() {
 func ServerHttp(promPort string) {
 	http.Handle("/metrics", promhttp.Handler())
 
-	log.Fatal(http.ListenAndServe(promPort, nil))
+	log.Fatal("????????????????????", http.ListenAndServe(promPort, nil))
 
 }
 

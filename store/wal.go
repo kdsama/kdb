@@ -157,7 +157,7 @@ func (w *WAL) addEntry(node Node, operation string) (WalEntry, error) {
 	// w.latestEntry = toAppendData
 	// wal_buffer = append(wal_buffer, toAppendData...)
 	// w.lock.Unlock()
-	w.logger.Infof("WAL Entry %v", walEntry)
+	// w.logger.Infof("WAL Entry %v", walEntry)
 	return *walEntry, nil
 }
 
@@ -172,7 +172,7 @@ func (w *WAL) AddWALEntry(wal *[]byte) {
 	// but for now leaving it as is
 	w.latestEntry = arr
 	wal_buffer = append(wal_buffer, arr...)
-	w.logger.Info("Added a new entry to wal buffer ")
+	// w.logger.Info("Added a new entry to wal buffer ")
 	w.lock.Unlock()
 
 }

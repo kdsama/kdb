@@ -117,6 +117,7 @@ func (dc *dockercli) addContainer(times string) {
 			resp, err := dc.ContainerCreate(context.Background(), &container.Config{
 				Image:        dc.image,
 				Cmd:          []string{"./bin/serveClient", name2},
+				Env:          []string{"GRPC_GO_LOG_VERBOSITY_LEVEL=99", "GRPC_GO_LOG_SEVERITY_LEVEL=info "},
 				ExposedPorts: exposedPorts,
 			}, &container.HostConfig{PortBindings: portBindings}, // Binds: []string{volume + ":/go/src/data"}
 				&network.NetworkingConfig{EndpointsConfig: map[string]*network.EndpointSettings{NETWORK: {NetworkID: NETWORK}}}, nil, name2)

@@ -32,7 +32,7 @@ func main() {
 	http.HandleFunc("/automate-set", clh.AutomateSet)
 	// exposed for metrics monitoring by prometheus
 	http.Handle("/metrics", promhttp.Handler())
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	log.Fatal("??????????????????????????", http.ListenAndServe(":8080", nil))
 
 }
 

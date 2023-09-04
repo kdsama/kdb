@@ -100,6 +100,33 @@ func (cs *ConsensusService) Schedule() {
 	}
 }
 
+func (cs *ConsensusService) GetLinear(key string, ExistingValue string) (string, error) {
+
+	ValueMap := map[string]int{}
+	max := 1
+
+	val := ExistingValue
+	ValueMap[val] = 1
+	cs.logger.Info("Being called or not ")
+	for _, client := range cs.clients {
+		value, err := client.GetRecord(context.Background(), key)
+		if err != nil {
+			cs.logger.Infof("%s causing error %v", client.name, err)
+			continue
+		}
+		cs.logger.Infof("Value is ::: %v", value)
+		cs.logger.Infof("Server %s gave us value ::: %s for key ::: %s", client.name, value, key)
+		ValueMap[value]++
+		if max < ValueMap[value] {
+			max = ValueMap[value]
+			val = value
+		}
+
+	}
+
+	return val, nil
+}
+
 func (cs *ConsensusService) Get(cname string, key string) (string, error) {
 	client, ok := cs.clients[cname]
 	if !ok {

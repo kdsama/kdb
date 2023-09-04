@@ -238,7 +238,7 @@ func (fsv *fileService) GetAllFilesInDirectory(root string, string_arr *[]string
 	if err != nil {
 		fmt.Println("For now we say there is no error ")
 		return
-		log.Fatal(err)
+		log.Fatal("BAAAA", err)
 	}
 	for _, file := range files {
 

@@ -81,6 +81,18 @@ func (s *Handler) SendRecord(ctx context.Context, in *pb.WalEntry) (*pb.WalRespo
 }
 
 // Handles Get request for keys
+func (s *Handler) GetLinear(ctx context.Context, in *pb.GetKey) (*pb.GetResponse, error) {
+	t := time.Now()
+
+	val, err := s.server.GetLinear(in.Key)
+	if err != nil {
+		return &pb.GetResponse{Value: ""}, err
+	}
+	requestLatency.WithLabelValues("Get").Observe(float64(time.Since(t).Milliseconds()))
+	return &pb.GetResponse{Value: val}, nil
+}
+
+// Handles Get request for keys
 func (s *Handler) Get(ctx context.Context, in *pb.GetKey) (*pb.GetResponse, error) {
 	t := time.Now()
 

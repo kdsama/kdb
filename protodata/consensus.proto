@@ -27,6 +27,7 @@ service Consensus {
   rpc SendRecord (WalEntry) returns (WalResponse) {}
   rpc Ack(Hearbeat) returns (HearbeatResponse) {}
   rpc Get(GetKey) returns (GetResponse) {}
+  rpc GetLinear(GetKey) returns (GetResponse) {}
   rpc Set(SetKey) returns (SetKeyResponse) {}
   rpc GetMany(GetSeveralKeys) returns (GetSeveralResponse) {}
   rpc Broadcast(BroadcastNode) returns (BroadcastNodeResponse) {}
