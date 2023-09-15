@@ -116,23 +116,23 @@ data_in_bytes := bytes.NewBuffer([]byte(data))
 		os.RemoveAll(prefix)
 		// here we would like to have some sub directories as well as well
 		ws := sync.WaitGroup{}
-		for j := 0; j < b.N; j++ {
-			for i := 0; i < 10000; i++ {
-				a := "/someTest"
-				b := "/someTestAgain"
-				c := "/maybeOtherTest"
-				ws.Add(1)
+		// for j := 0; j < b.N; j++ {
+		for i := 0; i < 10000; i++ {
+			a := "/someTest"
+			b := "/someTestAgain"
+			c := "/maybeOtherTest"
+			ws.Add(1)
 
-				go func() {
-					i := i
-					defer ws.Done()
-					per.Save(a+b+fmt.Sprint(i)+c, &data_in_bytes)
-				}()
+			go func() {
+				i := i
+				defer ws.Done()
+				per.Save(a+b+fmt.Sprint(i)+c, &data_in_bytes)
+			}()
 
-			}
-
-			ws.Wait()
 		}
+
+		ws.Wait()
+		// }
 		os.RemoveAll(prefix)
 
 	})

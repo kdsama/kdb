@@ -19,7 +19,6 @@ type Node struct {
 	Deleted          bool   `json:"deleted"`
 	Timestamp        int64  `json:"timestamp"`
 	CommitTimestamp  int64  `json:"commitTimestamp"`
-	// Commit           commitLevel `json:"commit"`
 }
 
 func NewNode(key string, value string) *Node {

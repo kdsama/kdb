@@ -203,7 +203,7 @@ func (w *WAL) BufferUpdate() {
 	// when we went to the check for max file size , Nothing in previous file was pushed. So everything got pushed into second file.
 	// There is no issue with the incrementer but the policy of bufferUpdate
 
-	if int64(len_buffer)+size > int64(MAX_BUFFER_SIZE) {
+	if int64(len_buffer)+size > int64(MAX_FILE_SIZE) {
 
 		w.IncrementFileCounter()
 	}

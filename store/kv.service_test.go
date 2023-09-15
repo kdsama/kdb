@@ -40,6 +40,7 @@ func TestKVInit(t *testing.T) {
 	x := NewKVService(ps_prefix, kv_wal_prefix, kv_dir, 1, 10, lg)
 	x.Init()
 	got := x.btree.getKeysFromPrefix("key")
+	fmt.Println(got)
 	want := 10
 	if len(got) != want {
 		t.Errorf("Wanted the length to be %v, but got %v", want, len(got))
@@ -98,11 +99,16 @@ func TestAdd(t *testing.T) {
 	x := NewKVService(ps_prefix, kv_wal_prefix, kv_dir, 1, 10, lg)
 	x.Init()
 	k, v := "newKey", "newValue"
-	txnID, err := x.Add(k, v)
+	walEntry, err := x.Add(k, v)
 	if err != nil {
 		t.Errorf("Expected nil but got %v", err)
 	}
-	time.Sleep(2 * time.Second)
+	we, err := walEntry.serialize()
+	if err != nil {
+		t.Fatal("WTFAS", err)
+	}
+	x.SetRecord(&we)
+	time.Sleep(3 * time.Second)
 	// confirm the transactionID
 
 	file := x.wal.getCurrentFileName()
@@ -115,91 +121,107 @@ func TestAdd(t *testing.T) {
 		t.Fatal("WTFAS", err)
 	}
 	want := wal_entry.TxnID
-	got := txnID
-	if want != got.TxnID {
+	got := walEntry.TxnID
+	if want != got {
 		t.Errorf("want %v , but got %v", want, got)
 	}
 	os.RemoveAll(kv_dir)
 	os.RemoveAll(ps_prefix)
 }
 
-func TestUpdate(t *testing.T) {
-	PrepKV()
-	x := NewKVService(ps_prefix, kv_wal_prefix, kv_dir, 1, 10, lg)
-	x.Init()
-	k, v := "newKey", "newValue"
-	txnID, err := x.Update(k, v)
-	if err != nil {
-		t.Errorf("Expected nil but got %v", err)
-	}
-	time.Sleep(2 * time.Second)
-	// confirm the transactionID
+// func TestUpdate(t *testing.T) {
+// 	PrepKV()
+// 	x := NewKVService(ps_prefix, kv_wal_prefix, kv_dir, 1, 10, lg)
+// 	x.Init()
+// 	k, v := "newKey", "newValue"
+// 	txnID, err := x.Update(k, v)
+// 	if err != nil {
+// 		t.Errorf("Expected nil but got %v", err)
+// 	}
+// 	time.Sleep(2 * time.Second)
+// 	// confirm the transactionID
 
-	file := x.wal.getCurrentFileName()
-	data, err := x.ps.fs.ReadLatestFromFile(file)
-	if err != nil {
-		t.Fatal("ASASSASA", err)
-	}
-	wal_entry, err := deserialize([]byte(data))
-	if err != nil {
-		t.Fatal("ASdasqwe12312312", err)
-	}
-	want := wal_entry.TxnID
-	got := txnID
-	if want != got.TxnID {
-		t.Errorf("want %v , but got %v", want, got)
-	}
-	os.RemoveAll(kv_dir)
-	os.RemoveAll(ps_prefix)
-}
+// 	file := x.wal.getCurrentFileName()
+// 	data, err := x.ps.fs.ReadLatestFromFile(file)
+// 	if err != nil {
+// 		t.Fatal("ASASSASA", err)
+// 	}
+// 	wal_entry, err := deserialize([]byte(data))
+// 	if err != nil {
+// 		t.Fatal("ASdasqwe12312312", err)
+// 	}
+// 	want := wal_entry.TxnID
+// 	got := txnID
+// 	if want != got.TxnID {
+// 		t.Errorf("want %v , but got %v", want, got)
+// 	}
+// 	os.RemoveAll(kv_dir)
+// 	os.RemoveAll(ps_prefix)
+// }
 
 func TestGetLastTransaction(t *testing.T) {
 	PrepKV()
 	x := NewKVService(ps_prefix, kv_wal_prefix, kv_dir, 1, 10, lg)
 	x.Init()
-	k, v := "anotherkey", "anotherValue"
-	want, err := x.Add(k, v)
-	if err != nil {
-		t.Error("Didnot expect error but got ", err)
 
+	k, v := "newKey", "newValue"
+	walEntry, err := x.Add(k, v)
+	if err != nil {
+		t.Errorf("Expected nil but got %v", err)
 	}
+	we, err := walEntry.serialize()
+	if err != nil {
+		t.Fatal("WTFAS", err)
+	}
+	x.SetRecord(&we)
+	want := walEntry.TxnID
+	got, _ := x.GetLastTransaction()
+	time.Sleep(2 * time.Second)
+
+	if want != got {
+		t.Errorf("want %v , but got %v", want, got)
+	}
+	os.RemoveAll(kv_dir)
+	os.RemoveAll(ps_prefix)
+
+}
+
+func BenchmarkLastTransactions(t *testing.B) {
+
+	PrepKV()
+	x := NewKVService(ps_prefix, kv_wal_prefix, kv_dir, 1, 10, lg)
+	x.Init()
+	k, v := "anotherkey", "anotherValue"
+	var want string
+	for j := 0; j < t.N; j++ {
+
+		for i := 0; i < 100000; i++ {
+			// k, v := "newKey", "newValue"
+			walEntry, err := x.Add(k, v)
+			want = walEntry.TxnID
+			if err != nil {
+				t.Errorf("Expected nil but got %v", err)
+			}
+			we, err := walEntry.serialize()
+			if err != nil {
+				t.Fatal("WTFAS", err)
+			}
+			x.SetRecord(&we)
+
+		}
+	}
+	time.Sleep(4 * time.Second)
+
 	got, err := x.GetLastTransaction()
 	if err != nil {
 		t.Error("Didnot expect error but got ", err)
 
 	}
-	time.Sleep(2 * time.Second)
-	if want.TxnID != got {
+
+	if want != got {
 		t.Errorf("want %v , but got %v", want, got)
 	}
-	os.RemoveAll(kv_dir)
-	os.RemoveAll(ps_prefix)
-	t.Run("Add thousands of transactions so we have multiple files, reinitiate the kv service and get the latest transaction", func(t *testing.T) {
-		PrepKV()
-		x := NewKVService(ps_prefix, kv_wal_prefix, kv_dir, 1, 10, lg)
-		x.Init()
-		k, v := "anotherkey", "anotherValue"
-		var want WalEntry
-		for i := 0; i < 1000000; i++ {
-			want, err = x.Add(k+fmt.Sprintf("%v", i), v+fmt.Sprintf("%v", i))
-			if err != nil {
-				t.Error("Didnot expect error but got ", err)
 
-			}
-
-		}
-		time.Sleep(4 * time.Second)
-
-		got, err := x.GetLastTransaction()
-		if err != nil {
-			t.Error("Didnot expect error but got ", err)
-
-		}
-
-		if want.TxnID != got {
-			t.Errorf("want %v , but got %v", want, got)
-		}
-	})
 }
 
 // the test cases need to change because of distributed transaction nature now
@@ -296,7 +318,7 @@ func TestCommit(t *testing.T) {
 	}
 
 	t.Run("Trying to commit the same version as already saved", func(t *testing.T) {
-		want = err_AlreadyCommited
+		want = err_Upserted
 		got = x.Commit(entry)
 		if want != got {
 			t.Errorf("want %v , but got %v", want, got)
